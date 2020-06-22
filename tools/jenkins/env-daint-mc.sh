@@ -10,6 +10,7 @@
 export CRAYPE_LINK_TYPE=dynamic
 
 module load daint-gpu
+module load CMake
 module load cudatoolkit
 
 export BOOST_ROOT=$LOCAL_INSTALL/boost-1.69.0-gcc-8.3.0-c++17-release
