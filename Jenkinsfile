@@ -24,6 +24,7 @@ pipeline {
                 dir('hpx') {
                     sh '''
                     #!/bin/bash -l
+                    echo $(pwd)
                     sbatch --wait tools/jenkins/build-daint-gpu.sh
                     echo "---------- build-daint-gpu.out ----------"
                     cat build-daint-gpu.out
