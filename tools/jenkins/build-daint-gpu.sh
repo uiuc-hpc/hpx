@@ -11,6 +11,7 @@ set -eux
 
 source ../tools/jenkins/env-daint-gpu.sh
 
+rm -rf build
 mkdir -p build
 cd build
 export CXX=CC
