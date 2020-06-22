@@ -24,4 +24,4 @@ cmake .. \
     -DHPX_WITH_CUDA=ON \
     -DHPX_WITH_CUDA_CLANG=ON \
     -DHPX_CUDA_CLANG_FLAGS"=--cuda-gpu-arch=sm_60"
-make -j20 VERBOSE=1
+make -j20
