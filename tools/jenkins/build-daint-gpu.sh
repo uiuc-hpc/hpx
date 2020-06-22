@@ -16,7 +16,8 @@ cd build
 export CXX=CC
 export CC=cc
 cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
+    -GNinja \
+    -DCMAKE_BUILD_TYPE=Debug \
     -DBOOST_ROOT=$BOOST_ROOT \
     -DHPX_PROGRAM_OPTIONS_WITH_BOOST_PROGRAM_OPTIONS_COMPATIBILITY=OFF \
     -DHWLOC_ROOT=$HWLOC_ROOT \
@@ -24,4 +25,4 @@ cmake .. \
     -DHPX_WITH_CUDA=ON \
     -DHPX_WITH_CUDA_CLANG=ON \
     -DHPX_CUDA_CLANG_FLAGS"=--cuda-gpu-arch=sm_60"
-make -j20
+ninja all tests examples
