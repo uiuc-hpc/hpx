@@ -25,7 +25,8 @@ pipeline {
                     sh '''
                     #!/bin/bash -l
                     echo $(pwd)
-                    sbatch --wait tools/jenkins/build-daint-gpu.sh
+                    #sbatch --wait tools/jenkins/build-daint-gpu.sh
+                    sbatch --wait tools/jenkins/build-daint-mc.sh
                     echo "---------- build-daint-gpu.out ----------"
                     cat build-daint-gpu.out
                     echo "---------- build-daint-gpu.err ----------"
@@ -34,56 +35,56 @@ pipeline {
                 }
             }
         }
-        stage('test') {
-            parallel {
-                stage('unit tests') {
-                    steps {
-                        dir('hpx/build') {
-                            sh '''
-                            #!/bin/bash -l
-                            sbatch --wait ../tools/jenkins/test-unit-daint-gpu.sh
-                            cat hpx-daint-gpu-unit-tests.err
-                            cat hpx-daint-gpu-unit-tests.out
-                            '''
-                        }
-                    }
-                }
-                stage('regression tests') {
-                    steps {
-                        dir('hpx/build') {
-                            sh '''
-                            #!/bin/bash -l
-                            sbatch --wait ../tools/jenkins/test-regression-daint-gpu.sh
-                            cat hpx-daint-gpu-regression-tests.err
-                            cat hpx-daint-gpu-regression-tests.out
-                            '''
-                        }
-                    }
-                }
-                stage('performance tests') {
-                    steps {
-                        dir('hpx/build') {
-                            sh '''
-                            #!/bin/bash -l
-                            sbatch --wait ../tools/jenkins/test-performance-daint-gpu.sh
-                            cat hpx-daint-gpu-performance-tests.err
-                            cat hpx-daint-gpu-performance-tests.out
-                            '''
-                        }
-                    }
-                }
-            }
-        }
-        stage('submit') {
-            steps {
-                dir('hpx/build') {
-                   sh '''
-                   #!/bin/bash -l
-                   echo TODO: submit to CDash dashboard
-                   '''
-                }
-            }
-        }
+        //stage('test') {
+        //    parallel {
+        //        stage('unit tests') {
+        //            steps {
+        //                dir('hpx/build') {
+        //                    sh '''
+        //                    #!/bin/bash -l
+        //                    sbatch --wait ../tools/jenkins/test-unit-daint-gpu.sh
+        //                    cat hpx-daint-gpu-unit-tests.err
+        //                    cat hpx-daint-gpu-unit-tests.out
+        //                    '''
+        //                }
+        //            }
+        //        }
+        //        stage('regression tests') {
+        //            steps {
+        //                dir('hpx/build') {
+        //                    sh '''
+        //                    #!/bin/bash -l
+        //                    sbatch --wait ../tools/jenkins/test-regression-daint-gpu.sh
+        //                    cat hpx-daint-gpu-regression-tests.err
+        //                    cat hpx-daint-gpu-regression-tests.out
+        //                    '''
+        //                }
+        //            }
+        //        }
+        //        stage('performance tests') {
+        //            steps {
+        //                dir('hpx/build') {
+        //                    sh '''
+        //                    #!/bin/bash -l
+        //                    sbatch --wait ../tools/jenkins/test-performance-daint-gpu.sh
+        //                    cat hpx-daint-gpu-performance-tests.err
+        //                    cat hpx-daint-gpu-performance-tests.out
+        //                    '''
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+        //stage('submit') {
+        //    steps {
+        //        dir('hpx/build') {
+        //           sh '''
+        //           #!/bin/bash -l
+        //           echo TODO: submit to CDash dashboard
+        //           '''
+        //        }
+        //    }
+        //}
     }
 
     post {
