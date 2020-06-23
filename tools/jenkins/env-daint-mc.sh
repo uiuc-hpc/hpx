@@ -13,6 +13,7 @@ module load daint-gpu
 module load CMake
 module load cudatoolkit
 
+export LOCAL_INSTALL=/apps/daint/UES/simbergm/local
 export BOOST_ROOT=$LOCAL_INSTALL/boost-1.69.0-gcc-8.3.0-c++17-release
 export HWLOC_ROOT=$LOCAL_INSTALL/hwloc-2.0.3-gcc-8.3.0
 export CXX=$(which CC)
