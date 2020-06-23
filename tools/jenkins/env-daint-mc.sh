@@ -40,3 +40,4 @@ export CXX=${GCC_ROOT}/bin/g++
 export CC=${GCC_ROOT}/bin/gcc
 
 module load daint-mc
+module load CMake
