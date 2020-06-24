@@ -28,6 +28,6 @@ cmake $srcdir \
     -DHPX_WITH_MAX_CPU_COUNT=128 \
     -DHPX_WITH_MALLOC=system
 
-ninja -j30 all tests
+ninja -j36 all tests
 
-ctest --output-on-failure
+ctest -j9 --output-on-failure
