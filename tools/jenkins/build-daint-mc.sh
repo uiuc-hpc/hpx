@@ -28,6 +28,7 @@ cmake $srcdir \
     -DHPX_WITH_MAX_CPU_COUNT=128 \
     -DHPX_WITH_MALLOC=system
 
-ninja -j36 all tests
+ninja -j8 tests.unit.modules.segmented_algorithms
+ninja core examples tests
 
-ctest -j9 --output-on-failure
+ctest -j8 --output-on-failure
