@@ -11,10 +11,15 @@ set -eux
 
 source ../tools/jenkins/env-daint-mc.sh
 
-srcdir=$(pwd)
+origsrcdir=$(pwd)
+srcdir=/dev/shm/hpx/src
 builddir=/dev/shm/hpx/build
 
 mkdir -p $builddir
+mkdir -p $srcdir
+
+cp -r $origsrcdir/* $srcdir/
+
 cd $builddir
 rm -rf *
 cmake $srcdir \
