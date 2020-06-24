@@ -25,6 +25,7 @@ rm -rf *
 cmake $srcdir \
     -GNinja \
     -DCMAKE_BUILD_TYPE=Debug \
+    -DHPX_WITH_MAX_CPU_COUNT=128 \
     -DHPX_WITH_MALLOC=system
 
 ninja -j30 all tests
