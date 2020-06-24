@@ -18,10 +18,10 @@ mkdir -p $builddir
 cd $builddir
 rm -rf *
 cmake $srcdir \
+    -GNinja \
     -DCMAKE_BUILD_TYPE=Debug \
-    -DHPX_PROGRAM_OPTIONS_WITH_BOOST_PROGRAM_OPTIONS_COMPATIBILITY=OFF \
     -DHPX_WITH_MALLOC=system
 
-make -j10 all tests
+ninja -j30 all tests
 
 ctest --output-on-failure

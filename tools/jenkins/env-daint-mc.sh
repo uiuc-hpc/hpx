@@ -19,7 +19,7 @@
 #export CXX=$(which CC)
 #export CC=$(which cc)
 #
-#export PATH=/apps/daint/UES/simbergm/spack/opt/spack/cray-cnl7-haswell/gcc-8.3.0/ninja-1.10.0-dcy5yzzldhss6wycy2ejjwj7o75dfddz/bin:$PATH
+export PATH=/apps/daint/UES/simbergm/spack/opt/spack/cray-cnl7-haswell/gcc-8.3.0/ninja-1.10.0-dcy5yzzldhss6wycy2ejjwj7o75dfddz/bin:$PATH
 export CRAYPE_LINK_TYPE=dynamic
 
 export LOCAL_ROOT="/apps/daint/UES/simbergm/local"
@@ -33,7 +33,7 @@ export BOOST_ROOT="${LOCAL_ROOT}/boost-${BOOST_VER}-gcc-${GCC_VER}-c++${CXX_STD}
 export HWLOC_ROOT="${LOCAL_ROOT}/hwloc-${HWLOC_VER}-gcc-${GCC_VER}"
 export TCMALLOC_ROOT="${LOCAL_ROOT}/gperftools-${TCMALLOC_VER}-gcc-${GCC_VER}"
 export CFLAGS=""
-export CXXFLAGS="-fdiagnostics-color=always -nostdinc++ -I${GCC_ROOT}/include/c++/${GCC_VER} -I${GCC_ROOT}/include/c++/${GCC_VER}/x86_64-unknown-linux-gnu -I${GCC_ROOT}/include/c++/${GCC_VER}/x86_64-pc-linux-gnu -L${GCC_ROOT}/lib64 -Wl,-rpath,${GCC_ROOT}/lib64"
+export CXXFLAGS="-nostdinc++ -I${GCC_ROOT}/include/c++/${GCC_VER} -I${GCC_ROOT}/include/c++/${GCC_VER}/x86_64-unknown-linux-gnu -I${GCC_ROOT}/include/c++/${GCC_VER}/x86_64-pc-linux-gnu -L${GCC_ROOT}/lib64 -Wl,-rpath,${GCC_ROOT}/lib64"
 export LDFLAGS="-L${GCC_ROOT}/lib64"
 export LDFLAGS="-L${GCC_ROOT}/lib64"
 export CXX=${GCC_ROOT}/bin/g++
