@@ -43,7 +43,7 @@ pipeline {
                                 source tools/jenkins/slurm-constraint-${configuration_name}.sh
                                 echo github_token: ${GITHUB_TOKEN}
                                 rm -rf build
-                                rm jenkins-hpx*
+                                rm -f jenkins-hpx*
                                 sbatch \
                                     --job-name="jenkins-hpx-${configuration_name}" \
                                     --nodes="1" \
