@@ -16,6 +16,7 @@ cp -r $orig_src_dir/. $src_dir
 source ${src_dir}/tools/jenkins/env-${configuration_name}.sh
 
 ctest \
+    --verbose \
     -S ${src_dir}/tools/jenkins/ctest.cmake \
     -DCTEST_CONFIGURE_EXTRA_OPTIONS="${configure_extra_options}" \
     -DCTEST_BUILD_CONFIGURATION_NAME="${configuration_name}" \
