@@ -32,7 +32,11 @@ pipeline {
                             dir('hpx') {
                                 sh '''
                                 #!/bin/bash -l
-                                set -eu
+                                set -e
+                                echo ${env.CHANGE_ID}
+                                echo ${CHANGE_ID}
+                                echo ${env.BRANCH_NAME}
+                                echo ${BRANCH_NAME}
                                 #echo ${ghprbActualCommit}
                                 #echo ${ghprbActualCommitAuthor}
                                 #echo ${ghprbActualCommitEmail}
