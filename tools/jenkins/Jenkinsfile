@@ -48,6 +48,10 @@ pipeline {
                                 #echo ${sha1}
                                 source tools/jenkins/slurm-constraint-${configuration_name}.sh
                                 sbatch --wait tools/jenkins/batch-${configuration_slurm_constraint}.sh
+                                echo "= stdout =================================================="
+                                cat jenkins-hpx-log.out
+                                echo "= stderr =================================================="
+                                cat jenkins-hpx-log.err
                                 '''
                             }
                         }
