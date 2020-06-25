@@ -26,13 +26,13 @@ set(CTEST_CONFIGURE_COMMAND "${CTEST_CONFIGURE_COMMAND} ${CTEST_CONFIGURE_EXTRA_
 
 ctest_start(Experimental TRACK "Pull_Requests")
 ctest_update()
-#ctest_submit(PARTS Update BUILD_ID CTEST_BUILD_ID)
-#file(WRITE "jenkins-hpx-$ENV{configuration_name}-cdash-build-id.txt" "${CTEST_BUILD_ID}")
-#ctest_configure()
-#ctest_submit(PARTS Configure)
-#ctest_build(TARGET tests.unit.modules.algorithms.adjacentdifference)
-#ctest_submit(PARTS Build)
-#ctest_test(
-#  PARALLEL_LEVEL "${CTEST_TEST_PARALLELISM}"
-#  INCLUDE tests.unit.modules.algorithms.adjacentdifference)
-#ctest_submit(PARTS Test)
+ctest_submit(PARTS Update BUILD_ID CTEST_BUILD_ID)
+file(WRITE "jenkins-hpx-$ENV{configuration_name}-cdash-build-id.txt" "${CTEST_BUILD_ID}")
+ctest_configure()
+ctest_submit(PARTS Configure)
+ctest_build(TARGET tests.unit.modules.algorithms.adjacentdifference)
+ctest_submit(PARTS Build)
+ctest_test(
+  PARALLEL_LEVEL "${CTEST_TEST_PARALLELISM}"
+  INCLUDE tests.unit.modules.algorithms.adjacentdifference)
+ctest_submit(PARTS Test)
