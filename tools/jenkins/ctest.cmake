@@ -33,6 +33,9 @@ ctest_submit(PARTS Configure)
 ctest_build(
   TARGET all
   FLAGS "-j ${CTEST_BUILD_PARALLELISM}")
+ctest_build(
+  TARGET tests
+  FLAGS "-j ${CTEST_BUILD_PARALLELISM}")
 ctest_submit(PARTS Build)
 ctest_test(PARALLEL_LEVEL "${CTEST_TEST_PARALLELISM}")
 ctest_submit(PARTS Test)
