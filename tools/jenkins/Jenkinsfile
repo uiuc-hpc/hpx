@@ -70,11 +70,11 @@ pipeline {
                                 fi
 
                                 # Extract just the organization and repo names "org/repo"
-                                github_commit_repo="$(echo $repo | sed 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\1/')"
+                                github_commit_repo="$(echo $GIT_URL | sed 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\1/')"
 
                                 # Get the CDash dashboard build id
                                 cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
-                                ./tools/jenkins/set_github_status \
+                                ./tools/jenkins/set_github_status.sh \
                                     "${GITHUB_TOKEN}" \
                                     "${github_commit_repo}" \
                                     "${GIT_COMMIT}" \
