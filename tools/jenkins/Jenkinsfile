@@ -42,14 +42,16 @@ pipeline {
 
                                 source tools/jenkins/slurm-constraint-${configuration_name}.sh
                                 echo github_token: ${GITHUB_TOKEN}
+                                rm -rf build
+                                rm jenkins-hpx*
                                 sbatch \
-                                    --job-name=jenkins-hpx-${configuration_name} \
-                                    --nodes=1 \
-                                    --constraint=${configuration_slurm_constraint} \
-                                    --partition=cscsci \
-                                    --time=02:00:00 \
-                                    --output=jenkins-hpx-${configuration_name}.out \
-                                    --error=jenkins-hpx-${configuration_name}.err \
+                                    --job-name="jenkins-hpx-${configuration_name}" \
+                                    --nodes="1" \
+                                    --constraint="${configuration_slurm_constraint}" \
+                                    --partition="cscsci" \
+                                    --time="02:00:00" \
+                                    --output="jenkins-hpx-${configuration_name}.out" \
+                                    --error="jenkins-hpx-${configuration_name}.err" \
                                     --wait tools/jenkins/batch.sh
 
                                 echo "= stdout =================================================="
@@ -58,12 +60,27 @@ pipeline {
                                 echo "= stderr =================================================="
                                 cat jenkins-hpx-${configuration_name}.err
 
+                                # Set GitHub status with CDash url
+
+                                # Get build status
                                 if [[ $(cat jenkins-hpx-${configuration_name}-ctest-status.txt) ]]; then
                                     github_commit_status="success"
                                 else
                                     github_commit_status="failure"
                                 fi
-                                ./tools/jenkins/set_github_status ${GITHUB_TOKEN} "${}" ${GIT_COMMIT} ${github_commit_status} ${configuration_name} $(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)
+
+                                # Extract just the organization and repo names "org/repo"
+                                github_commit_repo="$(echo $repo | sed 's/.*\/\([^\/]*\/[^\/]*\).git/\1/')"
+
+                                # Get the CDash dashboard build id
+                                cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
+                                ./tools/jenkins/set_github_status \
+                                    "${GITHUB_TOKEN}" \
+                                    "${github_commit_repo}" \
+                                    "${GIT_COMMIT}" \
+                                    "${github_commit_status}" \
+                                    "${configuration_name}" \
+                                    "${cdash_build_id}"
                                 '''
                             }
                         }
@@ -75,7 +92,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/jenkins-hpx-*.*', fingerprint: true
+            archiveArtifacts artifacts: '**/jenkins-hpx-*', fingerprint: true
         }
     }
 }
