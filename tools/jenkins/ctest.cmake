@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 find_package(Git REQUIRED)
 
 set(CTEST_TEST_TIMEOUT 200)
-set(CTEST_BUILD_PARALLELISM 20)
+set(CTEST_BUILD_PARALLELISM 30)
 set(CTEST_TEST_PARALLELISM 8)
 set(CTEST_CMAKE_GENERATOR Ninja)
 set(CTEST_SITE "cscs(daint)")
@@ -31,10 +31,8 @@ file(WRITE "jenkins-hpx-$ENV{configuration_name}-cdash-build-id.txt" "${CTEST_BU
 ctest_configure()
 ctest_submit(PARTS Configure)
 ctest_build(
-  TARGET tests.unit.modules.algorithms
+  TARGET all
   FLAGS "-j ${CTEST_BUILD_PARALLELISM}")
 ctest_submit(PARTS Build)
-ctest_test(
-  PARALLEL_LEVEL "${CTEST_TEST_PARALLELISM}"
-  INCLUDE tests.unit.modules.algorithms)
+ctest_test(PARALLEL_LEVEL "${CTEST_TEST_PARALLELISM}")
 ctest_submit(PARTS Test)

@@ -1,6 +1,6 @@
 #/usr/bin/env bash
 
-set -eu
+set -eux
 
 github_token=${1}
 commit_repo=${2}
