@@ -33,8 +33,8 @@ pipeline {
                                 sh '''
                                 #!/bin/bash -l
                                 set -e
-                                echo ${CHANGE_ID}
-                                echo ${BRANCH_NAME}
+                                echo change_id: ${CHANGE_ID}
+                                echo branch_name: ${BRANCH_NAME}
                                 #echo ${ghprbActualCommit}
                                 #echo ${ghprbActualCommitAuthor}
                                 #echo ${ghprbActualCommitEmail}
@@ -46,7 +46,7 @@ pipeline {
                                 #echo ${ghprbTargetBranch}
                                 #echo ${ghprbCommentBody}
                                 #echo ${sha1}
-                                source tools/jenkins/env-${configuration_name}.sh
+                                source tools/jenkins/env-${configuration_name}-constraint.sh
                                 sbatch --wait tools/jenkins/batch-${configuration_daint_constraint}.sh
                                 '''
                             }
