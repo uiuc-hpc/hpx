@@ -16,6 +16,8 @@ set(CTEST_SITE "cscs(daint)")
 set(CTEST_BUILD_NAME "$ENV{ghprbPullId}-${CTEST_BUILD_CONFIGURATION_NAME}")
 set(CTEST_GIT_COMMAND "${GIT_EXECUTABLE}")
 
+message("CTEST_BUILD_NAME=${CTEST_BUILD_NAME}")
+
 # TODO: Can we build master?
 set(CTEST_SUBMISSION_TRACK "Pull_Requests")
 set(CTEST_CONFIGURE_COMMAND "${CMAKE_COMMAND} ${CTEST_SOURCE_DIRECTORY}")
@@ -24,9 +26,9 @@ set(CTEST_CONFIGURE_COMMAND "${CTEST_CONFIGURE_COMMAND} -B${CTEST_BINARY_DIRECTO
 set(CTEST_CONFIGURE_COMMAND "${CTEST_CONFIGURE_COMMAND} ${CTEST_CONFIGURE_EXTRA_OPTIONS}")
 
 ctest_start(Experimental TRACK "${CTEST_SUBMISSION_TRACK}")
-ctest_update()
-ctest_submit(PARTS Update BUILD_ID CTEST_BUILD_ID)
-file(WRITE "ctest_build_id.txt" "${CTEST_BUILD_ID}")
+#ctest_update()
+#ctest_submit(PARTS Update BUILD_ID CTEST_BUILD_ID)
+#file(WRITE "ctest_build_id.txt" "${CTEST_BUILD_ID}")
 ctest_configure()
 ctest_submit(PARTS Configure)
 ctest_build(TARGET tests.unit.modules.algorithms.adjacentdifference)

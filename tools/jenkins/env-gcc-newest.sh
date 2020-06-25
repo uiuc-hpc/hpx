@@ -1,4 +1,3 @@
-export SPACK_ROOT=/apps/daint/SSL/HPX/spack
 source $SPACK_ROOT/share/spack/setup-env.sh
 
 export CRAYPE_LINK_TYPE=dynamic
@@ -7,7 +6,6 @@ export APPS_ROOT="/apps/daint/UES/simbergm/local"
 export GCC_VER="10.1.0"
 export CXX_STD="17"
 export BOOST_VER="1.73.0"
-export TCMALLOC_VER="2.7"
 export HWLOC_VER="2.2.0"
 export GCC_ROOT="${APPS_ROOT}/gcc-${GCC_VER}"
 export BOOST_ROOT="${APPS_ROOT}/boost-${BOOST_VER}-gcc-${GCC_VER}-c++${CXX_STD}-debug"
@@ -20,3 +18,15 @@ export CC=${GCC_ROOT}/bin/gcc
 module load daint-mc
 spack load cmake
 spack load ninja
+
+configure_extra_options="-DCMAKE_BUILD_TYPE=Debug"
+configure_extra_options+=" -DHPX_WITH_MAX_CPU_COUNT=128"
+configure_extra_options+=" -DHPX_WITH_MALLOC=system"
+configure_extra_options+=" -DHPX_WITH_CXX${CXX_STD}=ON"
+configure_extra_options+=" -DHPX_WITH_GENERIC_CONTEXT_COROUTINES=ON"
+configure_extra_options+=" -DHPX_WITH_DEPRECATION_WARNINGS=OFF"
+configure_extra_options+=" -DHPX_WITH_COMPILER_WARNINGS=ON"
+configure_extra_options+=" -DHPX_WITH_COMPILER_WARNINGS_AS_ERRORS=ON"
+configure_extra_options+=" -DHPX_WITH_SPINLOCK_DEADLOCK_DETECTION=ON"
+
+configuration_daint_constraint="mc"
