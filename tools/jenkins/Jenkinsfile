@@ -10,15 +10,7 @@ pipeline {
         SPACK_ROOT = '/apps/daint/SSL/HPX/spack'
     }
     stages {
-        stage('Checkout') {
-            steps {
-                dir('hpx') {
-                    checkout scm
-                    echo "Running ${env.BUILD_ID} on ${env.JENKINS_URL}"
-                }
-            }
-        }
-        stage('build') {
+        stage('build_test') {
             matrix {
                 axes {
                     axis {
@@ -26,25 +18,38 @@ pipeline {
                         values 'gcc-newest', 'gcc-oldest'
                     }
                 }
-                steps {
-                    dir('hpx') {
-                        sh '''
-                        #!/bin/bash -l
-                        set -eu
-                        echo ${ghprbActualCommit}
-                        echo ${ghprbActualCommitAuthor}
-                        echo ${ghprbActualCommitEmail}
-                        echo ${ghprbPullDescription}
-                        echo ${ghprbPullId}
-                        echo ${ghprbPullLink}
-                        echo ${ghprbPullTitle}
-                        echo ${ghprbSourceBranch}
-                        echo ${ghprbTargetBranch}
-                        echo ${ghprbCommentBody}
-                        echo ${sha1}
-                        source tools/jenkins/env-${configuration_name}.sh
-                        sbatch --wait tools/jenkins/batch-${configuration_daint_constraint}.sh
-                        '''
+                stages {
+                    stage('checkout') {
+                        steps {
+                            dir('hpx') {
+                                checkout scm
+                                echo "Running ${env.BUILD_ID} on ${env.JENKINS_URL}"
+                            }
+                        }
+                    }
+                    stage('build') {
+                            steps {
+                                dir('hpx') {
+                                    sh '''
+                                    #!/bin/bash -l
+                                    set -eu
+                                    echo ${ghprbActualCommit}
+                                    echo ${ghprbActualCommitAuthor}
+                                    echo ${ghprbActualCommitEmail}
+                                    echo ${ghprbPullDescription}
+                                    echo ${ghprbPullId}
+                                    echo ${ghprbPullLink}
+                                    echo ${ghprbPullTitle}
+                                    echo ${ghprbSourceBranch}
+                                    echo ${ghprbTargetBranch}
+                                    echo ${ghprbCommentBody}
+                                    echo ${sha1}
+                                    source tools/jenkins/env-${configuration_name}.sh
+                                    sbatch --wait tools/jenkins/batch-${configuration_daint_constraint}.sh
+                                    '''
+                                }
+                            }
+                        }
                     }
                 }
             }
