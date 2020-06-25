@@ -2,7 +2,7 @@ source $SPACK_ROOT/share/spack/setup-env.sh
 
 export CRAYPE_LINK_TYPE=dynamic
 
-export APPS_ROOT="/apps/daint/UES/simbergm/local"
+export APPS_ROOT="/apps/daint/SSL/HPX/packages"
 export GCC_VER="7.5.0"
 export CXX_STD="14"
 export BOOST_VER="1.65.0"
