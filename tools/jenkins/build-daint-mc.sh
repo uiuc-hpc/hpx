@@ -11,24 +11,30 @@ set -eux
 
 source ../tools/jenkins/env-daint-mc.sh
 
-origsrcdir=$(pwd)
-srcdir=/dev/shm/hpx/src
-builddir=/dev/shm/hpx/build
+# Copy source directory to /dev/shm for faster builds
+#orig_src_dir=$(pwd)
+#src_dir=/dev/shm/hpx/src
+#build_dir=/dev/shm/hpx/build
+#
+#mkdir -p $build_dir
+#mkdir -p $src_dir
+#
+#cp -r $orig_src_dir/* $src_dir/
+#
+#cd $builddir
+#rm -rf *
 
-mkdir -p $builddir
-mkdir -p $srcdir
+src_dir=$(pwd)/..
+build_dir=$(pwd)
 
-cp -r $origsrcdir/* $srcdir/
+configure_extra_options="-DCMAKE_BUILD_TYPE=Debug"
+configure_extra_options+=" -DHPX_WITH_MAX_CPU_COUNT=128"
+configure_extra_options+=" -DHPX_WITH_MALLOC=system"
+configuration_name="gcc-newest"
 
-cd $builddir
-rm -rf *
-cmake $srcdir \
-    -GNinja \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DHPX_WITH_MAX_CPU_COUNT=128 \
-    -DHPX_WITH_MALLOC=system
-
-ninja -j8 tests.unit.modules.segmented_algorithms
-ninja core examples tests
-
-ctest -j8 --output-on-failure
+ctest \
+    -S ${src_dir}/tools/jenkins/ctest.cmake \
+    -DCTEST_CONFIGURE_EXTRA_OPTIONS="${configure_extra_options}" \
+    -DCTEST_BUILD_CONFIGURATION_NAME="${configuration_name}" \
+    -DCTEST_SOURCE_DIRECTORY="${src_dir}" \
+    -DCTEST_BINARY_DIRECTORY="${build_dir}"
