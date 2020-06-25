@@ -1,5 +1,4 @@
-# TODO: Move to shared HPX location
-source /apps/daint/UES/simbergm/spack/share/spack/setup-env.sh
+source /apps/daint/SSL/HPX/spack/share/spack/setup-env.sh
 
 export CRAYPE_LINK_TYPE=dynamic
 
