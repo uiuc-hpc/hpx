@@ -46,8 +46,8 @@ pipeline {
                                 #echo ${ghprbTargetBranch}
                                 #echo ${ghprbCommentBody}
                                 #echo ${sha1}
-                                source tools/jenkins/env-${configuration_name}-constraint.sh
-                                sbatch --wait tools/jenkins/batch-${configuration_daint_constraint}.sh
+                                source tools/jenkins/slurm-constraint-${configuration_name}.sh
+                                sbatch --wait tools/jenkins/batch-${configuration_slurm_constraint}.sh
                                 '''
                             }
                         }
