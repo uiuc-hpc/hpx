@@ -14,4 +14,4 @@ curl --verbose \
     --url "https://api.github.com/repos/${commit_repo}/statuses/${commit_sha}" \
     --header 'Content-Type: application/json' \
     --header "authorization: Bearer ${github_token}" \
-    --data "{ \"state\": \"${commit_status}\", \"target_url\": \"https://cdash.cscs.ch/buildSummary.php?buildid=${build_id}\", \"description\": \"Jenkins\", \"context\": \"continuous-integration/jenkins/branch/${configuration_name}\" }"
+    --data "{ \"state\": \"${commit_status}\", \"target_url\": \"https://cdash.cscs.ch/buildSummary.php?buildid=${build_id}\", \"description\": \"Jenkins\", \"context\": \"jenkins/branch/${configuration_name}\" }"
