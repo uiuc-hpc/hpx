@@ -1,11 +1,4 @@
 #!/bin/bash -l
-#SBATCH --job-name=jenkins-hpx-mc
-#SBATCH --nodes=1
-#SBATCH --constraint=mc
-#SBATCH --partition=cscsci
-#SBATCH --time=02:00:00
-#SBATCH --output=jenkins-hpx-log.out
-#SBATCH --error=jenkins-hpx-log.err
 
 set -eu
 
@@ -29,3 +22,4 @@ ctest \
     -DCTEST_BUILD_CONFIGURATION_NAME="${configuration_name}" \
     -DCTEST_SOURCE_DIRECTORY="${src_dir}" \
     -DCTEST_BINARY_DIRECTORY="${build_dir}"
+

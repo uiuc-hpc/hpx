@@ -47,11 +47,19 @@ pipeline {
                                 #echo ${ghprbCommentBody}
                                 #echo ${sha1}
                                 source tools/jenkins/slurm-constraint-${configuration_name}.sh
-                                sbatch --wait tools/jenkins/batch-${configuration_slurm_constraint}.sh
+                                sbatch \
+                                    --job-name=jenkins-hpx-${configuration_name} \
+                                    --nodes=1 \
+                                    --constraint=${configuration_slurm_constraint} \
+                                    --partition=cscsci \
+                                    --time=02:00:00 \
+                                    --output=jenkins-hpx-${configuration_name}.out \
+                                    --error=jenkins-hpx-${configuration_name}.err \
+                                    --wait tools/jenkins/batch.sh
                                 echo "= stdout =================================================="
-                                cat jenkins-hpx-log.out
+                                cat jenkins-hpx-${configuration_name}.out
                                 echo "= stderr =================================================="
-                                cat jenkins-hpx-log.err
+                                cat jenkins-hpx-${configuration_name}.err
                                 '''
                             }
                         }
@@ -63,7 +71,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/jenkins-hpx-log.*', fingerprint: true
+            archiveArtifacts artifacts: '**/jenkins-hpx-*.*', fingerprint: true
         }
     }
 }
