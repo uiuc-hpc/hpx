@@ -7,12 +7,11 @@ src_dir=/dev/shm/hpx/src
 build_dir=/dev/shm/hpx/build
 
 # Copy source directory to /dev/shm for faster builds
+rm -rf $build_dir
+rm -rf $src_dir
 mkdir -p $build_dir
 mkdir -p $src_dir
-cp -r $orig_src_dir/* $src_dir/
-
-cd $build_dir
-rm -rf *
+cp -r $orig_src_dir/. $src_dir
 
 source ${src_dir}/tools/jenkins/env-${configuration_name}.sh
 
