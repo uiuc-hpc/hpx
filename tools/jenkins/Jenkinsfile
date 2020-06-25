@@ -62,25 +62,25 @@ pipeline {
 
                                 # Set GitHub status with CDash url
 
-                                # Get build status
-                                if [[ $(cat jenkins-hpx-${configuration_name}-ctest-status.txt) ]]; then
-                                    github_commit_status="success"
-                                else
-                                    github_commit_status="failure"
-                                fi
+                                ## Get build status
+                                #if [[ $(cat jenkins-hpx-${configuration_name}-ctest-status.txt) ]]; then
+                                #    github_commit_status="success"
+                                #else
+                                #    github_commit_status="failure"
+                                #fi
 
-                                # Extract just the organization and repo names "org/repo"
-                                github_commit_repo="$(echo $GIT_URL | sed 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\1/')"
+                                ## Extract just the organization and repo names "org/repo"
+                                #github_commit_repo="$(echo $GIT_URL | sed 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\1/')"
 
-                                # Get the CDash dashboard build id
-                                cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
-                                ./tools/jenkins/set_github_status.sh \
-                                    "${GITHUB_TOKEN}" \
-                                    "${github_commit_repo}" \
-                                    "${GIT_COMMIT}" \
-                                    "${github_commit_status}" \
-                                    "${configuration_name}" \
-                                    "${cdash_build_id}"
+                                ## Get the CDash dashboard build id
+                                #cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
+                                #./tools/jenkins/set_github_status.sh \
+                                #    "${GITHUB_TOKEN}" \
+                                #    "${github_commit_repo}" \
+                                #    "${GIT_COMMIT}" \
+                                #    "${github_commit_status}" \
+                                #    "${configuration_name}" \
+                                #    "${cdash_build_id}"
                                 '''
                             }
                         }
