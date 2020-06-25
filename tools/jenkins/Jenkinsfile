@@ -8,6 +8,7 @@ pipeline {
     }
     environment {
         SPACK_ROOT = '/apps/daint/SSL/HPX/spack'
+        GITHUB_TOKEN = credentials('59b4ee36-207e-47b8-ab3a-b7ae32f01ba3')
     }
     stages {
         stage('checkout') {
@@ -35,6 +36,7 @@ pipeline {
                                 echo change_id: ${CHANGE_ID}
                                 echo branch_name: ${BRANCH_NAME}
                                 source tools/jenkins/slurm-constraint-${configuration_name}.sh
+                                echo github_token: ${GITHUB_TOKEN}
                                 sbatch \
                                     --job-name=jenkins-hpx-${configuration_name} \
                                     --nodes=1 \
