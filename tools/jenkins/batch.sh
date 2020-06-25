@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-set -eu
+set -eux
 
 orig_src_dir=$(pwd)
 src_dir=/dev/shm/hpx/src
