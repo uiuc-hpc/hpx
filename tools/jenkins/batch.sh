@@ -11,7 +11,7 @@ mkdir -p $build_dir
 mkdir -p $src_dir
 cp -r $orig_src_dir/* $src_dir/
 
-cd $builddir
+cd $build_dir
 rm -rf *
 
 source ${src_dir}/tools/jenkins/env-${configuration_name}.sh
