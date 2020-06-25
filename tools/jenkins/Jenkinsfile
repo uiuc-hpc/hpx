@@ -82,6 +82,8 @@ pipeline {
                                     "${github_commit_status}" \
                                     "${configuration_name}" \
                                     "${cdash_build_id}"
+
+                                exit $(cat jenkins-hpx-${configuration_name}-ctest-status.txt)
                                 '''
                             }
                         }
