@@ -33,6 +33,7 @@ pipeline {
                             dir('hpx') {
                                 sh '''
                                 #!/bin/bash -l
+                                set +e
                                 echo change_id: ${CHANGE_ID}
                                 echo branch_name: ${BRANCH_NAME}
                                 echo change_url: ${CHANGE_URL}

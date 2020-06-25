@@ -12,6 +12,7 @@ cp -r "${orig_src_dir}/." "${src_dir}"
 
 source ${src_dir}/tools/jenkins/env-${configuration_name}.sh
 
+set +e
 ctest \
     --verbose \
     -S ${src_dir}/tools/jenkins/ctest.cmake \
@@ -20,4 +21,6 @@ ctest \
     -DCTEST_SOURCE_DIRECTORY="${src_dir}" \
     -DCTEST_BINARY_DIRECTORY="${build_dir}"
 ctest_status=$?
+set -e
 echo "${ctest_status}" > "jenkins-hpx-${configuration_name}-ctest-status.txt"
+exit $ctest_status
