@@ -2,16 +2,14 @@
 
 set -eu
 
-#orig_src_dir=$(pwd)
-#src_dir=/dev/shm/hpx/src
-#build_dir=/dev/shm/hpx/build
-src_dir=$(pwd)/..
-build_dir=$(pwd)
+orig_src_dir=$(pwd)
+src_dir=/dev/shm/hpx/src
+build_dir=/dev/shm/hpx/build
 
 # Copy source directory to /dev/shm for faster builds
-#mkdir -p $build_dir
-#mkdir -p $src_dir
-#cp -r $orig_src_dir/* $src_dir/
+mkdir -p $build_dir
+mkdir -p $src_dir
+cp -r $orig_src_dir/* $src_dir/
 
 cd $build_dir
 rm -rf *
