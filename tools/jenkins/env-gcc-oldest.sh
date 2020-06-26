@@ -1,7 +1,6 @@
 source $SPACK_ROOT/share/spack/setup-env.sh
 
 export CRAYPE_LINK_TYPE=dynamic
-
 export APPS_ROOT="/apps/daint/SSL/HPX/packages"
 export GCC_VER="7.5.0"
 export CXX_STD="14"
@@ -15,9 +14,9 @@ export LDFLAGS="-L${GCC_ROOT}/lib64"
 export CXX=${GCC_ROOT}/bin/g++
 export CC=${GCC_ROOT}/bin/gcc
 
-module load daint-mc
 spack load cmake
 spack load ninja
+module load daint-mc
 
 configure_extra_options="-DCMAKE_BUILD_TYPE=Debug"
 configure_extra_options+=" -DHPX_WITH_MAX_CPU_COUNT=128"

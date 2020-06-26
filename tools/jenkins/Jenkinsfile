@@ -24,7 +24,7 @@ pipeline {
                 axes {
                     axis {
                         name 'configuration_name'
-                        values 'gcc-newest', 'gcc-oldest'
+                        values 'gcc-newest', 'gcc-oldest', 'gcc-cuda'
                     }
                 }
                 stages {
