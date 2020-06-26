@@ -9,8 +9,6 @@ commit_status=${4}
 configuration_name=${5}
 build_id=${6}
 
-for (( i=0; i<${#github_token}; i++ )); do echo "${github_token:$i:1}"; done
-
 curl --verbose \
     --request POST \
     --url "https://api.github.com/repos/${commit_repo}/statuses/${commit_sha}" \
