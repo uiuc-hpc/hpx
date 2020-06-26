@@ -32,7 +32,7 @@ pipeline {
                         steps {
                             dir('hpx') {
                                 sh '''
-                                #!/usr/bin/env bash
+                                #!/bin/bash -l
                                 ./tools/jenkins/entry.sh
                                 '''
                             }

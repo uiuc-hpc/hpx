@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/bin/bash -l
 
 # Make undefined variables errors, print each command
 set -eux
