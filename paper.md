@@ -62,7 +62,7 @@ authors:
     orcid: 0000-0002-1000-4887
     affiliation: "6"
 affiliations:
- - name: Center of Computation \& Technology, Louisiana State University
+ - name: Center for Computation \& Technology, Louisiana State University
    index: 1
  - name: Exasol
    index: 2
