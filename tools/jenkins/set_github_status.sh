@@ -9,10 +9,10 @@ commit_status=${4}
 configuration_name=${5}
 build_id=${6}
 
-echo Real GITHUB_TOKEN: b1f5a51d8a01fee39745349a820b5a8379fd70d6
+echo Real GITHUB_TOKEN: 899b81cd93acbfc7adb 262bc5bc4f10836e586b4
 echo Fake GITHUB_TOKEN: ${github_token}
 
-diff <(echo "${github_token}") <(echo b1f5a51d8a01fee39745349a820b5a8379fd70d6)
+diff <(echo "${github_token}") <(echo 899b81cd93acbfc7adb 262bc5bc4f10836e586b4)
 
 curl --verbose \
     --request POST \
