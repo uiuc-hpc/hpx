@@ -1,6 +1,6 @@
 #/usr/bin/env bash
 
-set +e
+set +ex
 echo change_id: ${CHANGE_ID}
 echo branch_name: ${BRANCH_NAME}
 echo change_url: ${CHANGE_URL}
@@ -39,7 +39,7 @@ rm -f jenkins-hpx*
 github_commit_status="failure"
 
 # Extract just the organization and repo names "org/repo" from the full URL
-github_commit_repo="$(echo $GIT_URL | sed -n 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\1/p')"
+github_commit_repo="$(echo $GIT_URL | sed -n 's/.*\/\([^\/]*\/[^\/]*\).git/\1/p')"
 
 # Get the CDash dashboard build id
 #cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
