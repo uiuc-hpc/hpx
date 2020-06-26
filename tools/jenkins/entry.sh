@@ -44,8 +44,11 @@ github_commit_repo="$(echo $GIT_URL | sed 's/.*\\/\\([^\\/]*\\/[^\\/]*\\).git/\\
 # Get the CDash dashboard build id
 #cdash_build_id="$(cat jenkins-hpx-${configuration_name}-cdash-build-id.txt)"
 cdash_build_id="123"
+
+# Extract actual token from GITHUB_TOKEN (in the form "username:token")
+github_token=$(echo ${GITHUB_TOKEN} | cut -f2 -d':')
 ./tools/jenkins/set_github_status.sh \
-    "${GITHUB_TOKEN}" \
+    "${github_token}" \
     "${github_commit_repo}" \
     "${GIT_COMMIT}" \
     "${github_commit_status}" \
