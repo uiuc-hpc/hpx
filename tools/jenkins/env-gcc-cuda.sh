@@ -3,14 +3,14 @@ source $SPACK_ROOT/share/spack/setup-env.sh
 export CRAYPE_LINK_TYPE=dynamic
 export CXX_STD="14"
 
-spack load cmake
-spack load ninja
 module load daint-gpu
 module switch PrgEnv-cray PrgEnv-gnu
 module load cudatoolkit
 module load Boost
 module load hwloc/.2.0.3
 module load jemalloc/.5.1.0-CrayGNU-19.10
+spack load cmake
+spack load ninja
 
 export CXX=`which CC`
 export CC=`which cc`

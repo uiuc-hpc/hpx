@@ -14,9 +14,9 @@ export LDFLAGS="-L${GCC_ROOT}/lib64"
 export CXX=${GCC_ROOT}/bin/g++
 export CC=${GCC_ROOT}/bin/gcc
 
+module load daint-mc
 spack load cmake
 spack load ninja
-module load daint-mc
 
 configure_extra_options="-DCMAKE_BUILD_TYPE=Debug"
 configure_extra_options+=" -DHPX_WITH_MAX_CPU_COUNT=128"
