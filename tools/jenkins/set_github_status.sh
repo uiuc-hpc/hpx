@@ -9,10 +9,7 @@ commit_status=${4}
 configuration_name=${5}
 build_id=${6}
 
-echo Real GITHUB_TOKEN: 899b81cd93acbfc7adb 262bc5bc4f10836e586b4
-echo Fake GITHUB_TOKEN: ${github_token}
-
-diff <(echo "${github_token}") <(echo 899b81cd93acbfc7adb 262bc5bc4f10836e586b4)
+for (( i=0; i<${#github_token}; i++ )); do echo "${github_token:$i:1}"; done
 
 curl --verbose \
     --request POST \
