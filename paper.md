@@ -93,7 +93,7 @@ generation systems.
 
 A detailed comparison of various AMT's is given in [@thoman2018taxonomy]. 
 Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel], 
-Charm++ [@kale1993charm++], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion], 
+Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion], 
  and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions, 
  since this is one important feature for scientific applications to run large scale simulations.
  The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++ 
