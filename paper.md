@@ -3,7 +3,7 @@ title: 'HPX - The C++ Standard Library for Parallelism and Concurrency'
 tags:
   - concurrency
   - task-based run time system
-  - parallelsim
+  - parallelism
   - distributed
 authors:
   - name: Parsa Amini
@@ -89,7 +89,17 @@ difficulty achieving a desired scalability using traditional distributed-memory
 runtimes. Asynchronous many-task systems (AMT) are based on a new paradigm
 showing promises in addressing these challenges, providing application
 developers with a productive and performant approach to programming on next
-generation systems. HPX is a C++ Library for Concurrency and Parallelism that is
+generation systems. 
+
+A detailed comparison of various AMT's is given in [@thoman2018taxonomy]. 
+Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel], 
+Charm++ [@kale1993charm++], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion], 
+ and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions, 
+ since this is one important feature for scientific applications to run large scale simulations.
+ The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++ 
+ standard conform-ing API. 
+
+HPX is a C++ Library for Concurrency and Parallelism that is
 developed by The STE||AR Group, an international group of collaborators working
 in the field of distributed and parallel programming
 [@heller2017hpx;@hpx_github;@tabbal2011preliminary]. It is a runtime system
@@ -212,9 +222,6 @@ e.g. Peridynamics; [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019in
 a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming; 
 and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime] 
 a distributed array toolkit. 
-
-
-
 
 # Example code
 
