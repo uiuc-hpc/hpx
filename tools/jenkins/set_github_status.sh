@@ -9,6 +9,11 @@ commit_status=${4}
 configuration_name=${5}
 build_id=${6}
 
+echo Real GITHUB_TOKEN: b1f5a51d8a01fee39745349a820b5a8379fd70d6
+echo Fake GITHUB_TOKEN: ${github_token}
+
+diff <(echo "${github_token}") <(echo b1f5a51d8a01fee39745349a820b5a8379fd70d6)
+
 curl --verbose \
     --request POST \
     --url "https://api.github.com/repos/${commit_repo}/statuses/${commit_sha}" \

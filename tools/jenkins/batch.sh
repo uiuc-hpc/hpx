@@ -28,7 +28,7 @@ configure_errors=1
 build_errors=1
 test_errors=1
 if [[ -f "${build_dir}/Testing/TAG" ]]; then
-    tag=$(head -n 1 "${build_dir}/Testing/TAG)"
+    tag="$(head -n 1 "${build_dir}/Testing/TAG)"
 
     if [[ -f "${build_dir}/Testing/${tag}/Configure.xml" ]]; then
         configure_errors=$(grep '<Error>' "${build_dir}/Testing/${tag}/Configure.xml" | wc -l)
