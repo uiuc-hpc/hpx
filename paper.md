@@ -62,21 +62,21 @@ authors:
     orcid: 0000-0002-1000-4887
     affiliation: "6"
 affiliations:
- - name: Center for Computation \& Technology, Louisiana State University
+ - name: Center for Computation \& Technology, Louisiana State University, LA, United States of America
    index: 1
- - name: Exasol
+ - name: Exasol, Germany
    index: 2
  - name: Indian Institute of Technology, Roorkee, India
    index: 3
- - name: Swiss National Supercomputing Centre
+ - name: Swiss National Supercomputing Centre, Switzerland
    index: 4
- - name: NVIDIA
+ - name: NVIDIA, United States of America
    index: 5
  - name: STE$||$AR Group
    index: 6
- - name: Oracle
+ - name: Oracle, United States of America
    index: 7
- - name: Oregon Advanced Computing Institute for Science and Society (OACISS), University of Oregon
+ - name: Oregon Advanced Computing Institute for Science and Society (OACISS), University of Oregon, OR, United States of America
    index: 8
 date: 11.06.2020
 bibliography: paper.bib
