@@ -1,141 +1,78 @@
-//  Copyright (c) 2019 National Technology & Engineering Solutions of Sandia,
-//                     LLC (NTESS).
-//  Copyright (c) 2018-2020 Hartmut Kaiser
-//  Copyright (c) 2018-2019 Adrian Serio
-//  Copyright (c) 2019 Nikunj Gupta
+//  Copyright (c) 2019-20 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
+#include <hpx/actions_base/plain_action.hpp>
 
-#include <atomic>
-#include <stdexcept>
+#include <cstddef>
+#include <random>
+#include <vector>
+#include <vector>
 
-std::atomic<int> answer(35);
-struct vogon_exception : std::exception
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_real_distribution<double> dist(1.0, 10.0);
+
+int universal_ans()
 {
-};
-
-int universal_answer()
-{
-    return ++answer;
+    if (dist(mt) > 5)
+        return 42;
+    return 84;
 }
 
-bool validate(int result)
-{
-    return result == 42;
-}
+HPX_PLAIN_ACTION(universal_ans, universal_action);
 
-int no_answer()
+bool validate(int ans)
 {
-    throw hpx::resiliency::experimental::abort_replay_exception();
-}
-
-int deep_thought()
-{
-    static int ans = 35;
-    ++ans;
-    if (ans == 42)
-        return ans;
-    else
-        throw vogon_exception();
+    return ans == 42;
 }
 
 int hpx_main()
 {
+    std::vector<hpx::id_type> locals = hpx::find_all_localities();
     {
-        // successful replay
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(10, &deep_thought);
-        HPX_TEST(f.get() == 42);
+            hpx::resiliency::experimental::async_replay(
+                10, &universal_ans);
 
-        // successful replay validate
-        f = hpx::resiliency::experimental::async_replay_validate(
-            10, &validate, &universal_answer);
-        HPX_TEST(f.get() == 42);
+        auto result = f.get();
+        HPX_TEST(result == 42 || result == 84);
+    }
 
-        // unsuccessful replay
-        f = hpx::resiliency::experimental::async_replay(6, &deep_thought);
+    {
+        hpx::future<int> f =
+            hpx::resiliency::experimental::async_replay_validate(
+                10, &validate, &universal_ans);
 
-        bool exception_caught = false;
-        try
-        {
-            f.get();
-            HPX_TEST(false);
-        }
-        catch (vogon_exception const&)
-        {
-            exception_caught = true;
-        }
-        catch (...)
-        {
-            HPX_TEST(false);
-        }
-        HPX_TEST(exception_caught);
+        auto result = f.get();
+        HPX_TEST(result == 42);
+    }
 
-        // unsuccessful replay validate
-        f = hpx::resiliency::experimental::async_replay_validate(
-            6, &validate, &universal_answer);
+    {
+        universal_action our_action;
+        hpx::future<int> f =
+            hpx::resiliency::experimental::async_replay(
+                locals, our_action);
 
-        exception_caught = false;
-        try
-        {
-            f.get();
-            HPX_TEST(false);
-        }
-        catch (hpx::resiliency::experimental::abort_replay_exception const&)
-        {
-            exception_caught = true;
-        }
-        catch (...)
-        {
-            HPX_TEST(false);
-        }
-        HPX_TEST(exception_caught);
+        auto result = f.get();
+        HPX_TEST(result == 42 || result == 84);
+    }
 
-        // aborted replay
-        f = hpx::resiliency::experimental::async_replay(1, &no_answer);
+    {
+        universal_action our_action;
+        hpx::future<int> f =
+            hpx::resiliency::experimental::async_replay_validate(
+                locals, &validate, our_action);
 
-        exception_caught = false;
-        try
-        {
-            f.get();
-            HPX_TEST(false);
-        }
-        catch (hpx::resiliency::experimental::abort_replay_exception const&)
-        {
-            exception_caught = true;
-        }
-        catch (...)
-        {
-            HPX_TEST(false);
-        }
-        HPX_TEST(exception_caught);
+        auto result = f.get();
 
-        // aborted replay validate
-        f = hpx::resiliency::experimental::async_replay_validate(
-            1, &validate, &no_answer);
-
-        exception_caught = false;
-        try
-        {
-            f.get();
-        }
-        catch (hpx::resiliency::experimental::abort_replay_exception const&)
-        {
-            exception_caught = true;
-        }
-        catch (...)
-        {
-            HPX_TEST(false);
-        }
-        HPX_TEST(exception_caught);
+        HPX_TEST(result == 42);
     }
 
     return hpx::finalize();

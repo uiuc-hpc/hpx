@@ -2,7 +2,7 @@
 //                     LLC (NTESS).
 //  Copyright (c) 2018-2020 Hartmut Kaiser
 //  Copyright (c) 2018-2019 Adrian Serio
-//  Copyright (c) 2019 Nikunj Gupta
+//  Copyright (c) 2019-2020 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -16,6 +16,9 @@
 #include <hpx/futures/future.hpp>
 #include <hpx/modules/async_local.hpp>
 #include <hpx/type_support/pack.hpp>
+#include <hpx/async_distributed/async.hpp>
+#include <hpx/functional/traits/is_action.hpp>
+
 
 #include <cstddef>
 #include <exception>
@@ -142,6 +145,71 @@ namespace hpx { namespace resiliency { namespace experimental {
                     });
             }
 
+            template <std::size_t... Is>
+            hpx::future<Result> invoke_distributed(hpx::naming::id_type id,
+                hpx::util::index_pack<Is...>)
+            {
+                return hpx::async(f_, id, std::get<Is>(t_)...);
+            }
+
+            hpx::future<Result> call(std::vector<hpx::naming::id_type> ids,
+                std::size_t iteration = 0)
+            {
+                hpx::future<Result> f = invoke_distributed(ids.at(iteration),
+                    hpx::util::make_index_pack<std::tuple_size<Tuple>::value>{}
+                    );
+
+                // attach a continuation that will relaunch the task, if
+                // necessary
+                auto this_ = this->shared_from_this();
+                return f.then(hpx::launch::sync,
+                    [this_ = std::move(this_), ids, iteration]
+                    (hpx::future<Result>&& f) {
+                        if (f.has_exception())
+                        {
+                            // rethrow abort_replay_exception, if caught
+                            auto ex = rethrow_on_abort_replay(f);
+
+                            // execute the task again if an error occurred and
+                            // this was not the last attempt
+                            if (iteration != ids.size())
+                            {
+                                return this_->call(ids, iteration + 1);
+                            }
+
+                            // rethrow exception if the number of replays has
+                            // been exhausted
+                            std::rethrow_exception(ex);
+                        }
+
+                        auto&& result = f.get();
+
+                        if (!hpx::util::invoke(this_->pred_, result))
+                        {
+                            // execute the task again if an error occurred and
+                            // this was not the last attempt
+                            if (iteration != ids.size())
+                            {
+                                return this_->call(ids, iteration + 1);
+                            }
+
+                            // throw aborting exception as attempts were
+                            // exhausted
+                            throw abort_replay_exception();
+                        }
+
+                        if (iteration != ids.size())
+                        {
+                            // return result
+                            return hpx::make_ready_future(std::move(result));
+                        }
+
+                        // throw aborting exception as attempts were
+                        // exhausted
+                        throw abort_replay_exception();
+                    });
+            }
+
             Pred pred_;
             F f_;
             Tuple t_;
@@ -201,4 +269,51 @@ namespace hpx { namespace resiliency { namespace experimental {
 
         return helper->call(n);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Asynchronously launch given Action \a f on locality \a id.
+    // Repeat launching on error exactly \a n times (except if
+    // abort_replay_exception is thrown).
+    template <typename Action, typename... Ts>
+    hpx::future<
+        typename hpx::util::detail::invoke_deferred_result<
+            Action, hpx::naming::id_type, Ts...>::type
+    >
+    tag_invoke(async_replay_t, std::vector<hpx::naming::id_type> ids,
+        Action&& action, Ts&&... ts)
+    {
+        using result_type =
+            typename hpx::util::detail::invoke_deferred_result<Action,
+                hpx::naming::id_type, Ts...>::type;
+
+        auto helper = detail::make_async_replay_helper<result_type>(
+            detail::replay_validator{}, std::forward<Action>(action),
+            std::forward<Ts>(ts)...);
+
+        return helper->call(ids);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Asynchronously launch given Action \a f on locality \a id.
+    // Repeat launching on error exactly \a n times (except if
+    // abort_replay_exception is thrown).
+    template <typename Pred, typename Action, typename... Ts>
+    hpx::future<
+        typename hpx::util::detail::invoke_deferred_result<
+            Action, hpx::naming::id_type, Ts...>::type
+    >
+    tag_invoke(async_replay_validate_t, std::vector<hpx::naming::id_type> ids,
+        Pred&& pred, Action&& action, Ts&&... ts)
+    {
+        using result_type =
+            typename hpx::util::detail::invoke_deferred_result<Action,
+                hpx::naming::id_type, Ts...>::type;
+
+        auto helper = detail::make_async_replay_helper<result_type>(
+            std::forward<Pred>(pred), std::forward<Action>(action),
+            std::forward<Ts>(ts)...);
+
+        return helper->call(ids);
+    }
+
 }}}    // namespace hpx::resiliency::experimental
