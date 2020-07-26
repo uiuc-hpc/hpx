@@ -1,4 +1,4 @@
-//  Copyright (c) 2019-20 Nikunj Gupta
+//  Copyright (c) 2019-2020 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -10,8 +10,8 @@
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
 
-#include <iostream>
 #include <cstddef>
+#include <iostream>
 #include <random>
 #include <vector>
 
@@ -81,7 +81,5 @@ int hpx_main()
 
 int main(int argc, char* argv[])
 {
-    // Initialize and run HPX
-    HPX_TEST(hpx::init(argc, argv) == 0);
-    return hpx::util::report_errors();
+    return hpx::init(argc, argv);
 }
