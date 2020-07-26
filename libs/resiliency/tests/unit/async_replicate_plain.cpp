@@ -2,127 +2,138 @@
 //                     LLC (NTESS).
 //  Copyright (c) 2018-2020 Hartmut Kaiser
 //  Copyright (c) 2019 Adrian Serio
-//  Copyright (c) 2019-2020 Nikunj Gupta
+//  Copyright (c) 2019 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <hpx/actions_base/plain_action.hpp>
-#include <hpx/include/runtime.hpp>
+#include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
 
-#include <cstddef>
-#include <iostream>
-#include <random>
-#include <vector>
+#include <atomic>
+#include <stdexcept>
 
-std::random_device rd;
-std::mt19937 mt(rd());
-std::uniform_real_distribution<double> dist(1.0, 10.0);
+std::atomic<int> answer(35);
 
-int universal_ans()
+struct vogon_exception : std::exception
 {
-    if (dist(mt) > 5)
-        return 42;
-    return 84;
+};
+
+int universal_answer()
+{
+    return ++answer;
 }
 
-HPX_PLAIN_ACTION(universal_ans, universal_action);
-
-bool validate(int ans)
+bool validate(int result)
 {
-    return ans == 42;
+    return result == 42;
 }
 
-int vote(std::vector<int>&& results)
+int no_answer()
 {
-    return results.at(0);
+    throw hpx::resiliency::experimental::abort_replicate_exception();
+}
+
+int deep_thought()
+{
+    static int ans = 35;
+    ++ans;
+    if (ans == 42)
+        return ans;
+    else
+        throw vogon_exception();
 }
 
 int hpx_main()
 {
-    std::vector<hpx::naming::id_type> locals = hpx::find_all_localities();
-
-    // Allow a task to replicate on the same locality if it only 1 locality
-    if (locals.size() == 1)
-        locals.insert(locals.end(), 9, hpx::find_here());
-
     {
+        // successful replicate
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate(10, &universal_ans);
+            hpx::resiliency::experimental::async_replicate(10, &deep_thought);
+        HPX_TEST(f.get() == 42);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
+        // successful replicate_validate
+        f = hpx::resiliency::experimental::async_replicate_validate(
+            10, &validate, &universal_answer);
+        HPX_TEST(f.get() == 42);
 
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_validate(
-                10, &validate, &universal_ans);
+        // unsuccessful replicate
+        f = hpx::resiliency::experimental::async_replicate(6, &deep_thought);
 
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
+        bool exception_caught = false;
+        try
+        {
+            f.get();
+        }
+        catch (vogon_exception const&)
+        {
+            exception_caught = true;
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
+        HPX_TEST(exception_caught);
 
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote(
-                10, &vote, &universal_ans);
+        // unsuccessful replicate_validate
+        f = hpx::resiliency::experimental::async_replicate_validate(
+            6, &validate, &universal_answer);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
+        exception_caught = false;
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            exception_caught = true;
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
+        HPX_TEST(exception_caught);
 
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote_validate(
-                10, &vote, &validate, &universal_ans);
+        // aborted replicate
+        f = hpx::resiliency::experimental::async_replicate(1, &no_answer);
 
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
+        exception_caught = false;
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            exception_caught = true;
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
+        HPX_TEST(exception_caught);
 
-    {
-        universal_action action;
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate(locals, action);
+        // aborted replicate validate
+        f = hpx::resiliency::experimental::async_replicate_validate(
+            1, &validate, &no_answer);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
-
-    {
-        universal_action action;
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_validate(
-                locals, &validate, action);
-
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
-
-    {
-        universal_action action;
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote(
-                locals, &vote, action);
-
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
-
-    {
-        universal_action action;
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote_validate(
-                locals, &vote, &validate, action);
-
-        auto result = f.get();
-        HPX_TEST(result == 42);
+        exception_caught = false;
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            exception_caught = true;
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
+        HPX_TEST(exception_caught);
     }
 
     return hpx::finalize();
