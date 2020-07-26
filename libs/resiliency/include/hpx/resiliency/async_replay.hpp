@@ -13,12 +13,10 @@
 #include <hpx/resiliency/config.hpp>
 #include <hpx/resiliency/resiliency_cpos.hpp>
 
+#include <hpx/async_distributed/async.hpp>
 #include <hpx/futures/future.hpp>
 #include <hpx/modules/async_local.hpp>
 #include <hpx/type_support/pack.hpp>
-#include <hpx/async_distributed/async.hpp>
-#include <hpx/functional/traits/is_action.hpp>
-
 
 #include <cstddef>
 #include <exception>
@@ -146,8 +144,8 @@ namespace hpx { namespace resiliency { namespace experimental {
             }
 
             template <std::size_t... Is>
-            hpx::future<Result> invoke_distributed(hpx::naming::id_type id,
-                hpx::util::index_pack<Is...>)
+            hpx::future<Result> invoke_distributed(
+                hpx::naming::id_type id, hpx::util::index_pack<Is...>)
             {
                 return hpx::async(f_, id, std::get<Is>(t_)...);
             }
@@ -156,15 +154,15 @@ namespace hpx { namespace resiliency { namespace experimental {
                 std::size_t iteration = 0)
             {
                 hpx::future<Result> f = invoke_distributed(ids.at(iteration),
-                    hpx::util::make_index_pack<std::tuple_size<Tuple>::value>{}
-                    );
+                    hpx::util::make_index_pack<
+                        std::tuple_size<Tuple>::value>{});
 
                 // attach a continuation that will relaunch the task, if
                 // necessary
                 auto this_ = this->shared_from_this();
                 return f.then(hpx::launch::sync,
-                    [this_ = std::move(this_), ids, iteration]
-                    (hpx::future<Result>&& f) {
+                    [this_ = std::move(this_), ids, iteration](
+                        hpx::future<Result>&& f) {
                         if (f.has_exception())
                         {
                             // rethrow abort_replay_exception, if caught
@@ -275,10 +273,8 @@ namespace hpx { namespace resiliency { namespace experimental {
     // Repeat launching on error exactly \a n times (except if
     // abort_replay_exception is thrown).
     template <typename Action, typename... Ts>
-    hpx::future<
-        typename hpx::util::detail::invoke_deferred_result<
-            Action, hpx::naming::id_type, Ts...>::type
-    >
+    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
+        hpx::naming::id_type, Ts...>::type>
     tag_invoke(async_replay_t, std::vector<hpx::naming::id_type> ids,
         Action&& action, Ts&&... ts)
     {
@@ -298,10 +294,8 @@ namespace hpx { namespace resiliency { namespace experimental {
     // Repeat launching on error exactly \a n times (except if
     // abort_replay_exception is thrown).
     template <typename Pred, typename Action, typename... Ts>
-    hpx::future<
-        typename hpx::util::detail::invoke_deferred_result<
-            Action, hpx::naming::id_type, Ts...>::type
-    >
+    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
+        hpx::naming::id_type, Ts...>::type>
     tag_invoke(async_replay_validate_t, std::vector<hpx::naming::id_type> ids,
         Pred&& pred, Action&& action, Ts&&... ts)
     {

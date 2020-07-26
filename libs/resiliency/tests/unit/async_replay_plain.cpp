@@ -4,15 +4,14 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/actions_base/plain_action.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
-#include <hpx/actions_base/plain_action.hpp>
 
 #include <cstddef>
 #include <random>
-#include <vector>
 #include <vector>
 
 std::random_device rd;
@@ -38,8 +37,7 @@ int hpx_main()
     std::vector<hpx::id_type> locals = hpx::find_all_localities();
     {
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(
-                10, &universal_ans);
+            hpx::resiliency::experimental::async_replay(10, &universal_ans);
 
         auto result = f.get();
         HPX_TEST(result == 42 || result == 84);
@@ -57,8 +55,7 @@ int hpx_main()
     {
         universal_action our_action;
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(
-                locals, our_action);
+            hpx::resiliency::experimental::async_replay(locals, our_action);
 
         auto result = f.get();
         HPX_TEST(result == 42 || result == 84);

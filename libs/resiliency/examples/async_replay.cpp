@@ -4,15 +4,15 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/actions_base/plain_action.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
-#include <hpx/actions_base/plain_action.hpp>
 
+#include <iostream>
 #include <cstddef>
 #include <random>
-#include <vector>
 #include <vector>
 
 std::random_device rd;
@@ -39,8 +39,7 @@ int hpx_main()
 
     {
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(
-                10, &universal_ans);
+            hpx::resiliency::experimental::async_replay(10, &universal_ans);
 
         auto result = f.get();
         std::cout << "Universal answer returned: " << result << std::endl;
@@ -59,8 +58,7 @@ int hpx_main()
     {
         universal_action action;
         hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(
-                locals, action);
+            hpx::resiliency::experimental::async_replay(locals, action);
 
         auto result = f.get();
 
