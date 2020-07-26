@@ -1,3 +1,7 @@
+//  Copyright (c) 2019 National Technology & Engineering Solutions of Sandia,
+//                     LLC (NTESS).
+//  Copyright (c) 2018-2020 Hartmut Kaiser
+//  Copyright (c) 2019 Adrian Serio
 //  Copyright (c) 2019-2020 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0

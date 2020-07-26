@@ -150,7 +150,8 @@ namespace hpx { namespace resiliency { namespace experimental {
                 return hpx::async(f_, id, std::get<Is>(t_)...);
             }
 
-            hpx::future<Result> call(std::vector<hpx::naming::id_type> ids,
+            hpx::future<Result> call(
+                const std::vector<hpx::naming::id_type>& ids,
                 std::size_t iteration = 0)
             {
                 hpx::future<Result> f = invoke_distributed(ids.at(iteration),
@@ -275,7 +276,7 @@ namespace hpx { namespace resiliency { namespace experimental {
     template <typename Action, typename... Ts>
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replay_t, std::vector<hpx::naming::id_type> ids,
+    tag_invoke(async_replay_t, const std::vector<hpx::naming::id_type>& ids,
         Action&& action, Ts&&... ts)
     {
         using result_type =
@@ -296,7 +297,8 @@ namespace hpx { namespace resiliency { namespace experimental {
     template <typename Pred, typename Action, typename... Ts>
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replay_validate_t, std::vector<hpx::naming::id_type> ids,
+    tag_invoke(
+        async_replay_validate_t, const std::vector<hpx::naming::id_type>& ids,
         Pred&& pred, Action&& action, Ts&&... ts)
     {
         using result_type =

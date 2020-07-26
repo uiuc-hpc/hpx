@@ -1,3 +1,7 @@
+//  Copyright (c) 2019 National Technology & Engineering Solutions of Sandia,
+//                     LLC (NTESS).
+//  Copyright (c) 2018-2020 Hartmut Kaiser
+//  Copyright (c) 2018-2019 Adrian Serio
 //  Copyright (c) 2019-20 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
@@ -6,6 +10,7 @@
 
 #include <hpx/actions_base/plain_action.hpp>
 #include <hpx/hpx_init.hpp>
+#include <hpx/include/runtime.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
@@ -35,6 +40,11 @@ bool validate(int ans)
 int hpx_main()
 {
     std::vector<hpx::id_type> locals = hpx::find_all_localities();
+
+    // Allow a task to replay on the same locality if it only 1 locality
+    if (locals.size() == 1)
+        locals.insert(locals.end(), 9, hpx::find_here());
+
     {
         hpx::future<int> f =
             hpx::resiliency::experimental::async_replay(10, &universal_ans);

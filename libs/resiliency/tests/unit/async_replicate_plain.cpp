@@ -1,3 +1,7 @@
+//  Copyright (c) 2019 National Technology & Engineering Solutions of Sandia,
+//                     LLC (NTESS).
+//  Copyright (c) 2018-2020 Hartmut Kaiser
+//  Copyright (c) 2019 Adrian Serio
 //  Copyright (c) 2019-2020 Nikunj Gupta
 //
 //  SPDX-License-Identifier: BSL-1.0
@@ -5,6 +9,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/actions_base/plain_action.hpp>
+#include <hpx/include/runtime.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
@@ -41,6 +46,10 @@ int vote(std::vector<int>&& results)
 int hpx_main()
 {
     std::vector<hpx::naming::id_type> locals = hpx::find_all_localities();
+
+    // Allow a task to replicate on the same locality if it only 1 locality
+    if (locals.size() == 1)
+        locals.insert(locals.end(), 9, hpx::find_here());
 
     {
         hpx::future<int> f =

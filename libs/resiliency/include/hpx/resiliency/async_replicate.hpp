@@ -92,8 +92,8 @@ namespace hpx { namespace resiliency { namespace experimental {
                 results.emplace_back(hpx::async(f, ts...));
             }
 
-            // wait for all threads to finish executing and return the first result
-            // that passes the predicate, properly handle exceptions
+            // wait for all threads to finish executing and return the first
+            // result that passes the predicate, properly handle exceptions
             return hpx::dataflow(
                 // do not schedule new thread for the lambda
                 hpx::launch::sync,
@@ -143,7 +143,8 @@ namespace hpx { namespace resiliency { namespace experimental {
         template <typename Vote, typename Pred, typename Action, typename... Ts>
         hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
             hpx::naming::id_type, Ts...>::type>
-        async_replicate_vote_validate(std::vector<hpx::naming::id_type> ids,
+        async_replicate_vote_validate(
+            const std::vector<hpx::naming::id_type>& ids,
             Vote&& vote, Pred&& pred, Action&& action, Ts&&... ts)
         {
             using result_type =
@@ -159,8 +160,8 @@ namespace hpx { namespace resiliency { namespace experimental {
                 results.emplace_back(hpx::async(action, ids.at(i), ts...));
             }
 
-            // wait for all threads to finish executing and return the first result
-            // that passes the predicate, properly handle exceptions
+            // wait for all threads to finish executing and return the first
+            // result that passes the predicate, properly handle exceptions
             return hpx::dataflow(
                 hpx::launch::
                     sync,    // do not schedule new thread for the lambda
@@ -233,7 +234,7 @@ namespace hpx { namespace resiliency { namespace experimental {
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
     tag_invoke(async_replicate_vote_validate_t,
-        std::vector<hpx::naming::id_type> ids, Vote&& vote, Pred&& pred,
+        const std::vector<hpx::naming::id_type>& ids, Vote&& vote, Pred&& pred,
         Action&& action, Ts&&... ts)
     {
         return detail::async_replicate_vote_validate(ids,
@@ -266,7 +267,8 @@ namespace hpx { namespace resiliency { namespace experimental {
     template <typename Vote, typename Action, typename... Ts>
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replicate_vote_t, std::vector<hpx::naming::id_type> ids,
+    tag_invoke(
+        async_replicate_vote_t, const std::vector<hpx::naming::id_type>& ids,
         Vote&& vote, Action&& action, Ts&&... ts)
     {
         return detail::async_replicate_vote_validate(ids,
@@ -299,8 +301,8 @@ namespace hpx { namespace resiliency { namespace experimental {
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
     tag_invoke(async_replicate_validate_t,
-        std::vector<hpx::naming::id_type> ids, Pred&& pred, Action&& action,
-        Ts&&... ts)
+        const std::vector<hpx::naming::id_type>& ids,
+        Pred&& pred, Action&& action, Ts&&... ts)
     {
         return detail::async_replicate_vote_validate(ids,
             detail::replicate_voter{}, std::forward<Pred>(pred),
@@ -330,7 +332,7 @@ namespace hpx { namespace resiliency { namespace experimental {
     template <typename Action, typename... Ts>
     hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
         hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replicate_t, std::vector<hpx::naming::id_type> ids,
+    tag_invoke(async_replicate_t, const std::vector<hpx::naming::id_type>& ids,
         Action&& action, Ts&&... ts)
     {
         return detail::async_replicate_vote_validate(ids,
