@@ -48,47 +48,22 @@ int hpx_main()
         locals.insert(locals.end(), 9, hpx::find_here());
 
     {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate(10, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
-
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_validate(
-                10, &validate, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
-
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote(
-                10, &vote, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
-
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replicate_vote_validate(
-                10, &vote, &validate, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
-
-    {
         universal_action action;
         hpx::future<int> f =
             hpx::resiliency::experimental::async_replicate(locals, action);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     {
@@ -97,8 +72,18 @@ int hpx_main()
             hpx::resiliency::experimental::async_replicate_validate(
                 locals, &validate, action);
 
-        auto result = f.get();
-        HPX_TEST(result == 42);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     {
@@ -107,8 +92,18 @@ int hpx_main()
             hpx::resiliency::experimental::async_replicate_vote(
                 locals, &vote, action);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     {
@@ -117,8 +112,18 @@ int hpx_main()
             hpx::resiliency::experimental::async_replicate_vote_validate(
                 locals, &vote, &validate, action);
 
-        auto result = f.get();
-        HPX_TEST(result == 42);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replicate_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     return hpx::finalize();

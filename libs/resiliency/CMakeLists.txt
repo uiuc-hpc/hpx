@@ -11,8 +11,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Default location is $HPX_ROOT/libs/resiliency/include
 set(resiliency_headers
     hpx/resiliency/async_replay.hpp
+    hpx/resiliency/async_replay_distributed.hpp
     hpx/resiliency/async_replay_executor.hpp
     hpx/resiliency/async_replicate.hpp
+    hpx/resiliency/async_replicate_distributed.hpp
     hpx/resiliency/async_replicate_executor.hpp
     hpx/resiliency/config.hpp
     hpx/resiliency/replay_executor.hpp
@@ -20,6 +22,7 @@ set(resiliency_headers
     hpx/resiliency/resiliency.hpp
     hpx/resiliency/resiliency_cpos.hpp
     hpx/resiliency/version.hpp
+    hpx/resiliency/util.hpp
 )
 
 # Default location is $HPX_ROOT/libs/resiliency/src

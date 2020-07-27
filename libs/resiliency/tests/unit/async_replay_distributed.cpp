@@ -42,29 +42,22 @@ int hpx_main()
         locals.insert(locals.end(), 9, hpx::find_here());
 
     {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay(10, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
-    }
-
-    {
-        hpx::future<int> f =
-            hpx::resiliency::experimental::async_replay_validate(
-                10, &validate, &universal_ans);
-
-        auto result = f.get();
-        HPX_TEST(result == 42);
-    }
-
-    {
         universal_action our_action;
         hpx::future<int> f =
             hpx::resiliency::experimental::async_replay(locals, our_action);
 
-        auto result = f.get();
-        HPX_TEST(result == 42 || result == 84);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replay_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     {
@@ -73,9 +66,18 @@ int hpx_main()
             hpx::resiliency::experimental::async_replay_validate(
                 locals, &validate, our_action);
 
-        auto result = f.get();
-
-        HPX_TEST(result == 42);
+        try
+        {
+            f.get();
+        }
+        catch (hpx::resiliency::experimental::abort_replay_exception const&)
+        {
+            HPX_TEST(true);
+        }
+        catch (...)
+        {
+            HPX_TEST(false);
+        }
     }
 
     return hpx::finalize();

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <hpx/resiliency/config.hpp>
 #include <hpx/resiliency/resiliency_cpos.hpp>
+#include <hpx/resiliency/util.hpp>
 
 #include <hpx/async_distributed/async.hpp>
 #include <hpx/futures/future.hpp>
@@ -26,51 +26,7 @@
 namespace hpx { namespace resiliency { namespace experimental {
 
     ///////////////////////////////////////////////////////////////////////////
-    struct HPX_ALWAYS_EXPORT abort_replicate_exception : std::exception
-    {
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
     namespace detail {
-
-        ///////////////////////////////////////////////////////////////////////
-        struct replicate_voter
-        {
-            template <typename T>
-            constexpr T operator()(std::vector<T>&& vect) const
-            {
-                return std::move(vect.at(0));
-            }
-        };
-
-        struct replicate_validator
-        {
-            template <typename T>
-            constexpr bool operator()(T&&) const
-            {
-                return true;
-            }
-        };
-
-        ///////////////////////////////////////////////////////////////////////
-        template <typename Future>
-        std::exception_ptr rethrow_on_abort_replicate(Future& f)
-        {
-            std::exception_ptr ex;
-            try
-            {
-                f.get();
-            }
-            catch (abort_replicate_exception const&)
-            {
-                throw;
-            }
-            catch (...)
-            {
-                ex = std::current_exception();
-            }
-            return ex;
-        }
 
         ///////////////////////////////////////////////////////////////////////
         template <typename Vote, typename Pred, typename F, typename... Ts>
@@ -138,75 +94,7 @@ namespace hpx { namespace resiliency { namespace experimental {
                 },
                 std::move(results));
         }
-
-        ///////////////////////////////////////////////////////////////////////
-        template <typename Vote, typename Pred, typename Action, typename... Ts>
-        hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
-            hpx::naming::id_type, Ts...>::type>
-        async_replicate_vote_validate(
-            const std::vector<hpx::naming::id_type>& ids,
-            Vote&& vote, Pred&& pred, Action&& action, Ts&&... ts)
-        {
-            using result_type =
-                typename hpx::util::detail::invoke_deferred_result<Action,
-                    hpx::naming::id_type, Ts...>::type;
-
-            // launch given function n times
-            std::vector<hpx::future<result_type>> results;
-            results.reserve(ids.size());
-
-            for (std::size_t i = 0; i != ids.size(); ++i)
-            {
-                results.emplace_back(hpx::async(action, ids.at(i), ts...));
-            }
-
-            // wait for all threads to finish executing and return the first
-            // result that passes the predicate, properly handle exceptions
-            return hpx::dataflow(
-                hpx::launch::
-                    sync,    // do not schedule new thread for the lambda
-                [pred = std::forward<Pred>(pred),
-                    vote = std::forward<Vote>(vote), ids](
-                    std::vector<hpx::future<result_type>>&& results) mutable
-                -> result_type {
-                    // Store all valid results
-                    std::vector<result_type> valid_results;
-                    valid_results.reserve(ids.size());
-
-                    std::exception_ptr ex;
-
-                    for (auto&& f : std::move(results))
-                    {
-                        if (f.has_exception())
-                        {
-                            // rethrow abort_replicate_exception, if caught
-                            ex = detail::rethrow_on_abort_replicate(f);
-                        }
-                        else
-                        {
-                            auto&& result = f.get();
-                            if (hpx::util::invoke(pred, result))
-                            {
-                                valid_results.emplace_back(std::move(result));
-                            }
-                        }
-                    }
-
-                    if (!valid_results.empty())
-                    {
-                        return hpx::util::invoke(
-                            std::forward<Vote>(vote), std::move(valid_results));
-                    }
-
-                    if (bool(ex))
-                        std::rethrow_exception(ex);
-
-                    // throw aborting exception no correct results ere produced
-                    throw abort_replicate_exception{};
-                },
-                std::move(results));
-        }
-    }    // namespace detail
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Asynchronously launch given function \a f exactly \a n times. Verify
@@ -222,24 +110,6 @@ namespace hpx { namespace resiliency { namespace experimental {
         return detail::async_replicate_vote_validate(n,
             std::forward<Vote>(vote), std::forward<Pred>(pred),
             std::forward<F>(f), std::forward<Ts>(ts)...);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Asynchronously launch given function \a f exactly \a n times on \a n
-    // different localities, where \a n is the size of the vector of \a ids.
-    // Verify the result of those invocations using the given predicate \a pred.
-    // Run all the valid results against a user provided voting function.
-    // Return the valid output.
-    template <typename Vote, typename Pred, typename Action, typename... Ts>
-    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
-        hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replicate_vote_validate_t,
-        const std::vector<hpx::naming::id_type>& ids, Vote&& vote, Pred&& pred,
-        Action&& action, Ts&&... ts)
-    {
-        return detail::async_replicate_vote_validate(ids,
-            std::forward<Vote>(vote), std::forward<Pred>(pred),
-            std::forward<Action>(action), std::forward<Ts>(ts)...);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -259,24 +129,6 @@ namespace hpx { namespace resiliency { namespace experimental {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // Asynchronously launch given function \a f exactly \a n times on \a n
-    // different localities, where \a n is the size of the vector of \a ids.
-    // Verify the result of those invocations using the given predicate \a pred.
-    // Run all the valid results against a user provided voting function.
-    // Return the valid output.
-    template <typename Vote, typename Action, typename... Ts>
-    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
-        hpx::naming::id_type, Ts...>::type>
-    tag_invoke(
-        async_replicate_vote_t, const std::vector<hpx::naming::id_type>& ids,
-        Vote&& vote, Action&& action, Ts&&... ts)
-    {
-        return detail::async_replicate_vote_validate(ids,
-            std::forward<Vote>(vote), detail::replicate_validator{},
-            std::forward<Action>(action), std::forward<Ts>(ts)...);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
     // Asynchronously launch given function \a f exactly \a n times. Verify
     // the result of those invocations using the given predicate \a pred.
     // Return the first valid result.
@@ -289,24 +141,6 @@ namespace hpx { namespace resiliency { namespace experimental {
         return detail::async_replicate_vote_validate(n,
             detail::replicate_voter{}, std::forward<Pred>(pred),
             std::forward<F>(f), std::forward<Ts>(ts)...);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Asynchronously launch given function \a f exactly \a n times on \a n
-    // different localities, where \a n is the size of the vector of \a ids.
-    // Verify the result of those invocations using the given predicate \a pred.
-    // Run all the valid results against a user provided voting function.
-    // Return the valid output.
-    template <typename Pred, typename Action, typename... Ts>
-    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
-        hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replicate_validate_t,
-        const std::vector<hpx::naming::id_type>& ids,
-        Pred&& pred, Action&& action, Ts&&... ts)
-    {
-        return detail::async_replicate_vote_validate(ids,
-            detail::replicate_voter{}, std::forward<Pred>(pred),
-            std::forward<Action>(action), std::forward<Ts>(ts)...);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -323,20 +157,4 @@ namespace hpx { namespace resiliency { namespace experimental {
             std::forward<F>(f), std::forward<Ts>(ts)...);
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Asynchronously launch given function \a f exactly \a n times on \a n
-    // different localities, where \a n is the size of the vector of \a ids.
-    // Verify the result of those invocations using the given predicate \a pred.
-    // Run all the valid results against a user provided voting function.
-    // Return the valid output.
-    template <typename Action, typename... Ts>
-    hpx::future<typename hpx::util::detail::invoke_deferred_result<Action,
-        hpx::naming::id_type, Ts...>::type>
-    tag_invoke(async_replicate_t, const std::vector<hpx::naming::id_type>& ids,
-        Action&& action, Ts&&... ts)
-    {
-        return detail::async_replicate_vote_validate(ids,
-            detail::replicate_voter{}, detail::replicate_validator{},
-            std::forward<Action>(action), std::forward<Ts>(ts)...);
-    }
 }}}    // namespace hpx::resiliency::experimental
