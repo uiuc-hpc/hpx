@@ -94,7 +94,7 @@ namespace hpx { namespace resiliency { namespace experimental {
                 },
                 std::move(results));
         }
-    }
+    }    // namespace detail
 
     ///////////////////////////////////////////////////////////////////////////
     // Asynchronously launch given function \a f exactly \a n times. Verify

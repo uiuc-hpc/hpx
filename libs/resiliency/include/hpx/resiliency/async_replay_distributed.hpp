@@ -35,7 +35,8 @@ namespace hpx { namespace resiliency { namespace experimental {
                 distributed_async_replay_helper<Result, Pred, Action, Tuple>>
         {
             template <typename Pred_, typename Action_, typename Tuple_>
-            distributed_async_replay_helper(Pred_&& pred, Action_&& action, Tuple_&& tuple)
+            distributed_async_replay_helper(
+                Pred_&& pred, Action_&& action, Tuple_&& tuple)
               : pred_(std::forward<Pred_>(pred))
               , action_(std::forward<Action_>(action))
               , t_(std::forward<Tuple_>(tuple))

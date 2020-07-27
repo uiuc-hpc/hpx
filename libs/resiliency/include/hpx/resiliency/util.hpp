@@ -11,6 +11,7 @@
 
 #include <exception>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace hpx { namespace resiliency { namespace experimental {
@@ -25,8 +26,7 @@ namespace hpx { namespace resiliency { namespace experimental {
     {
     };
 
-    namespace detail
-    {
+    namespace detail {
 
         ///////////////////////////////////////////////////////////////////////
         struct replicate_voter
@@ -97,5 +97,5 @@ namespace hpx { namespace resiliency { namespace experimental {
             return ex;
         }
 
-    }
-}}}
+    }    // namespace detail
+}}}      // namespace hpx::resiliency::experimental

@@ -5,8 +5,8 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/actions_base/plain_action.hpp>
-#include <hpx/include/runtime.hpp>
 #include <hpx/hpx_init.hpp>
+#include <hpx/include/runtime.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
