@@ -13,7 +13,6 @@
 #include <hpx/include/parallel_executors.hpp>
 #include <hpx/include/parallel_for_loop.hpp>
 #include <hpx/include/threads.hpp>
-#include <hpx/iostream.hpp>
 #include <hpx/modules/format.hpp>
 #include <hpx/modules/testing.hpp>
 #include <hpx/modules/timing.hpp>
@@ -43,18 +42,12 @@ using hpx::program_options::variables_map;
 using hpx::finalize;
 using hpx::init;
 
-using hpx::find_here;
-using hpx::naming::id_type;
-
 using hpx::apply;
 using hpx::async;
 using hpx::future;
 using hpx::lcos::wait_each;
 
 using hpx::util::high_resolution_timer;
-
-using hpx::cout;
-using hpx::flush;
 
 // global vars we stick here to make printouts easy for plotting
 static std::string queuing = "default";
@@ -315,9 +308,9 @@ int hpx_main(variables_map& vm)
         hpx::parallel::execution::parallel_executor par;
         hpx::parallel::execution::parallel_executor_aggregated par_agg;
         hpx::parallel::execution::thread_pool_executor tpe;
-        hpx::parallel::execution::thread_pool_executor tpe_nostack(
-            hpx::threads::thread_priority_default,
-            hpx::threads::thread_stacksize_nostack);
+        //        hpx::parallel::execution::thread_pool_executor tpe_nostack(
+        //            hpx::threads::thread_priority_default,
+        //            hpx::threads::thread_stacksize_nostack);
 
         for (int i = 0; i < repetitions; i++)
         {
@@ -331,8 +324,8 @@ int hpx_main(variables_map& vm)
                     count, csv, par_agg, bool(cds));
                 measure_function_futures_thread_count(
                     count, csv, tpe, bool(cds));
-                measure_function_futures_thread_count(
-                    count, csv, tpe_nostack, bool(cds));
+                //                measure_function_futures_thread_count(
+                //                    count, csv, tpe_nostack, bool(cds));
             }
         }
     }

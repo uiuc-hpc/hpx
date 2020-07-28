@@ -59,6 +59,7 @@ set(HPX_CANDIDATE_LIBS
     itt_notify
     lcos_distributed
     lcos_local
+    libcds
     logging
     memory
     mpi_base

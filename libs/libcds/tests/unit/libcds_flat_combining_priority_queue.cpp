@@ -8,7 +8,6 @@
 #include <hpx/assert.hpp>
 #include <hpx/hpx_init.hpp>
 #include <hpx/include/threads.hpp>
-#include <hpx/iostream.hpp>
 
 #include <cds/container/fcpriority_queue.h>
 #include <cds/gc/hp.h>    // for cds::HP (Hazard Pointer) SMR

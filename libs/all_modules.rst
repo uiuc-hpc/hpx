@@ -61,7 +61,7 @@ All modules
    /libs/itt_notify/docs/index.rst
    /libs/lcos_distributed/docs/index.rst
    /libs/lcos_local/docs/index.rst
-   /libs/local_lcos/docs/index.rst
+   /libs/libcds/docs/index.rst
    /libs/logging/docs/index.rst
    /libs/memory/docs/index.rst
    /libs/mpi_base/docs/index.rst

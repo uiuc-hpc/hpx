@@ -15,18 +15,18 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-if(HPX_WITH_LIBCDS AND NOT TARGET LibCDS::cds)
+set(HPX_WITH_LIBCDS_GIT_REPOSITORY https://github.com/STEllAR-GROUP/libcds.git)
+set(HPX_WITH_LIBCDS_GIT_TAG hpx_backend_alex_hpGeneric)
+set(FETCHCONTENT_UPDATES_DISCONNECTED_libcds ON)
+
+if(HPX_WITH_LIBCDS)
   include(FetchContent)
   include(HPX_Message)
 
-  set(LIBCDS_WITH_HPX
-      ON
-      CACHE INTERNAL ""
-  )
-  set(LIBCDS_INSIDE_HPX
-      ON
-      CACHE INTERNAL ""
-  )
+  set(LIBCDS_GENERATE_SOURCELIST ON)
+
+  set(LIBCDS_WITH_HPX ON)
+  set(LIBCDS_AS_HPX_MODULE ON)
 
   hpx_info(
     "Fetching libCDS from repository: ${HPX_WITH_LIBCDS_GIT_REPOSITORY}, "
@@ -44,9 +44,8 @@ if(HPX_WITH_LIBCDS AND NOT TARGET LibCDS::cds)
     fetchcontent_populate(libcds)
     set(LIBCDS_CXX_STANDARD ${HPX_CXX_STANDARD})
     add_subdirectory(${libcds_SOURCE_DIR} ${libcds_BINARY_DIR})
-
-    set_target_properties(cds PROPERTIES FOLDER "Core")
-    set_target_properties(cds-s PROPERTIES FOLDER "Core")
+    list(TRANSFORM LIBCDS_SOURCELIST PREPEND "${libcds_SOURCE_DIR}/")
+    set(LIBCDS_SOURCE_DIR ${libcds_SOURCE_DIR})
   endif()
 
 endif()

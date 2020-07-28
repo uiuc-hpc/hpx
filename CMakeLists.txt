@@ -946,11 +946,7 @@ if(HPX_WITH_LIBCDS)
     HPX_WITH_LIBCDS_GIT_TAG STRING "Define the LibCDS git tag to use."
     hpx-thread CATEGORY "Thread Manager" ADVANCED
   )
-  include(HPX_SetupLibCDS)
-  if(NOT libcds_POPULATED)
-    hpx_error("HPX_WITH_LIBCDS was set to ON, but HPX failed to fetch LibCDS")
-  endif()
-  hpx_add_config_define(HPX_HAVE_LIBCDS) # tell HPX that we use LibCDS
+  hpx_add_config_define(HPX_HAVE_LIBCDS)
 endif()
 
 hpx_option(
