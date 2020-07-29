@@ -22,7 +22,9 @@ if(HPX_WITH_EXAMPLES)
       1d_stencil_replay_exception
       1d_stencil_replay_validate
       async_replay
+      async_replay_distributed
       async_replicate
+      async_replicate_distributed
       async_replicate_vote
       dataflow_replicate
       version

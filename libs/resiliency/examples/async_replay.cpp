@@ -9,6 +9,7 @@
 
 #include <hpx/actions_base/plain_action.hpp>
 #include <hpx/hpx_init.hpp>
+#include <hpx/include/runtime.hpp>
 #include <hpx/modules/futures.hpp>
 #include <hpx/modules/resiliency.hpp>
 #include <hpx/modules/testing.hpp>
@@ -39,6 +40,10 @@ bool validate(int ans)
 int hpx_main()
 {
     std::vector<hpx::naming::id_type> locals = hpx::find_all_localities();
+
+    // Allow a task to replay on the same locality if it only 1 locality
+    if (locals.size() == 1)
+        locals.insert(locals.end(), 9, hpx::find_here());
 
     {
         hpx::future<int> f =
