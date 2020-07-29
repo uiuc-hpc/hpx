@@ -112,12 +112,12 @@ struct libcds_thread_manager_wrapper
       : uselibcds_(uselibcds)
     {
         if (uselibcds_)
-            cds::threading::Manager::attachThread();
+            cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::attach_thread();
     }
     ~libcds_thread_manager_wrapper()
     {
         if (uselibcds_)
-            cds::threading::Manager::detachThread();
+            cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::detach_thread();
     }
 
     bool uselibcds_;
@@ -281,7 +281,11 @@ int hpx_main(variables_map& vm)
 
     {
         // Initialize Hazard Pointer singleton
-        cds::gc::HP hpGC;
+        const std::size_t nHazardPtrCount = 1;     // Hazard pointer count per thread
+        const std::size_t nMaxThreadCount = 100;     // Max count of simultaneous working thread in the application
+        const std::size_t nMaxRetiredPtrCount = 16; // Capacity of the array of retired objects for the thread
+        using hp_hpxtls = cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>;
+        hp_hpxtls::construct(nHazardPtrCount, nMaxThreadCount, nMaxRetiredPtrCount);
 
         if (vm.count("hpx:queuing"))
             queuing = vm["hpx:queuing"].as<std::string>();
