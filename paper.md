@@ -220,7 +220,7 @@ auto-parallelizing library to speed up stencil code based computer simulations;
 [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a simulation tool for non-local models,
 e.g. Peridynamics; [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting]; Kokkos,
 C++ Performance Portability Programming EcoSystem [@10.1016/j.jpdc.2014.07.003]; Dynamical Cluster Approximation (DCA++),
-a high-performance research software framework to solve quantum many-body problems with cutting edge quantum cluster algorithms [@hahner2020dca++];
+a high-performance research software framework to solve quantum many-body problems with cutting edge quantum cluster algorithms [@hahner2020dca];
 a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming;
 and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime]
 a distributed array toolkit.
