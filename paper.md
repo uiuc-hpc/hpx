@@ -89,15 +89,15 @@ difficulty achieving a desired scalability using traditional distributed-memory
 runtimes. Asynchronous many-task systems (AMT) are based on a new paradigm
 showing promises in addressing these challenges, providing application
 developers with a productive and performant approach to programming on next
-generation systems. 
+generation systems.
 
-A detailed comparison of various AMT's is given in [@thoman2018taxonomy]. 
-Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel], 
-Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion], 
- and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions, 
+A detailed comparison of various AMT's is given in [@thoman2018taxonomy].
+Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel],
+Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion],
+ and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions,
  since this is one important feature for scientific applications to run large scale simulations.
- The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++ 
- standard conform-ing API. 
+ The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++
+ standard conform-ing API.
 
 HPX is a C++ Library for Concurrency and Parallelism that is
 developed by The STE||AR Group, an international group of collaborators working
@@ -114,19 +114,19 @@ improve efficiency and scalability of parallel applications by increasing
 resource utilization and reducing synchronization through providing an
 asynchronous API and employing adaptive scheduling. The consequent use of
 _Futures_ intrinsically enables overlap of computation and communication and
-constraint-based synchronization. HPX is able to maintain a balanced load among 
+constraint-based synchronization. HPX is able to maintain a balanced load among
 all the available resources resulting in significantly reducing processor
 starvation and effective latencies while controlling overheads. HPX is fully
 conforming to the C++ ISO Standards and implements the standardized concurrency
 mechanisms and parallelism facilities. Further, HPX extends those facilities to
 distributed use cases, thus enabling syntactic and semantic equivalence of local
-and remote operations on the API level. HPX uses the concept of C++ _Futures_ to 
-transform sequential algorithms into wait-free asynchronous executions. 
-The use of _Futurization_ enables the automatic creation of dynamic data flow 
+and remote operations on the API level. HPX uses the concept of C++ _Futures_ to
+transform sequential algorithms into wait-free asynchronous executions.
+The use of _Futurization_ enables the automatic creation of dynamic data flow
 execution trees of potentially millions of lightweight HPX tasks executed in the
 proper order. HPX also provides a work-stealing task scheduler that takes care
-of fine-grained parallelizations and automatic load balancing. Furthermore, 
-HPX implements functionalities proposed as part of the ongoing C++ 
+of fine-grained parallelizations and automatic load balancing. Furthermore,
+HPX implements functionalities proposed as part of the ongoing C++
 standardization process.
 
 ![Sketch of HPX's architecture with all the components and their interactions.\label{fig:architecture}](hpx_architecture.pdf)
@@ -187,11 +187,11 @@ and their references are listed below:
     from C++ code. This enables HPX to launch both CPU and GPU kernels
     as dictated by the current state of the system.
 - **Local Control Objects**
-    HPX has support for many of the C++20 primitives, such as `hpx::latch`, 
-    `hpx::barrier`, and `hpx::counting_semaphore` to synchronize the code or 
-    overlap computation and communication. These functions are standard conform 
-    according to the C++20 [@standard2020programming]. For asynchronous computing 
-    HPX provides `hpx::async` and `hpx::future`, see the second example in the 
+    HPX has support for many of the C++20 primitives, such as `hpx::latch`,
+    `hpx::barrier`, and `hpx::counting_semaphore` to synchronize the code or
+    overlap computation and communication. These functions are standard conform
+    according to the C++20 [@standard2020programming]. For asynchronous computing
+    HPX provides `hpx::async` and `hpx::future`, see the second example in the
     next section.
 - **Software Resilience**
     HPX supports software level resilience [@gupta2020implementing] through its
@@ -209,19 +209,21 @@ and their references are listed below:
     extension) their asynchronous equivalents
     `hpx::execution::seq(hpx::execution::task)` and
     `hpx::execution::par(hpx::execution::task)` (see the first code example
-    in the next section). HPX also implements the C++20 
+    in the next section). HPX also implements the C++20
     concurrency facilities and APIs [@standard2020programming], such as
     `hpx::jthread`, `hpx::latch`, `hpx::barrier`, etc.
 
-HPX is utilized in a diverse set of applications: [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger) 
+HPX is utilized in a diverse set of applications: [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
 [@daiss2019piz;@heller2019harnessing; @pfander2018accelerating], an astrophysics code for
 stellar mergers; [libGeoDecomp](https://github.com/gentryx/libgeodecomp) [@Schafer:2008:LGL:1431669.1431721], an
 auto-parallelizing library to speed up stencil code based computer simulations;
 [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a simulation tool for non-local models,
-e.g. Peridynamics; [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting], 
-a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming; 
-and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime] 
-a distributed array toolkit. 
+e.g. Peridynamics; [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting]; Kokkos,
+C++ Performance Portability Programming EcoSystem [@10.1016/j.jpdc.2014.07.003]; Dynamical Cluster Approximation (DCA++),
+a high-performance research software framework to solve quantum many-body problems with cutting edge quantum cluster algorithms [];
+a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming;
+and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime]
+a distributed array toolkit.
 
 # Example code
 
@@ -345,7 +347,7 @@ grants:
   H2020-EU.1.2.2. 671603 (AllScale).
 
 
-For a constantly updated list of previous and current funding, we refer to the 
+For a constantly updated list of previous and current funding, we refer to the
 corresponding [HPX's website](http://hpx.stellar-group.org/funding-acknowledgements/).
 
 # References
