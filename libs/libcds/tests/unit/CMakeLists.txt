@@ -8,11 +8,13 @@ set(tests
     libcds_flat_combining_priority_queue
     libcds_mickael_map_hazard_pointer
     libcds_feldman_map_hazard_pointer
+    libcds_split_list_map_hazard_pointer
         )
 
 set(libcds_flat_combining_priority_queue THREADS_PER_LOCALITY 4)
 set(libcds_mickael_map_hazard_pointer THREADS_PER_LOCALITY 4)
 set(libcds_feldman_map_hazard_pointer THREADS_PER_LOCALITY 4)
+set(libcds_split_list_map_hazard_pointer THREADS_PER_LOCALITY 4)
 
 foreach(test ${tests})
 
