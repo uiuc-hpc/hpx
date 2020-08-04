@@ -27,7 +27,7 @@ int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
     hpx::this_thread::sleep_for(std::chrono::microseconds(size));
 
     // Check if the node is faulty
-    for (const auto& locale: f_locales)
+    for (const auto& locale : f_locales)
     {
         // Throw a runtime error in case the node is faulty
         if (locale == hpx::find_here())
@@ -73,7 +73,6 @@ int hpx_main(hpx::program_options::variables_map& vm)
         f_locales.push_back(locales.at(num));
     }
 
-
     {
         hpx::util::high_resolution_timer t;
 
@@ -83,7 +82,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
             tasks.push_back(hpx::resiliency::experimental::async_replay(
                 locales, ac, f_locales, size));
 
-            std::rotate(locales.begin(), locales.begin()+1, locales.end());
+            std::rotate(locales.begin(), locales.begin() + 1, locales.end());
         }
 
         hpx::wait_all(tasks);
@@ -102,7 +101,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
                 hpx::resiliency::experimental::async_replay_validate(
                     locales, &validate, ac, f_locales, size));
 
-            std::rotate(locales.begin(), locales.begin()+1, locales.end());
+            std::rotate(locales.begin(), locales.begin() + 1, locales.end());
         }
 
         hpx::wait_all(tasks);
@@ -119,14 +118,11 @@ int main(int argc, char* argv[])
     // Configure application-specific options
     hpx::program_options::options_description desc_commandline;
 
-    desc_commandline.add_options()
-        ("f-nodes",
+    desc_commandline.add_options()("f-nodes",
         hpx::program_options::value<std::size_t>()->default_value(1),
-        "Number of faulty nodes to be injected")
-        ("size",
+        "Number of faulty nodes to be injected")("size",
         hpx::program_options::value<std::size_t>()->default_value(2000),
-        "Grain size of a task")
-        ("num-tasks",
+        "Grain size of a task")("num-tasks",
         hpx::program_options::value<std::size_t>()->default_value(1000000),
         "Number of tasks to invoke");
 
