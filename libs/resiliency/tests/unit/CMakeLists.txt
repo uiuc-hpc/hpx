@@ -5,10 +5,10 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 set(tests
-    async_replay_distributed
+    async_replay_distributed_plain
     async_replay_executor
     async_replay_plain
-    async_replicate_distributed
+    async_replicate_distributed_plain
     async_replicate_executor
     async_replicate_plain
     async_replicate_vote_executor

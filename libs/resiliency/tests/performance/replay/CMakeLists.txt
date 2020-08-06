@@ -11,9 +11,12 @@ set(benchmarks
     1d_stencil_replay
     1d_stencil_checksum
     async_replay
+    async_replay_distributed
+    async_replay_distributed_validate
     async_replay_validate
     dataflow_replay
     dataflow_replay_validate
+    plain_async_distributed
     pure_async_for_replay
     pure_dataflow
 )

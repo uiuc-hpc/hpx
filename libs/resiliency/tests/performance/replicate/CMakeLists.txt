@@ -10,10 +10,15 @@ set(benchmarks
     1d_stencil_replicate
     1d_stencil_replicate_checksum
     async_replicate
+    async_replicate_distributed
+    async_replicate_distributed_validate
+    async_replicate_distributed_vote
+    async_replicate_distributed_vote_validate
     async_replicate_validate
     async_replicate_vote
     async_replicate_vote_validate
     pure_async_for_replicate
+    plain_async_replicate_distributed
 )
 
 foreach(benchmark ${benchmarks})
