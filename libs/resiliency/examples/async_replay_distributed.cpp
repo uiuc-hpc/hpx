@@ -24,7 +24,9 @@
 int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
 {
     // Pretending to do some useful work
-    hpx::this_thread::sleep_for(std::chrono::microseconds(size));
+    std::size_t start = hpx::util::high_resolution_clock::now();
+
+    while ((hpx::util::high_resolution_clock::now() - start) < (size * 1e3)) {}
 
     // Check if the node is faulty
     for (const auto& locale : f_locales)
