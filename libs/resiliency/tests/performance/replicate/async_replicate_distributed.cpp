@@ -36,6 +36,8 @@ int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
         }));
     }
 
+    hpx::wait_all(local_tasks);
+
     // Check if the node is faulty
     for (const auto& locale : f_locales)
     {
