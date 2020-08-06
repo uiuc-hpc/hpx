@@ -21,10 +21,20 @@
 
 int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
 {
-    // Pretending to do some useful work
-    std::size_t start = hpx::util::high_resolution_clock::now();
+    std::vector<hpx::future<int> > local_tasks;
 
-    while ((hpx::util::high_resolution_clock::now() - start) < (size * 1e3)) {}
+    for (std::size_t i = 0; i < 100; ++i)
+    {
+        local_tasks.push_back(hpx::async([size](){
+            // Pretending to do some useful work
+            std::size_t start = hpx::util::high_resolution_clock::now();
+
+            while ((hpx::util::high_resolution_clock::now() - start) <
+                    (size * 1e3)) {}
+
+            return 42;
+        }));
+    }
 
     // Check if the node is faulty
     for (const auto& locale : f_locales)
