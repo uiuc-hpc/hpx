@@ -25,7 +25,7 @@ set(libcds_headers hpx/libcds/hpx.hpp hpx/libcds/hpx_manager.hpp)
 # Default location is $HPX_ROOT/libs/libcds/include_compatibility
 set(libcds_compat_headers)
 
-set(libcds_sources ${LIBCDS_SOURCELIST})
+set(libcds_sources src/hpx_tls_manager.cpp ${LIBCDS_SOURCELIST})
 
 include(HPX_AddModule)
 add_hpx_module(
@@ -43,3 +43,4 @@ add_hpx_module(
 
 target_include_directories(hpx_libcds PRIVATE ${LIBCDS_SOURCE_DIR})
 target_compile_definitions(hpx_libcds PUBLIC CDS_THREADING_HPX)
+target_compile_definitions(hpx_libcds PUBLIC CDS_EXPORT_API=HPX_EXPORT)

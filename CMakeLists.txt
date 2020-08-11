@@ -940,11 +940,11 @@ if(HPX_WITH_LIBCDS)
   hpx_option(
     HPX_WITH_LIBCDS_GIT_REPOSITORY STRING
     "Define the LibCDS git repository to use."
-    https://github.com/STEllAR-GROUP/libcds CATEGORY "Thread Manager" ADVANCED
+    https://github.com/khizmax/libcds.git CATEGORY "Thread Manager" ADVANCED
   )
   hpx_option(
     HPX_WITH_LIBCDS_GIT_TAG STRING "Define the LibCDS git tag to use."
-    hpx-thread CATEGORY "Thread Manager" ADVANCED
+    master CATEGORY "Thread Manager" ADVANCED
   )
   hpx_add_config_define(HPX_HAVE_LIBCDS)
 endif()
