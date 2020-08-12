@@ -20,7 +20,7 @@ endif()
 hpx_add_config_define(HPX_HAVE_LIBCDS)
 
 # Default location is $HPX_ROOT/libs/libcds/include
-set(libcds_headers hpx/libcds/hpx.hpp hpx/libcds/hpx_manager.hpp)
+set(libcds_headers hpx/libcds/hpx.hpp hpx/libcds/hpx_tls_manager.hpp)
 
 # Default location is $HPX_ROOT/libs/libcds/include_compatibility
 set(libcds_compat_headers)
@@ -36,8 +36,18 @@ add_hpx_module(
   SOURCES ${libcds_sources}
   HEADERS ${libcds_headers}
   COMPAT_HEADERS ${libcds_compat_headers}
-  DEPENDENCIES hpx_assertion hpx_config hpx_concepts hpx_type_support
-               hpx_threading_base hpx_threading
+  DEPENDENCIES
+    hpx_assertion
+    hpx_execution_base
+    hpx_concurrency
+    hpx_config
+    hpx_errors
+    hpx_execution
+    hpx_lcos_local
+    hpx_memory
+    hpx_runtime_local
+    hpx_threading_base
+    hpx_threading
   CMAKE_SUBDIRS examples tests
 )
 

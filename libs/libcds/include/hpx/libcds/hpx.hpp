@@ -5,6 +5,6 @@
 
 #pragma once
 
-#include <hpx/libcds/hpx_manager.hpp>
+#include <hpx/libcds/hpx_tls_manager.hpp>
 #include <hpx/modules/threading.hpp>
 #include <hpx/threading_base/thread_data.hpp>

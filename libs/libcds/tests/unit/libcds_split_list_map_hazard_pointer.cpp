@@ -7,6 +7,7 @@
 
 #include <hpx/hpx_init.hpp>
 #include <hpx/include/async.hpp>
+#include <hpx/libcds/hpx_tls_manager.hpp>
 
 #include <cds/container/michael_list_hp.h>
 #include <cds/container/split_list_map.h>

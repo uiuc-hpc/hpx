@@ -4,9 +4,9 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/libcds/hpx_tls_manager.hpp>
 #include <hpx/modules/threading.hpp>
 #include <hpx/threading_base/thread_data.hpp>
-#include <hpx/libcds/hpx_manager.hpp>
 
 #include <cds/gc/details/hp_common.h>
 
@@ -20,7 +20,7 @@ namespace cds { namespace gc { namespace hp { namespace details {
         return reinterpret_cast<thread_data*>(hpx_tls_data);
     }
 
-    /*static*/CDS_EXPORT_API void HPXTLSManager::setTLS(thread_data* new_tls)
+    /*static*/ CDS_EXPORT_API void HPXTLSManager::setTLS(thread_data* new_tls)
     {
         auto thread_id = hpx::threads::get_self_id();
         size_t hp_tls_data = reinterpret_cast<std::size_t>(new_tls);

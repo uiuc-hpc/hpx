@@ -6,10 +6,11 @@
 #ifndef LIBCDS_HPX_TLS_MANAGER
 #define LIBCDS_HPX_TLS_MANAGER
 
+#include <hpx/config.hpp>
 #include <cds/gc/details/hp_common.h>
 
 //@cond
-namespace cds { namespace gc { namespace hp { namespace common {
+namespace cds { namespace gc { namespace hp { namespace details {
 
     class HPXTLSManager
     {

@@ -7,6 +7,7 @@
 
 #include <hpx/hpx_init.hpp>
 #include <hpx/include/async.hpp>
+#include <hpx/libcds/hpx_tls_manager.hpp>
 
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/init.h>    // for cds::Initialize and cds::Terminate
