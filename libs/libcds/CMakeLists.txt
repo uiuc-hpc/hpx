@@ -25,7 +25,8 @@ set(libcds_headers hpx/libcds/hpx.hpp hpx/libcds/hpx_tls_manager.hpp)
 # Default location is $HPX_ROOT/libs/libcds/include_compatibility
 set(libcds_compat_headers)
 
-set(libcds_sources src/hpx_tls_manager.cpp ${LIBCDS_SOURCELIST})
+# Default location is $HPX_ROOT/libs/libcds
+set(libcds_sources src/hpx_tls_manager.cpp)
 
 include(HPX_AddModule)
 add_hpx_module(
@@ -48,6 +49,7 @@ add_hpx_module(
     hpx_runtime_local
     hpx_threading_base
     hpx_threading
+    libcds::cds
   CMAKE_SUBDIRS examples tests
 )
 

@@ -37,6 +37,12 @@ if(HPX_WITH_LIBCDS)
     add_subdirectory(${libcds_SOURCE_DIR} ${libcds_BINARY_DIR})
     list(TRANSFORM LIBCDS_SOURCELIST PREPEND "${libcds_SOURCE_DIR}/")
     set(LIBCDS_SOURCE_DIR ${libcds_SOURCE_DIR})
+
+    # create an imported target that links to the real libcds so that when we
+    # link to the inported target, we don't get export X depends on cds that is
+    # not in the export set
+    add_library(libcds::cds INTERFACE IMPORTED)
+    target_link_libraries(libcds::cds INTERFACE cds)
   endif()
 
 endif()
