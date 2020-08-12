@@ -20,7 +20,7 @@ endif()
 hpx_add_config_define(HPX_HAVE_LIBCDS)
 
 # Default location is $HPX_ROOT/libs/libcds/include
-set(libcds_headers hpx/libcds/hpx.hpp hpx/libcds/hpx_tls_manager.hpp)
+set(libcds_headers hpx/libcds/hpx_tls_manager.hpp)
 
 # Default location is $HPX_ROOT/libs/libcds/include_compatibility
 set(libcds_compat_headers)
@@ -54,5 +54,8 @@ add_hpx_module(
 )
 
 target_include_directories(hpx_libcds PRIVATE ${LIBCDS_SOURCE_DIR})
-target_compile_definitions(hpx_libcds PUBLIC CDS_THREADING_HPX)
-target_compile_definitions(hpx_libcds PUBLIC CDS_EXPORT_API=HPX_EXPORT)
+
+# not needed with HP template specialization used in current module but would be
+# needed if using another branch with more HPX specific code
+# target_compile_definitions(hpx_libcds PUBLIC CDS_THREADING_HPX)
+# target_compile_definitions(hpx_libcds PUBLIC CDS_EXPORT_API=HPX_EXPORT)
