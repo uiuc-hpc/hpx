@@ -43,7 +43,7 @@ int universal_ans(
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(1, 100);
+    std::uniform_int_distribution<std::size_t> dist(1, 100);
 
     bool is_faulty = false;
 
@@ -54,7 +54,7 @@ int universal_ans(
         if (locale == hpx::find_here())
         {
             is_faulty = true;
-            if (dist(gen) < err * 10)
+            if (dist(gen) < (err * 10))
                 throw std::runtime_error("runtime error occured.");
         }
     }

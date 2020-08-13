@@ -46,7 +46,7 @@ int universal_ans(
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(1, 100);
+    std::uniform_int_distribution<std::size_t> dist(1, 100);
 
     bool is_faulty = false;
 
