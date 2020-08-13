@@ -25,7 +25,7 @@ int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
 {
     std::vector<hpx::future<int> > local_tasks;
 
-    for (std::size_t i = 0; i < 100; ++i)
+    for (std::size_t i = 0; i < 1000; ++i)
     {
         local_tasks.push_back(hpx::async([size](){
             // Pretending to do some useful work
