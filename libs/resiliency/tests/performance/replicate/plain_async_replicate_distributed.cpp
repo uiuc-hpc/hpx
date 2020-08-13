@@ -100,7 +100,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
         hpx::wait_all(tasks);
 
         double elapsed = t.elapsed();
-        std::cout << "Replicate: " << elapsed << std::endl;
+        std::cout << "Plain async: " << elapsed << std::endl;
     }
 
     return hpx::finalize();

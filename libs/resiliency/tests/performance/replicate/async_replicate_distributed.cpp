@@ -19,18 +19,21 @@
 #include <random>
 #include <vector>
 
-int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
+int universal_ans(
+    std::vector<hpx::id_type> f_locales, std::size_t err, std::size_t size)
 {
-    std::vector<hpx::future<int> > local_tasks;
+    std::vector<hpx::future<int>> local_tasks;
 
     for (std::size_t i = 0; i < 100; ++i)
     {
-        local_tasks.push_back(hpx::async([size](){
+        local_tasks.push_back(hpx::async([size]() {
             // Pretending to do some useful work
             std::size_t start = hpx::util::high_resolution_clock::now();
 
             while ((hpx::util::high_resolution_clock::now() - start) <
-                    (size * 1e3)) {}
+                (size * 1e3))
+            {
+            }
 
             return 42;
         }));
@@ -38,13 +41,26 @@ int universal_ans(std::vector<hpx::id_type> f_locales, std::size_t size)
 
     hpx::wait_all(local_tasks);
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(1, 100);
+
+    bool is_faulty = false;
+
     // Check if the node is faulty
     for (const auto& locale : f_locales)
     {
         // Throw a runtime error in case the node is faulty
         if (locale == hpx::find_here())
-            throw std::runtime_error("runtime error occured.");
+        {
+            is_faulty = true;
+            if (dist(gen) < err * 10)
+                throw std::runtime_error("runtime error occured.");
+        }
     }
+
+    if (!is_faulty && dist(gen) < err)
+        throw std::runtime_error("runtime error occured.");
 
     return 42;
 }
@@ -64,6 +80,7 @@ int vote(std::vector<int>&& results)
 int hpx_main(hpx::program_options::variables_map& vm)
 {
     std::size_t f_nodes = vm["f-nodes"].as<std::size_t>();
+    std::size_t err = vm["error"].as<std::size_t>();
     std::size_t size = vm["size"].as<std::size_t>();
     std::size_t num_tasks = vm["num-tasks"].as<std::size_t>();
     std::size_t num_replications = vm["num-replications"].as<std::size_t>();
@@ -101,7 +118,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
                 locales.begin(), locales.begin() + num_replications);
 
             tasks.push_back(hpx::resiliency::experimental::async_replicate(
-                ids, ac, f_locales, size));
+                ids, ac, f_locales, err, size));
 
             std::rotate(locales.begin(), locales.begin() + 1, locales.end());
         }
@@ -122,10 +139,12 @@ int main(int argc, char* argv[])
 
     desc_commandline.add_options()("f-nodes",
         hpx::program_options::value<std::size_t>()->default_value(1),
-        "Number of faulty nodes to be injected")("size",
-        hpx::program_options::value<std::size_t>()->default_value(200),
+        "Number of faulty nodes to be injected")("error",
+        hpx::program_options::value<std::size_t>()->default_value(5),
+        "Error rates for all nodes. Faulty nodes will have 10x error rates.")(
+        "size", hpx::program_options::value<std::size_t>()->default_value(200),
         "Grain size of a task")("num-tasks",
-        hpx::program_options::value<std::size_t>()->default_value(1000000),
+        hpx::program_options::value<std::size_t>()->default_value(10000),
         "Number of tasks to invoke")("num-replications",
         hpx::program_options::value<std::size_t>()->default_value(3),
         "Total number of replicates for a task (including the task itself)");
