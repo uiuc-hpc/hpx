@@ -5,7 +5,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-|circleci_status| |zenodo_doi| |codacy|
+|circleci_status| |zenodo_doi| |codacy| [![status](https://joss.theoj.org/papers/9cb393c408b6ee3b6686fdb63a98ce74/status.svg)](https://joss.theoj.org/papers/9cb393c408b6ee3b6686fdb63a98ce74)
 
 Documentation: `latest
 <https://stellar-group.github.io/hpx/docs/sphinx/latest/html/index.html>`_,
