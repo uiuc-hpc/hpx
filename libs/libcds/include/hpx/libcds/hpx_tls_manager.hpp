@@ -38,7 +38,7 @@ namespace hpx { namespace cds {
         {
             if (uselibcds_)
             {
-                if (thread_counter++ > max_concurrent_attach_thread_)
+                if (++thread_counter > max_concurrent_attach_thread_)
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::thread_manager_wrapper ",
