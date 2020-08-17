@@ -43,8 +43,14 @@ void init(
     }
 }
 
+// Random number generator
+std::random_device randomizer;
+std::mt19937 gen(randomizer());
+std::uniform_int_distribution<std::size_t> dis(1, 100);
+
 void stencil_update(std::array<data_type, 2>& U, const std::size_t& begin
-        , const std::size_t& end, const std::size_t t)
+        , const std::size_t& end, const std::size_t t, std::size_t error,
+        bool is_faulty_node)
 {
     data_type& curr = U[t % 2];
     data_type& next = U[(t + 1) % 2];
@@ -53,5 +59,16 @@ void stencil_update(std::array<data_type, 2>& U, const std::size_t& begin
     {
         next[i] = curr[i] + ((k*dt)/(dx*dx)) *
                                     (curr[i-1] - 2*curr[i] + curr[i+1]);
+    }
+
+    if (is_faulty_node)
+    {
+        if (dis(gen) < (error * 10))
+            throw std::runtime_error("Error occured");
+    }
+    else
+    {
+        if (dis(gen) < error)
+            throw std::runtime_error("Error occured");
     }
 }
