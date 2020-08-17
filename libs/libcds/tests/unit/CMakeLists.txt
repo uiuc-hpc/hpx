@@ -5,14 +5,16 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 set(tests # libcds_flat_combining_priority_queue
-    libcds_mickael_map_hazard_pointer libcds_feldman_map_hazard_pointer
+    libcds_michael_map_hazard_pointer
+    libcds_feldman_map_hazard_pointer
     libcds_split_list_map_hazard_pointer
-    libcds_mickael_map_hazard_pointer_stdthread libcds_feldman_map_hazard_pointer_stdthread
+    libcds_michael_map_hazard_pointer_stdthread
+    libcds_feldman_map_hazard_pointer_stdthread
     libcds_split_list_map_hazard_pointer_stdthread
 )
 
 set(libcds_flat_combining_priority_queue THREADS_PER_LOCALITY 4)
-set(libcds_mickael_map_hazard_pointer THREADS_PER_LOCALITY 4)
+set(libcds_michael_map_hazard_pointer THREADS_PER_LOCALITY 4)
 set(libcds_feldman_map_hazard_pointer THREADS_PER_LOCALITY 4)
 set(libcds_split_list_map_hazard_pointer THREADS_PER_LOCALITY 4)
 
