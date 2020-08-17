@@ -267,8 +267,8 @@ int hpx_main(variables_map& vm)
         // Initialize Hazard Pointer singleton
         const std::size_t nHazardPtrCount =
             1;    // Hazard pointer count per thread
-        const std::size_t nMaxThreadCount =
-            100;    // Max count of simultaneous working thread in the application
+        const std::size_t nMaxThreadCount = hpx::cds::thread_manager_wrapper::
+            max_concurrent_attach_thread_;    // Max count of simultaneous working thread in the application
         const std::size_t nMaxRetiredPtrCount =
             16;    // Capacity of the array of retired objects for the thread
         using hp_hpxtls =
@@ -297,6 +297,8 @@ int hpx_main(variables_map& vm)
         bool csv = vm.count("csv") != 0;
         if (HPX_UNLIKELY(0 == count))
             throw std::logic_error("error: count of 0 futures specified\n");
+
+        cds::gc::HP hpGC;
 
         hpx::parallel::execution::parallel_executor par;
         hpx::parallel::execution::parallel_executor_aggregated par_agg;
