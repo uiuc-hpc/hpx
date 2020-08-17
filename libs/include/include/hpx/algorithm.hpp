@@ -6,31 +6,19 @@
 
 #pragma once
 
+#include <hpx/config.hpp>
 #include <hpx/parallel/algorithm.hpp>
 #include <hpx/parallel/container_algorithms.hpp>
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
+#include <hpx/parallel/segmented_algorithm.hpp>
+#endif
 
 namespace hpx {
     using hpx::parallel::adjacent_find;
-    using hpx::parallel::all_of;
-    using hpx::parallel::any_of;
-    using hpx::parallel::count;
-    using hpx::parallel::count_if;
-    using hpx::parallel::equal;
-    using hpx::parallel::fill;
-    using hpx::parallel::fill_n;
-    using hpx::parallel::find;
-    using hpx::parallel::find_end;
-    using hpx::parallel::find_first_of;
-    using hpx::parallel::find_if;
-    using hpx::parallel::find_if_not;
-    using hpx::parallel::for_each;
-    using hpx::parallel::for_each_n;
     using hpx::parallel::for_loop;
     using hpx::parallel::for_loop_n;
     using hpx::parallel::for_loop_n_strided;
     using hpx::parallel::for_loop_strided;
-    using hpx::parallel::generate;
-    using hpx::parallel::generate_n;
     using hpx::parallel::includes;
     using hpx::parallel::inplace_merge;
     using hpx::parallel::is_heap;
@@ -43,9 +31,6 @@ namespace hpx {
     using hpx::parallel::merge;
     using hpx::parallel::min_element;
     using hpx::parallel::minmax_element;
-    using hpx::parallel::mismatch;
-    using hpx::parallel::move;
-    using hpx::parallel::none_of;
     using hpx::parallel::partition;
     using hpx::parallel::partition_copy;
     using hpx::parallel::remove;
@@ -68,6 +53,7 @@ namespace hpx {
     using hpx::parallel::set_union;
     using hpx::parallel::sort;
     using hpx::parallel::stable_partition;
+    using hpx::parallel::stable_sort;
     using hpx::parallel::swap_ranges;
     using hpx::parallel::unique;
     using hpx::parallel::unique_copy;

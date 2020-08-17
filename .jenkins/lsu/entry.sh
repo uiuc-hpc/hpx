@@ -9,25 +9,32 @@
 # Make undefined variables errors, print each command
 set -eux
 
-# Set name of branch if not building a pull request
-if [[ -z "${ghprbPullId:-}" ]]; then
-    export git_local_branch=$(echo ${GIT_BRANCH} | cut -f2 -d'/')
-fi
-
 # Clean up directory
 rm -f jenkins-hpx*
 
 export configuration_name_with_build_type="${configuration_name}-${build_type,,}"
 
-# Start the actual build
 source .jenkins/lsu/slurm-configuration-${configuration_name}.sh
 
+if [[ -z "${ghprbPullId:-}" ]]; then
+    # Set name of branch if not building a pull request
+    export git_local_branch=$(echo ${GIT_BRANCH} | cut -f2 -d'/')
+    job_name="jenkins-hpx-${git_local_branch}-${configuration_name_with_build_type}"
+else
+    job_name="jenkins-hpx-${ghprbPullId}-${configuration_name_with_build_type}"
+
+    # Cancel currently running builds on the same branch, but only for pull
+    # requests
+    scancel --jobname="${job_name}"
+fi
+
+# Start the actual build
 set +e
 sbatch \
-    --job-name="jenkins-hpx-${configuration_name_with_build_type}" \
+    --job-name="${job_name}" \
     --nodes="${configuration_slurm_num_nodes}" \
     --partition="${configuration_slurm_partition}" \
-    --time="03:00:00" \
+    --time="06:00:00" \
     --output="jenkins-hpx-${configuration_name_with_build_type}.out" \
     --error="jenkins-hpx-${configuration_name_with_build_type}.err" \
     --wait .jenkins/lsu/batch.sh
