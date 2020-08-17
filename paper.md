@@ -296,8 +296,8 @@ int main()
     size_t n = 100;
 
     // Launch two concurrent computations of each partial result
-    hpx::future<double> f1 = std::async(taylor, 0, n / 2, n, 2.);
-    hpx::future<double> f2 = std::async(taylor, (n / 2) + 1, n, n, 2.);
+    hpx::future<double> f1 = hpx::async(taylor, 0, n / 2, n, 2.);
+    hpx::future<double> f2 = hpx::async(taylor, (n / 2) + 1, n, n, 2.);
 
     // Introduce a barrier to gather the results
     double res = f1.get() + f2.get();
