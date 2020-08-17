@@ -36,13 +36,14 @@ HPX_REGISTER_CHANNEL_DECLARATION(communication_type);
 HPX_REGISTER_CHANNEL(communication_type, stencil_communication);
 
 std::vector<double> distributed_step(std::vector<double> prev,
-        std::size_t local_nx, std::size_t nlp, std::size_t t,
-        std::size_t error, std::size_t faults)
+    std::size_t local_nx, std::size_t nlp, std::size_t t, std::size_t error,
+    std::size_t faults)
 {
     std::size_t rank = hpx::get_locality_id();
 
     bool is_faulty_node = false;
-    if ((faults * 3) % rank == 0)   is_faulty_node = true;
+    if ((faults * 3) % rank == 0)
+        is_faulty_node = true;
 
     // Initiate replay executor
     hpx::parallel::execution::parallel_executor base_exec;
@@ -55,15 +56,16 @@ std::vector<double> distributed_step(std::vector<double> prev,
 
     auto range = boost::irange(static_cast<std::size_t>(0), nlp);
 
-    hpx::ranges::for_each(
-        hpx::parallel::execution::par.on(exec)
-        , range, [&U, local_nx, nlp, t, error, is_faulty_node](std::size_t i) {
+    hpx::ranges::for_each(hpx::parallel::execution::par.on(exec), range,
+        [&U, local_nx, nlp, t, error, is_faulty_node](std::size_t i) {
             if (i == 0)
                 stencil_update(U, 1, local_nx, t, error, is_faulty_node);
             else if (i == nlp - 1)
-                stencil_update(U, i * local_nx, (i + 1) * local_nx - 1, t, error, is_faulty_node);
+                stencil_update(U, i * local_nx, (i + 1) * local_nx - 1, t,
+                    error, is_faulty_node);
             else if (i > 0 && i < nlp - 1)
-                stencil_update(U, i * local_nx, (i + 1) * local_nx, t, error, is_faulty_node);
+                stencil_update(U, i * local_nx, (i + 1) * local_nx, t, error,
+                    is_faulty_node);
         });
 
     return U[(t + 1) % 2];
@@ -75,7 +77,6 @@ int hpx_main(boost::program_options::variables_map& vm)
 {
     std::size_t Nx_global = vm["Nx"].as<std::size_t>();
     std::size_t steps = vm["steps"].as<std::size_t>();
-    std::size_t sti = vm["sti"].as<std::size_t>();
     std::size_t nlp = vm["Nlp"].as<std::size_t>();
     std::size_t error = vm["error"].as<std::size_t>();
     std::size_t faults = vm["faults"].as<std::size_t>();
@@ -89,7 +90,8 @@ int hpx_main(boost::program_options::variables_map& vm)
     std::size_t rank = hpx::get_locality_id();
 
     bool is_faulty_node = false;
-    if ((faults * 3) % rank == 0)   is_faulty_node = true;
+    if ((faults * 3) % rank == 0)
+        is_faulty_node = true;
 
     hpx::util::high_resolution_timer t_main;
 
@@ -136,6 +138,9 @@ int hpx_main(boost::program_options::variables_map& vm)
         data_type& curr = U[t % 2];
         data_type& next = U[(t + 1) % 2];
 
+        double begin_next = U[(t + 1) % 2][0];
+        double end_next = U[(t + 1) % 2][Nx - 1];
+
         hpx::future<void> l = hpx::make_ready_future();
         hpx::future<void> r = hpx::make_ready_future();
 
@@ -143,7 +148,8 @@ int hpx_main(boost::program_options::variables_map& vm)
         {
             l = comm.get(communicator_type::left, t)
                     .then(hpx::launch::sync,
-                        [&next, &curr, &comm, t](hpx::future<double>&& gg) {
+                        [&next, &curr, &comm, t, &begin_next](
+                            hpx::future<double>&& gg) {
                             double left = gg.get();
 
                             next[0] = curr[0] +
@@ -153,6 +159,7 @@ int hpx_main(boost::program_options::variables_map& vm)
                             // Dispatch the updated value to left neighbor for it
                             // to get consumed in the next timestep
                             comm.set(communicator_type::left, next[0], t + 1);
+                            begin_next = next[0];
                         });
         }
 
@@ -160,7 +167,8 @@ int hpx_main(boost::program_options::variables_map& vm)
         {
             r = comm.get(communicator_type::right, t)
                     .then(hpx::launch::sync,
-                        [&next, &curr, &comm, t, Nx](hpx::future<double>&& gg) {
+                        [&next, &curr, &comm, t, Nx, &end_next](
+                            hpx::future<double>&& gg) {
                             double right = gg.get();
 
                             next[Nx - 1] = curr[Nx - 1] +
@@ -171,37 +179,47 @@ int hpx_main(boost::program_options::variables_map& vm)
                             // to get consumed in the next timestep
                             comm.set(
                                 communicator_type::right, next[Nx - 1], t + 1);
+                            end_next = next[Nx - 1];
                         });
         }
 
-        try {
-            hpx::ranges::for_each(
-                hpx::parallel::execution::par.on(exec)
-                , range, [&U, local_nx, nlp, t, error, is_faulty_node](std::size_t i) {
+        try
+        {
+            hpx::ranges::for_each(hpx::parallel::execution::par.on(exec), range,
+                [&U, local_nx, nlp, t, error, is_faulty_node](std::size_t i) {
                     if (i == 0)
-                        stencil_update(U, 1, local_nx, t, error, is_faulty_node);
+                        stencil_update(
+                            U, 1, local_nx, t, error, is_faulty_node);
                     else if (i == nlp - 1)
-                        stencil_update(U, i * local_nx, (i + 1) * local_nx - 1, t, error, is_faulty_node);
+                        stencil_update(U, i * local_nx, (i + 1) * local_nx - 1,
+                            t, error, is_faulty_node);
                     else if (i > 0 && i < nlp - 1)
-                        stencil_update(U, i * local_nx, (i + 1) * local_nx, t, error, is_faulty_node);
+                        stencil_update(U, i * local_nx, (i + 1) * local_nx, t,
+                            error, is_faulty_node);
                 });
         }
         catch (...)
         {
             // Set up replay locales for our current step
-            hpx::id_type id_1 = hpx::naming::get_id_from_locality_id((rank + 1) % num_localities);
-            hpx::id_type id_2 = hpx::naming::get_id_from_locality_id((rank + 2) % num_localities);
-            hpx::id_type id_3 = hpx::naming::get_id_from_locality_id((rank + 3) % num_localities);
+            hpx::id_type id_1 = hpx::naming::get_id_from_locality_id(
+                (rank + 1) % num_localities);
+            hpx::id_type id_2 = hpx::naming::get_id_from_locality_id(
+                (rank + 2) % num_localities);
+            hpx::id_type id_3 = hpx::naming::get_id_from_locality_id(
+                (rank + 3) % num_localities);
 
             std::vector<hpx::id_type> locales{id_1, id_2, id_3};
 
             // We will try to replay
             distributed_step_action ac;
             hpx::future<std::vector<double>> f =
-                 hpx::resiliency::experimental::async_replay(locales, ac, curr, local_nx, nlp, t, error, faults);
+                hpx::resiliency::experimental::async_replay(
+                    locales, ac, curr, local_nx, nlp, t, error, faults);
 
             // Store the result obtained
-            U[(t + 1) % 2] = f.get();
+            next = f.get();
+            next[0] = begin_next;
+            next[Nx - 1] = end_next;
         }
 
         hpx::wait_all(l, r);
