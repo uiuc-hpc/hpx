@@ -42,7 +42,7 @@ std::vector<double> distributed_step(std::vector<double> prev,
     std::size_t rank = hpx::get_locality_id();
 
     bool is_faulty_node = false;
-    if ((faults * 3) % rank == 0)
+    if (((faults * 3) % (rank + 1)) == 0)
         is_faulty_node = true;
 
     // Initiate replay executor
@@ -90,7 +90,7 @@ int hpx_main(boost::program_options::variables_map& vm)
     std::size_t rank = hpx::get_locality_id();
 
     bool is_faulty_node = false;
-    if ((faults * 3) % rank == 0)
+    if (((faults * 3) % (rank + 1)) == 0 && faults != 0)
         is_faulty_node = true;
 
     hpx::util::high_resolution_timer t_main;
@@ -210,13 +210,13 @@ int hpx_main(boost::program_options::variables_map& vm)
 
             std::vector<hpx::id_type> locales{id_1, id_2, id_3};
 
-            // We will try to replay
+            // // We will try to replay
             distributed_step_action ac;
             hpx::future<std::vector<double>> f =
                 hpx::resiliency::experimental::async_replay(
                     locales, ac, curr, local_nx, nlp, t, error, faults);
 
-            // Store the result obtained
+            // // Store the result obtained
             next = f.get();
             next[0] = begin_next;
             next[Nx - 1] = end_next;
