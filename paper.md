@@ -97,7 +97,7 @@ Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion]
  and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions,
  since this is one important feature for scientific applications to run large scale simulations.
  The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++
- standard conform-ing API.
+ standard conforming API.
 
 HPX is a C++ Library for Concurrency and Parallelism that is
 developed by The STE||AR Group, an international group of collaborators working
@@ -224,6 +224,9 @@ a high-performance research software framework to solve quantum many-body proble
 a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming;
 and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime]
 a distributed array toolkit.
+
+For a constantly updated list of applications, we refer to the
+corresponding [HPX's website](https://hpx.stellar-group.org/hpx-users/).
 
 # Example code
 
