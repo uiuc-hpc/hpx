@@ -7,6 +7,8 @@
 set(tests # libcds_flat_combining_priority_queue
     libcds_mickael_map_hazard_pointer libcds_feldman_map_hazard_pointer
     libcds_split_list_map_hazard_pointer
+    libcds_mickael_map_hazard_pointer_stdthread libcds_feldman_map_hazard_pointer_stdthread
+    libcds_split_list_map_hazard_pointer_stdthread
 )
 
 set(libcds_flat_combining_priority_queue THREADS_PER_LOCALITY 4)
