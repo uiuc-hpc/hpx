@@ -7,9 +7,12 @@
 #define LIBCDS_HPX_TLS_MANAGER
 
 #include <hpx/config.hpp>
+#include <hpx/errors/exception.hpp>
 //
 #include <cds/gc/details/hp_common.h>
 #include <cds/gc/hp.h>
+
+#include <atomic>
 
 //@cond
 namespace cds { namespace gc { namespace hp { namespace details {
@@ -34,17 +37,43 @@ namespace hpx { namespace cds {
           : uselibcds_(uselibcds)
         {
             if (uselibcds_)
+            {
+                if (thread_counter++ > max_concurrent_attach_thread_)
+                {
+                    HPX_THROW_EXCEPTION(invalid_status,
+                        "hpx::cds::thread_manager_wrapper ",
+                        "attaching more threads than number of maximum allowed "
+                        "detached threads, consider update "
+                        "hpx::cds::thread_manager_wrapper::max_concurrent_"
+                        "attach_thread_");
+                }
                 ::cds::gc::hp::custom_smr<
                     ::cds::gc::hp::details::HPXTLSManager>::attach_thread();
+            }
         }
         ~thread_manager_wrapper()
         {
             if (uselibcds_)
+            {
+                if (thread_counter-- <= 0)
+                {
+                    HPX_THROW_EXCEPTION(invalid_status,
+                        "hpx::cds::thread_manager_wrapper",
+                        "detaching more threads than number of attached "
+                        "threads");
+                }
                 ::cds::gc::hp::custom_smr<
                     ::cds::gc::hp::details::HPXTLSManager>::detach_thread();
+            }
         }
 
         bool uselibcds_;
+
+        static std::atomic<std::size_t> max_concurrent_attach_thread_;
+
+    private:
+        static std::atomic<std::size_t> thread_counter;
+        ;
     };
 
 }}    // namespace hpx::cds
