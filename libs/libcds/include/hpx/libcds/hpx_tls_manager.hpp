@@ -7,7 +7,9 @@
 #define LIBCDS_HPX_TLS_MANAGER
 
 #include <hpx/config.hpp>
+//
 #include <cds/gc/details/hp_common.h>
+#include <cds/gc/hp.h>
 
 //@cond
 namespace cds { namespace gc { namespace hp { namespace details {
@@ -20,5 +22,31 @@ namespace cds { namespace gc { namespace hp { namespace details {
     };
 
 }}}}    // namespace cds::gc::hp::details
+
+namespace hpx { namespace cds {
+    ///////////////////////////////////////////////////////////////////////////////
+    struct thread_manager_wrapper
+    {
+        // the boolean uselibcs option is provided to make comparison
+        // of certain tests with/without libcds easier
+        // @TODO : we should remove it one day
+        explicit thread_manager_wrapper(bool uselibcds = true)
+          : uselibcds_(uselibcds)
+        {
+            if (uselibcds_)
+                ::cds::gc::hp::custom_smr<
+                    ::cds::gc::hp::details::HPXTLSManager>::attach_thread();
+        }
+        ~thread_manager_wrapper()
+        {
+            if (uselibcds_)
+                ::cds::gc::hp::custom_smr<
+                    ::cds::gc::hp::details::HPXTLSManager>::detach_thread();
+        }
+
+        bool uselibcds_;
+    };
+
+}}    // namespace hpx::cds
 
 #endif    // #ifndef LIBCDS_HPX_TLS_MANAGER

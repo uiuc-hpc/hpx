@@ -106,29 +106,10 @@ const char* exec_name(
 double global_scratch = 0;
 std::uint64_t num_iterations = 0;
 
-///////////////////////////////////////////////////////////////////////////////
-struct libcds_thread_manager_wrapper
-{
-    explicit libcds_thread_manager_wrapper(bool uselibcds)
-      : uselibcds_(uselibcds)
-    {
-        if (uselibcds_)
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::HPXTLSManager>::attach_thread();
-    }
-    ~libcds_thread_manager_wrapper()
-    {
-        if (uselibcds_)
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::HPXTLSManager>::detach_thread();
-    }
-
-    bool uselibcds_;
-};
-
 double null_function(bool uselibcds) noexcept
 {
-    libcds_thread_manager_wrapper wrap(uselibcds);
+    // enable this thread/task to run using libcds support
+    hpx::cds::thread_manager_wrapper cdswrap;
 
     if (num_iterations > 0)
     {

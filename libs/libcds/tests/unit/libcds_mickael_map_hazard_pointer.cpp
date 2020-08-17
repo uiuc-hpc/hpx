@@ -48,11 +48,10 @@ void run(Map& map, const std::size_t nMaxItemCount)
         futures.push_back(hpx::async([&, ele]() {
             hpx::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
 
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::HPXTLSManager>::attach_thread();
+            // enable this thread/task to run using libcds support
+            hpx::cds::thread_manager_wrapper cdswrap;
+
             map.insert(ele, std::to_string(ele));
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::HPXTLSManager>::detach_thread();
         }));
     }
 
@@ -80,8 +79,8 @@ int hpx_main(int, char**)
         cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::construct(
             map_type::c_nHazardPtrCount + 1, 100, 16);
 
-        cds::gc::hp::custom_smr<
-            cds::gc::hp::details::HPXTLSManager>::attach_thread();
+        // enable this thread/task to run using libcds support
+        hpx::cds::thread_manager_wrapper cdswrap;
 
         const std::size_t nMaxItemCount =
             100;    // estimation of max item count in the hash map
@@ -92,8 +91,6 @@ int hpx_main(int, char**)
 
         run(map, nMaxItemCount);
     }
-    cds::gc::hp::custom_smr<
-        cds::gc::hp::details::HPXTLSManager>::detach_thread();
 
     // Terminate libcds
     cds::Terminate();
