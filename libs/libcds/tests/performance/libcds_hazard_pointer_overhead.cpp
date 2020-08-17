@@ -298,8 +298,6 @@ int hpx_main(variables_map& vm)
         if (HPX_UNLIKELY(0 == count))
             throw std::logic_error("error: count of 0 futures specified\n");
 
-        cds::gc::HP hpGC;
-
         hpx::parallel::execution::parallel_executor par;
         hpx::parallel::execution::parallel_executor_aggregated par_agg;
         hpx::parallel::execution::thread_pool_executor tpe;
