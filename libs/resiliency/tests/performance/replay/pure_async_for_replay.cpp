@@ -84,51 +84,6 @@ int hpx_main(hpx::program_options::variables_map& vm)
             std::cout, "Pure Async execution time = {1}\n", elapsed);
     }
 
-    {
-        std::cout << "Starting async replay" << std::endl;
-
-        std::vector<hpx::future<std::size_t>> vect;
-        vect.reserve(num_iterations);
-
-        hpx::util::high_resolution_timer t;
-
-        for (std::size_t i = 0; i < num_iterations; ++i)
-        {
-            hpx::future<std::size_t> f = hpx::resiliency::experimental::async_replay(
-                n, &universal_ans, delay, error);
-            vect.push_back(std::move(f));
-        }
-
-        hpx::wait_all(vect);
-
-        double elapsed = t.elapsed();
-        hpx::util::format_to(
-            std::cout, "Async Replay execution time = {1}\n", elapsed);
-    }
-
-    {
-        std::cout << "Starting async replay validate" << std::endl;
-
-        std::vector<hpx::future<std::size_t>> vect;
-        vect.reserve(num_iterations);
-
-        hpx::util::high_resolution_timer t;
-
-        for (std::size_t i = 0; i < num_iterations; ++i)
-        {
-            hpx::future<std::size_t> f =
-                hpx::resiliency::experimental::async_replay_validate(
-                    n, &validate, &universal_ans, delay, error);
-            vect.push_back(std::move(f));
-        }
-
-        hpx::wait_all(vect);
-
-        double elapsed = t.elapsed();
-        hpx::util::format_to(
-            std::cout, "Async replay validate time = {1}\n", elapsed);
-    }
-
     return hpx::finalize();
 }
 
