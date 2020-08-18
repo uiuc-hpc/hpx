@@ -7,6 +7,7 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 set(benchmarks
+    1d_stencil_channel_replicate
     1d_stencil_replicate
     1d_stencil_replicate_checksum
     async_replicate
