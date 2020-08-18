@@ -334,7 +334,7 @@ int main(int argc, char* argv[])
 
     // clang-format off
     cmdline.add_options()
-        ("futures", value<std::uint64_t>()->default_value(500000),
+        ("futures", value<std::uint64_t>()->default_value(50000),
             "number of futures to invoke")
 
         ("delay-iterations", value<std::uint64_t>()->default_value(0),
