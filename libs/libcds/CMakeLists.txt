@@ -25,13 +25,13 @@ set(libcds_headers hpx/libcds/hpx_tls_manager.hpp)
 # Default location is $HPX_ROOT/libs/libcds/include_compatibility
 set(libcds_compat_headers)
 
-# Default location is $HPX_ROOT/libs/libcds
-set(libcds_sources src/hpx_tls_manager.cpp)
+# Default location is $HPX_ROOT/libs/libcds/src
+set(libcds_sources hpx_tls_manager.cpp)
 
 include(HPX_AddModule)
 add_hpx_module(
   libcds
-  COMPATIBILITY_HEADERS OFF SOURCE_PATH_ABSOLUTE
+  COMPATIBILITY_HEADERS OFF
   DEPRECATION_WARNINGS
   GLOBAL_HEADER_GEN OFF
   SOURCES ${libcds_sources}

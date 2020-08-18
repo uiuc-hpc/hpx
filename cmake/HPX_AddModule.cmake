@@ -8,7 +8,7 @@ include(HPX_ExportTargets)
 
 function(add_hpx_module name)
   # Retrieve arguments
-  set(options DEPRECATION_WARNINGS CUDA CONFIG_FILES SOURCE_PATH_ABSOLUTE)
+  set(options DEPRECATION_WARNINGS CUDA CONFIG_FILES)
   # Compatibility needs to be on/off to allow 3 states : ON/OFF and disabled
   set(one_value_args COMPATIBILITY_HEADERS GLOBAL_HEADER_GEN)
   set(multi_value_args SOURCES HEADERS COMPAT_HEADERS DEPENDENCIES
@@ -97,16 +97,12 @@ function(add_hpx_module name)
   endif()
 
   # Write full path for the sources files
-  if(${name}_SOURCE_PATH_ABSOLUTE)
-    set(sources ${${name}_SOURCES})
-  else()
-    list(
-      TRANSFORM ${name}_SOURCES
-      PREPEND ${SOURCE_ROOT}/
-              OUTPUT_VARIABLE
-              sources
-    )
-  endif()
+  list(
+    TRANSFORM ${name}_SOURCES
+    PREPEND ${SOURCE_ROOT}/
+            OUTPUT_VARIABLE
+            sources
+  )
   list(
     TRANSFORM ${name}_HEADERS
     PREPEND ${HEADER_ROOT}/
