@@ -48,6 +48,8 @@ std::size_t universal_ans(std::size_t delay_ns, std::size_t error)
             // Re-run the thread if the thread was meant to re-run
             if (dist(gen) < error)
                 throw vogon_exception();
+
+            break;
         }
     }
 
