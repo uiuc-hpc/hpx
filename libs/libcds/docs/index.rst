@@ -37,7 +37,7 @@ one might want to check
 For example, after clicking `cds > Modules > FeldmanHashMap <http://libcds.sourceforge.net/doc/cds-api/classcds_1_1container_1_1_feldman_hash_map.html>`_
 , one can find Template parameters in FeldmanHashMap class
 :cpp:class:`cds::container::FeldmanHashMap< GC, Key, T, Traits >`
-suggests `GC - safe memory reclamation schema. Can be gc::HP, gc::DHP or one of RCU type`.
+suggests *GC - safe memory reclamation schema. Can be gc::HP, gc::DHP or one of RCU type`*
 
 Build Hazard Pointer w/ HPX threads
 ###################################
