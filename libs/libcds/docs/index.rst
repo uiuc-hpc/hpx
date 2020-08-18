@@ -12,11 +12,16 @@
 libcds
 ======
 
+LibCDS Overview
+###############
+
 `LibCDS <https://github.com/khizmax/libcds>`_ implements a collection of
 oncurrent containers that don't require external (manual) synchronization
 for shared access, and safe memory reclamation (SMR) algorithms like
 Hazard Pointer and user-space RCU that is used as an epoch-based SMR.
 
+Supporting features
+###################
 Currently, this module **only** supports *Hazard Pointer*
 (a type of safe memory reclamation schemas/garbage collectors)
 based containers in LibCDS
@@ -34,6 +39,8 @@ For example, after clicking `cds > Modules > FeldmanHashMap <http://libcds.sourc
 :cpp:class:`cds::container::FeldmanHashMap< GC, Key, T, Traits >`
 suggests `GC - safe memory reclamation schema. Can be gc::HP, gc::DHP or one of RCU type`.
 
+Build Hazard Pointer w/ HPX threads
+###################################
 To build and your own lock free container in LibCDS using
 HPX light-weight user-level thread, one might first get familiar with
 `LibCDS <https://github.com/khizmax/libcds>`_ itself. The simplest way to
@@ -81,6 +88,9 @@ launch Hazard Pointer in HPX threads is to do the following:
         return hpx::init(argc, argv);
     }
 
+Use Hazard Pointer supported Container w/ HPX threads
+#####################################################
+
 To note, to use Hazard Pointer in the context of HPX user-level threads,
 one must use LibCDS template
 TLS manager :cpp:type:`cds::gc::hp::custom_smr<T>` supplied with
@@ -108,7 +118,11 @@ where the map is built on top of a list. In this case, both map and list need to
 use :cpp:type:`cds::gc::hp::details::HPXTLSManager` to template the Garbage Collector
 type.
 
+API
+#####################################################
+
 The following API functions are exposed:
+
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper`: This is a wrapper of
 :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::attach_thread()`
 and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::detach_thread()`
