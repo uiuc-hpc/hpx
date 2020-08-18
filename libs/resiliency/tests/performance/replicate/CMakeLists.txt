@@ -20,6 +20,10 @@ set(benchmarks
     async_replicate_vote_validate
     pure_async_for_replicate
     plain_async_replicate_distributed
+    overheads_async_replicate
+    overheads_async_replicate_validate
+    overheads_async_replicate_vote
+    overheads_async_replicate_vote_validate
 )
 
 foreach(benchmark ${benchmarks})

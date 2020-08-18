@@ -17,6 +17,8 @@ set(benchmarks
     async_replay_validate
     dataflow_replay
     dataflow_replay_validate
+    overheads_async_replay
+    overheads_async_replay_validate
     plain_async_distributed
     pure_async_for_replay
     pure_dataflow
