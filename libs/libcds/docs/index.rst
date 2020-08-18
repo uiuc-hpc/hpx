@@ -16,7 +16,7 @@ LibCDS Overview
 ###############
 
 `LibCDS <https://github.com/khizmax/libcds>`_ implements a collection of
-oncurrent containers that don't require external (manual) synchronization
+concurrent containers that don't require external (manual) synchronization
 for shared access, and safe memory reclamation (SMR) algorithms like
 Hazard Pointer and user-space RCU that is used as an epoch-based SMR.
 
@@ -38,6 +38,8 @@ For example, after clicking `cds > Modules > FeldmanHashMap <http://libcds.sourc
 , one can find Template parameters in FeldmanHashMap class
 :cpp:class:`cds::container::FeldmanHashMap< GC, Key, T, Traits >`
 suggests *GC - safe memory reclamation schema. Can be gc::HP, gc::DHP or one of RCU type`*
+This means :cpp:type:`FeldmanHashMap` can be safely used with Hazard Pointer GC. However,
+again, current HPX does not support *gc:DHP or RCU*, so we cannot use these two types of garbage collectors.
 
 Build Hazard Pointer w/ HPX threads
 ###################################
@@ -101,7 +103,7 @@ depending on HPX scheduler.
 Without this, Hazard Pointer
 will use default kernel thread and thus keep thread-private data at kernel-level
 threads, for example,
-:cpp:type:`cds::gc::hp::custom_smr<cds::gc::hp::details::DefaultLSManager>`.
+:cpp:type:`cds::gc::hp::custom_smr<cds::gc::hp::details::DefaultTLSManager>`.
 
 To use any Hazard Pointer supported container, one also needs to populate
 :cpp:type:`cds::gc::hp::details::HPXTLSManager` to all levels of the container.
