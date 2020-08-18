@@ -21,8 +21,6 @@
 #include <utility>
 #include <vector>
 
-constexpr int num_iterations = 1000;
-
 std::random_device rd;
 std::mt19937 gen(rd());
 
@@ -42,37 +40,21 @@ int vote(std::vector<int>&& vect)
     return std::move(vect.at(0));
 }
 
-int universal_ans(std::uint64_t delay_ns, double error)
+int universal_ans(std::size_t delay_ns, std::size_t error)
 {
-    std::exponential_distribution<> dist(error);
+    std::uniform_int_distribution<std::size_t> dist(1, 100);
 
-    if (delay_ns == 0)
-        return 42;
-
-    double num = dist(gen);
-    bool error_flag = false;
-
-    // Probability of error occurrence is proportional to exp(-error_rate)
-    if (num > 1.0)
-    {
-        error_flag = true;
-        ++counter;
-    }
-
-    std::uint64_t start = hpx::util::high_resolution_clock::now();
+    std::size_t start = hpx::util::high_resolution_clock::now();
 
     while (true)
     {
         // Check if we've reached the specified delay.
-        if ((hpx::util::high_resolution_clock::now() - start) >= delay_ns)
+        if ((hpx::util::high_resolution_clock::now() - start) >=
+            (delay_ns * 1e3))
         {
             // Re-run the thread if the thread was meant to re-run
-            if (error_flag)
+            if (dist(gen) < error)
                 throw vogon_exception();
-            // No error has to occur with this thread, simply break the loop after
-            // execution is done for the desired time
-            else
-                break;
         }
     }
 
@@ -81,8 +63,10 @@ int universal_ans(std::uint64_t delay_ns, double error)
 
 int hpx_main(hpx::program_options::variables_map& vm)
 {
-    double error = vm["error-rate"].as<double>();
-    std::uint64_t delay = vm["exec-time"].as<std::uint64_t>();
+    std::size_t n = vm["n-value"].as<std::size_t>();
+    std::size_t error = vm["error"].as<std::size_t>();
+    std::size_t delay = vm["size"].as<std::size_t>();
+    std::size_t num_iterations = vm["num-iterations"].as<std::size_t>();
 
     {
         std::cout << "Starting async" << std::endl;
@@ -94,32 +78,106 @@ int hpx_main(hpx::program_options::variables_map& vm)
 
         for (int i = 0; i < num_iterations; ++i)
         {
-            hpx::future<int> f =
-                hpx::async(&universal_ans, delay * 1000, error);
+            hpx::future<int> f = hpx::async(&universal_ans, delay, 0);
             vect.push_back(std::move(f));
         }
 
-        try
+        hpx::wait_all(vect);
+
+        double elapsed = t.elapsed();
+        hpx::util::format_to(
+            std::cout, "Pure Async execution time = {1}\n", elapsed);
+    }
+
+    {
+        std::cout << "Starting async replicate" << std::endl;
+
+        std::vector<hpx::future<int>> vect;
+        vect.reserve(num_iterations);
+
+        hpx::util::high_resolution_timer t;
+
+        for (int i = 0; i < num_iterations; ++i)
         {
-            for (int i = 0; i < num_iterations; ++i)
-            {
-                vect[i].get();
-            }
+            hpx::future<int> f = hpx::resiliency::experimental::async_replicate(
+                n, &universal_ans, delay, error);
+            vect.push_back(std::move(f));
         }
-        catch (vogon_exception const&)
+
+        hpx::wait_all(vect);
+
+        double elapsed = t.elapsed();
+        hpx::util::format_to(
+            std::cout, "Async Replicate execution time = {1}\n", elapsed);
+    }
+
+    {
+        std::cout << "Starting async replicate validate" << std::endl;
+
+        std::vector<hpx::future<int>> vect;
+        vect.reserve(num_iterations);
+
+        hpx::util::high_resolution_timer t;
+
+        for (int i = 0; i < num_iterations; ++i)
         {
-            std::cout << "Errors thrown" << std::endl;
+            hpx::future<int> f =
+                hpx::resiliency::experimental::async_replicate_validate(
+                    n, &validate, &universal_ans, delay, error);
+            vect.push_back(std::move(f));
         }
-        catch (std::exception& e)
-        {
-            std::cout << e.what() << std::endl;
-        }
+
+        hpx::wait_all(vect);
 
         double elapsed = t.elapsed();
         hpx::util::format_to(std::cout,
-            "Async execution time = {1}\n"
-            "Number of exceptions = {2}\n",
-            elapsed, counter);
+            "Async Replicate validate execution time = {1}\n", elapsed);
+    }
+
+    {
+        std::cout << "Starting async replicate vote" << std::endl;
+
+        std::vector<hpx::future<int>> vect;
+        vect.reserve(num_iterations);
+
+        hpx::util::high_resolution_timer t;
+
+        for (int i = 0; i < num_iterations; ++i)
+        {
+            hpx::future<int> f =
+                hpx::resiliency::experimental::async_replicate_vote(
+                    n, &vote, &universal_ans, delay, error);
+            vect.push_back(std::move(f));
+        }
+
+        hpx::wait_all(vect);
+
+        double elapsed = t.elapsed();
+        hpx::util::format_to(
+            std::cout, "Async Replicate vote execution time = {1}\n", elapsed);
+    }
+
+    {
+        std::cout << "Starting async replicate vote validate" << std::endl;
+
+        std::vector<hpx::future<int>> vect;
+        vect.reserve(num_iterations);
+
+        hpx::util::high_resolution_timer t;
+
+        for (int i = 0; i < num_iterations; ++i)
+        {
+            hpx::future<int> f =
+                hpx::resiliency::experimental::async_replicate_vote_validate(
+                    n, &vote, &validate, &universal_ans, delay, error);
+            vect.push_back(std::move(f));
+        }
+
+        hpx::wait_all(vect);
+
+        double elapsed = t.elapsed();
+        hpx::util::format_to(std::cout,
+            "Async Replicate vote validate execution time = {1}\n", elapsed);
     }
 
     return hpx::finalize();
@@ -135,16 +193,19 @@ int main(int argc, char* argv[])
         "Usage: " HPX_APPLICATION_STRING " [options]");
 
     desc_commandline.add_options()("n-value",
-        value<std::uint64_t>()->default_value(10),
+        value<std::size_t>()->default_value(3),
         "Number of asynchronous launches for async replicate");
 
-    desc_commandline.add_options()("error-rate",
-        value<double>()->default_value(2),
-        "Average rate at which error is likely to occur");
+    desc_commandline.add_options()("error",
+        value<std::size_t>()->default_value(2),
+        "Percentage error to inject in the code");
 
-    desc_commandline.add_options()("exec-time",
-        value<std::uint64_t>()->default_value(1000),
+    desc_commandline.add_options()("size",
+        value<std::size_t>()->default_value(1000),
         "Time in us taken by a thread to execute before it terminates");
+
+    desc_commandline.add_options()("num-iterations",
+        value<std::size_t>()->default_value(1e6), "Number of tasks");
 
     // Initialize and run HPX
     return hpx::init(desc_commandline, argc, argv);
