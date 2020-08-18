@@ -46,7 +46,8 @@ HPX light-weight user-level thread, one might first get familiar with
 `LibCDS <https://github.com/khizmax/libcds>`_ itself. The simplest way to
 launch Hazard Pointer in HPX threads is to do the following:
 
-.. code-block:: cpp
+.. code-block:: c++
+
     #include <hpx/hpx_init.hpp>
     #include <cds/init.h>       // for cds::Initialize and cds::Terminate
     #include <cds/gc/hp.h>      // for cds::HP (Hazard Pointer) SMR
@@ -106,7 +107,8 @@ To use any Hazard Pointer supported container, one also needs to populate
 :cpp:type:`cds::gc::hp::details::HPXTLSManager` to all levels of the container.
 One simplest map is :cpp:type:`FeldmanHashMap`:
 
-.. code-block:: cpp
+.. code-block:: c++
+
     using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXTLSManager>;
     using key_type = std::size_t;
     using value_type = std::string;
