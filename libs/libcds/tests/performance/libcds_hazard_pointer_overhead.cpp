@@ -109,7 +109,7 @@ std::uint64_t num_iterations = 0;
 double null_function(bool uselibcds) noexcept
 {
     // enable this thread/task to run using libcds support
-    hpx::cds::thread_manager_wrapper cdswrap;
+    hpx::cds::hpxthread_manager_wrapper cdswrap;
 
     if (num_iterations > 0)
     {
@@ -267,7 +267,7 @@ int hpx_main(variables_map& vm)
         // Initialize Hazard Pointer singleton
         const std::size_t nHazardPtrCount =
             1;    // Hazard pointer count per thread
-        const std::size_t nMaxThreadCount = hpx::cds::thread_manager_wrapper::
+        const std::size_t nMaxThreadCount = hpx::cds::hpxthread_manager_wrapper::
             max_concurrent_attach_thread_;    // Max count of simultaneous working thread in the application
         const std::size_t nMaxRetiredPtrCount =
             16;    // Capacity of the array of retired objects for the thread

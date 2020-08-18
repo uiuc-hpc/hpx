@@ -59,3 +59,5 @@ target_include_directories(hpx_libcds PRIVATE ${LIBCDS_SOURCE_DIR})
 # needed if using another branch with more HPX specific code
 # target_compile_definitions(hpx_libcds PUBLIC CDS_THREADING_HPX)
 # target_compile_definitions(hpx_libcds PUBLIC CDS_EXPORT_API=HPX_EXPORT)
+
+target_compile_definitions(hpx_libcds PUBLIC CDS_THREADING_CXX11)

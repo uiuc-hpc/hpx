@@ -57,7 +57,7 @@ void run(Map& map, const std::size_t nMaxItemCount)
             hpx::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
 
             // enable this thread/task to run using libcds support
-            hpx::cds::thread_manager_wrapper cdswrap;
+            hpx::cds::hpxthread_manager_wrapper cdswrap;
 
             map.insert(ele, std::to_string(ele));
         }));
@@ -86,13 +86,13 @@ int hpx_main(int, char**)
             value_type, list_trait>;
 
         const int max_attach_concurrent_thread =
-            hpx::cds::thread_manager_wrapper::max_concurrent_attach_thread_;
+            hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread_;
 
         cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::construct(
             map_type::c_nHazardPtrCount + 1, max_attach_concurrent_thread, 16);
 
         // enable this thread/task to run using libcds support
-        hpx::cds::thread_manager_wrapper cdswrap;
+        hpx::cds::hpxthread_manager_wrapper cdswrap;
 
         const std::size_t nMaxItemCount =
             100;    // estimation of max item count in the hash map

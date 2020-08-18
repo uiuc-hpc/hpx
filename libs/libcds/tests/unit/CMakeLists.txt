@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-set(tests # libcds_flat_combining_priority_queue
+set(tests
     libcds_michael_map_hazard_pointer
     libcds_feldman_map_hazard_pointer
     libcds_split_list_map_hazard_pointer
@@ -13,7 +13,19 @@ set(tests # libcds_flat_combining_priority_queue
     libcds_split_list_map_hazard_pointer_stdthread
 )
 
-set(libcds_flat_combining_priority_queue THREADS_PER_LOCALITY 4)
+# Flat combining test uses boost thread for thread_specific_ptr
+if(NOT TARGET Boost::thread)
+  find_package(
+    Boost ${Boost_MINIMUM_VERSION} MODULE
+    COMPONENTS thread
+    QUIET
+  )
+endif()
+if(Boost_THREAD_FOUND)
+  set(tests ${tests} libcds_flat_combining_priority_queue_stdthread)
+  set(libcds_flat_combining_priority_queue_stdthread THREADS_PER_LOCALITY 4)
+endif()
+
 set(libcds_michael_map_hazard_pointer THREADS_PER_LOCALITY 4)
 set(libcds_feldman_map_hazard_pointer THREADS_PER_LOCALITY 4)
 set(libcds_split_list_map_hazard_pointer THREADS_PER_LOCALITY 4)
@@ -38,3 +50,9 @@ foreach(test ${tests})
   add_hpx_unit_test("modules.libcds" ${test} ${${test}_PARAMETERS})
 
 endforeach()
+
+if(Boost_THREAD_FOUND)
+  target_link_libraries(
+    libcds_flat_combining_priority_queue_stdthread_test PUBLIC Boost::thread
+  )
+endif()
