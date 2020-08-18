@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         {
             vec_val = final_vector[i];
             pq.pop(queue_val);
-            assert(vec_val == queue_val);
+            HPX_TEST_EQ(vec_val, queue_val);
         }
     }
 
