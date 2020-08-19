@@ -12,7 +12,7 @@ authors:
   - name: Bryce Adelstein Lelbach
     orcid: 0000-0002-7995-5226
     affiliation: "5"
-  - name: AgustÃ­n Berge
+  - name: Agustín Berge
     affiliation: "6"
   - name: John Biddiscombe
     orcid: 0000-0002-6552-2833
@@ -91,14 +91,6 @@ showing promises in addressing these challenges, providing application
 developers with a productive and performant approach to programming on next
 generation systems.
 
-A detailed comparison of various AMT's is given in [@thoman2018taxonomy].
-Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel],
-Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion],
- and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions,
- since this is one important feature for scientific applications to run large scale simulations.
- The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++
- standard conforming API.
-
 HPX is a C++ Library for Concurrency and Parallelism that is
 developed by The STE||AR Group, an international group of collaborators working
 in the field of distributed and parallel programming
@@ -109,9 +101,34 @@ of parallel, concurrent, and distributed capabilities for applications in any
 domain - it has been used in scientific computing, gaming, finances, data
 mining, and other fields.
 
+The HPX AMT runtime system attempts to solve some of the problems the community
+is facing when it comes to creating scalable parallel applications that expose
+excellent parallel efficiency and a high resouce utilization. First, it exposes
+a C++ Standards conforming API that unifies syntax and semantics for local and
+remote operations. This significantly simplifies writing codes that strive to
+effectively utilize different types of available parallelism in today's machines
+in a coordinated way (i.e. on-node, off-node, and accelerator-based parallelism).
+Second, HPX implements an Asynchronous C++ Standard Programming Model that has the
+emergent property of semi-automatic parallelization of the user's code. The
+provided API (especially when used in conjunction with the new C++20 `co_await`
+keyword [@standard2020programming]) enables intrinsic overlap of computation and
+communication, prefers moving work to data over moving data to work, and exposes
+minimal overheads from its lightweight threading subsystem, ensuring efficient
+fine-grained parallelization and minimal-overhead synchronization and context
+switching. This programming model natively ensures high system utilization and
+perfect scalability.
+
+A detailed comparison of HPX with various other AMT's is given in [@thoman2018taxonomy].
+Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlain2007parallel],
+Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion],
+and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions,
+since this is an important feature for scientific applications to run large scale simulations.
+The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++
+standards conforming API and the exposed asynchronous programming model.
+
 HPX's main goal is to
 improve efficiency and scalability of parallel applications by increasing
-resource utilization and reducing synchronization through providing an
+resource utilization and reducing synchronization overheads through providing an
 asynchronous API and employing adaptive scheduling. The consequent use of
 _Futures_ intrinsically enables overlap of computation and communication and
 constraint-based synchronization. HPX is able to maintain a balanced load among
@@ -254,7 +271,7 @@ int main()
     std::cout << sum1 << '\n';      // will print 55
 
     // Compute the sum in a parallel fashion based on a range of values
-    int sum2 = hpx::reduce(hpx::execution::par, values, 0);
+    int sum2 = hpx::ranges::reduce(hpx::execution::par, values, 0);
     std::cout << sum2 << '\n';      // will print 55 as well
 
     return 0;
