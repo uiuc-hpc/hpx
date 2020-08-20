@@ -1,3 +1,4 @@
+# encoding: utf-8    
 ---
 title: 'HPX - The C++ Standard Library for Parallelism and Concurrency'
 tags:
