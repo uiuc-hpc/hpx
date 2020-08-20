@@ -101,9 +101,9 @@ of parallel, concurrent, and distributed capabilities for applications in any
 domain - it has been used in scientific computing, gaming, finances, data
 mining, and other fields.
 
-The HPX AMT runtime system attempts to solve some of the problems the community
+The HPX AMT runtime system attempts to solve some problems the community
 is facing when it comes to creating scalable parallel applications that expose
-excellent parallel efficiency and a high resouce utilization. First, it exposes
+excellent parallel efficiency and a high resource utilization. First, it exposes
 a C++ Standards conforming API that unifies syntax and semantics for local and
 remote operations. This significantly simplifies writing codes that strive to
 effectively utilize different types of available parallelism in today's machines
@@ -170,10 +170,10 @@ and their references are listed below:
     The parcelport is able to leverage AGAS in order to
     launch functions on global objects regardless of their current placement
     in a distributed system.
-    Additionally its asynchronous protocol enables the
+    Additionally, its asynchronous protocol enables the
     parcelport to implicitly overlap communication and computation.
     The parcelport is modular to support multiple communication library
-    backends. By default HPX supports TCP/IP, Message passing Interface (MPI),
+    backends. By default, HPX supports TCP/IP, Message passing Interface (MPI),
     and libfabric [@daiss2019piz].
 - **Performance counters** [@grubel2016dynamic]
     HPX provides its users with a uniform suite of performance counters
@@ -182,7 +182,7 @@ and their references are listed below:
     easily query for different metrics at runtime.
     Additionally, HPX provides an API for users to create their
     own counters to gather information customized to their own application.
-    By default HPX provides performance counters for its components, such as
+    By default, HPX provides performance counters for its components, such as
     networking, AGAS operations, thread scheduling, and various statistics.
 - **Policy Engine/Policies** [@huck2015autonomic;@khatami2017hpx;@laberge2019scheduling]
     Often, modern applications must adapt to runtime environments
@@ -220,7 +220,7 @@ and their references are listed below:
     `hpx::async` or `hpx::dataflow` with its resilient API counterparts everywhere
     in the code without making any other changes.
 - **C++ Standards conforming API**
-    HPX implements all of the C++17 parallel algorithms [@standard2017programming]
+    HPX implements all the C++17 parallel algorithms [@standard2017programming]
     and extends those with asynchronous versions. Here, HPX provides the
     `hpx::execution::seq`, `hpx::execution::par` execution policies, and (as an
     extension) their asynchronous equivalents
@@ -249,9 +249,9 @@ corresponding [HPX's website](https://hpx.stellar-group.org/hpx-users/).
 
 The following is an example of HPX's parallel algorithms API using execution
 policies as defined in
-the C++17 Standard [@standard2017programming]. HPX implements all of the
+the C++17 Standard [@standard2017programming]. HPX implements all the
 parallel algorithms defined therein. The parallel algorithms extend the classic
-STL algorithms by adding an additional first argument (called execution policy).
+STL algorithms by adding a first argument (called execution policy).
 The `hpx::execution::seq` implies sequential execution while `hpx::execution::par`
 will execute the algorithm in parallel.
 HPX's parallel algorithm library API is completely standards conforming.
@@ -279,7 +279,7 @@ int main()
 ```
 
 Example for the HPX's concurrency API where the Taylor series for the $\sin(x)$
-function is computed. The Taylor series is given by
+function is computed. The Taylor series is given by,
 
 $$ \sin(x) \approx = \sum\limits_{n=0}^N (-1)^{n-1} \frac{x^{2n}}{(2n)!}.$$
 
