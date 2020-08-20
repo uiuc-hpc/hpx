@@ -6,12 +6,20 @@ tags:
   - parallelism
   - distributed
 authors:
-  - name: Parsa Amini
-    orcid: 0000-0002-6439-8404
+  - name: Hartmut Kaiser
+    orcid: 0000-0002-8712-2806
     affiliation: "1"
+  - name: Patrick Diehl
+    orcid: 0000-0003-3922-8419
+    affiliation: "1"
+  - name: Adrian S. Lemoine
+    affiliation: "6"
   - name: Bryce Adelstein Lelbach
     orcid: 0000-0002-7995-5226
     affiliation: "5"
+  - name: Parsa Amini
+    orcid: 0000-0002-6439-8404
+    affiliation: "1"
   - name: Agustín Berge
     affiliation: "6"
   - name: John Biddiscombe
@@ -19,9 +27,6 @@ authors:
     affiliation: "4"
   - name: Steven R. Brandt
     orcid: 0000-0002-7979-2906
-    affiliation: "1"
-  - name: Patrick Diehl
-    orcid: 0000-0003-3922-8419
     affiliation: "1"
   - name: Nikunj Gupta
     orcid: 0000-0003-0525-3667
@@ -32,17 +37,12 @@ authors:
   - name: Kevin Huck
     orcid: 0000-0001-7064-8417
     affiliation: "8"
-  - name: Hartmut Kaiser
-    orcid: 0000-0002-8712-2806
-    affiliation: "1"
   - name: Zahra Khatami
     orcid: 0000-0001-6654-6856
     affiliation: "7"
   - name: Alireza Kheirkhahan
     orcid: 0000-0002-4624-4647
     affiliation: "1"
-  - name: Adrian S. Lemoine
-    affiliation: "6"
   - name: Auriane Reverdell
     orcid: 0000-0002-5531-0458
     affiliation: "4"
