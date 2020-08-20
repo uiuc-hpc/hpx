@@ -57,20 +57,12 @@ launch Hazard Pointer in HPX threads is to do the following:
     int hpx_main(int, char**)
     {
         // Initialize libcds
-        cds::Initialize();
+        hpx::cds::libcds_wrapper cds_init_wrapper;
 
         {
             // Initialize Hazard Pointer singleton
-            const std::size_t nHazardPtrCount =
-                1;    // Hazard pointer count per thread
-            const std::size_t nMaxThreadCount = hpx::cds::hpxthread_manager_wrapper::
-                max_concurrent_attach_thread;    // Max count of simultaneous working thread in the application, default 100
-            const std::size_t nMaxRetiredPtrCount =
-                16;    // Capacity of the array of retired objects for the thread
-            using hp_hpxtls =
-                cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>;
-            hp_hpxtls::construct(
-                nHazardPtrCount, nMaxThreadCount, nMaxRetiredPtrCount);
+            hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXTLSManager>
+                hp_wrapper;
 
             // If main thread uses lock-free containers
             // the main thread should be attached to libcds infrastructure
@@ -80,9 +72,6 @@ launch Hazard Pointer in HPX threads is to do the following:
             //...
         }
 
-        // Terminate libcds
-        cds::Terminate();
-
         return hpx::finalize();
     }
 
@@ -91,22 +80,21 @@ launch Hazard Pointer in HPX threads is to do the following:
         return hpx::init(argc, argv);
     }
 
-Use Hazard Pointer supported Container w/ HPX threads
-#####################################################
+Use Hazard Pointer supported Container w/ HPX threads or std::threads
+#####################################################################
 
 To note, to use Hazard Pointer in the context of HPX user-level threads,
 one must use LibCDS template
-TLS manager :cpp:type:`cds::gc::hp::custom_smr<T>` supplied with
+TLS manager :cpp:type:`hpx::cds::hazard_pointer_wrapper<TLS_type>` supplied with
 :cpp:type:`cds::gc::hp::details::HPXTLSManager`. This ensures the thread data is bound
 to user-level thread, as hpx thread can migrate from one kernel thread to another
 depending on HPX scheduler.
-Without this, Hazard Pointer
-will use default kernel thread and thus keep thread-private data at kernel-level
-threads, for example,
-:cpp:type:`cds::gc::hp::custom_smr<cds::gc::hp::details::DefaultTLSManager>`.
+If one wants to use use default kernel thread and thus keep thread-private data
+at kernel-level threads, the following should be used to create Hazard Pointer SMR
+:cpp:type:`hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::DefaultLSManager>`.
 
-To use any Hazard Pointer supported container, one also needs to populate
-:cpp:type:`cds::gc::hp::details::HPXTLSManager` to all levels of the container.
+To use any Hazard Pointer supported container, one also needs to populate TLS type
+to all levels of the container.
 One simplest map is :cpp:type:`FeldmanHashMap`:
 
 .. code-block:: c++
@@ -127,15 +115,23 @@ API
 
 The following API functions are exposed:
 
+- :cpp:func:`hpx::cds::libcds_wrapper`: This is a wrapper of
+:cpp:func:`cds::Initialize()` and :cpp:func:`cds::Terminate()`.
+This allows initializing libcds infrastructure (and destroying it after the object's lifetime).
+
+- :cpp:func:`hpx::cds::hazard_pointer_wrapper`: This is a wrapper of
+creating Hazard Pointer singleton. It constructs hazard_pointer_count,
+max_concurrent_attach_thread_, max_retired_pointer_count, which are corresponding variables to
+construct hazard pointer object in libcds. More reference can be found in
+`HP in LibCDS <https://github.com/khizmax/libcds/blob/master/cds/gc/hp.h>`_.
+
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper`: This is a wrapper of
 :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::attach_thread()`
 and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::detach_thread()`
 This allows the calling hpx thread attach to Hazard Pointer threading infrastructure.
 
-- :cpp:var:`hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread`:
-This variable of :cpp:type:`std::atomic<std::size_t>`
-is corresponding variable in LibCDS's :cpp:var:`nMaxThreadCount` in Hazard Pointer class.
-This variable sets max count of thread with using HP GC in your application.
+- :cpp:func:`hpx::cds::hpxthread_manager_wrapper::get_max_concurrent_attach_thread`:
+returns max count of thread with using HP GC in your application.
 Default is 100. More reference can be found in
 `HP in LibCDS <https://github.com/khizmax/libcds/blob/master/cds/gc/hp.h>`_.
 
