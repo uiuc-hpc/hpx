@@ -240,10 +240,10 @@ stellar mergers.
 auto-parallelizing library to speed up stencil code based computer simulations.
   * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a simulation tool for non-local models,
 e.g. Peridynamics.
-  * Dynamical Cluster Approximation (DCA++) [@hahner2020dca], a high-performance research software framework to solve 
+  * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++) [@hahner2020dca], a high-performance research software framework to solve 
 quantum many-body problems with cutting edge quantum cluster algorithms. 
 
-- 
+- Libaries
   * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting] a 
 modern OpenMP implementation leveraging HPX that supports shared memory multithread programming; 
   * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003], the C++ Performance Portability Programming EcoSystem. 
