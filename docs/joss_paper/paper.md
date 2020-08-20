@@ -159,7 +159,7 @@ and their references are listed below:
     policies: static, thread local, and hierarchical.
 - **Active Global Address Space (AGAS)** [@kaiser2014hpx;@amini2019agas]
     To support distributed objects, HPX supports a global address
-    resolution component that is extending the PGAS model to enable runtime based
+    resolution component that is extending the Partitioned global address space (PGAS) model to enable runtime based
     resource allocation and data placement.
     This layer enables HPX to expose a uniform API for local and remote
     execution. Unlike PGAS, AGAS provides the user with the ability to
