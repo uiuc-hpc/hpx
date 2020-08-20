@@ -5,9 +5,6 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-# set(HPX_WITH_LIBCDS_GIT_REPOSITORY
-# https://github.com/STEllAR-GROUP/libcds.git) set(HPX_WITH_LIBCDS_GIT_TAG
-# hpx-module)
 set(FETCHCONTENT_UPDATES_DISCONNECTED_libcds ON)
 
 if(HPX_WITH_LIBCDS)
@@ -37,6 +34,9 @@ if(HPX_WITH_LIBCDS)
     add_subdirectory(${libcds_SOURCE_DIR} ${libcds_BINARY_DIR})
     list(TRANSFORM LIBCDS_SOURCELIST PREPEND "${libcds_SOURCE_DIR}/")
     set(LIBCDS_SOURCE_DIR ${libcds_SOURCE_DIR})
+    # leave the FOLDER properties in place
+    #set_target_properties(cds PROPERTIES FOLDER "Core")
+    #set_target_properties(cds-s PROPERTIES FOLDER "Core")
 
     # create an imported target that links to the real libcds so that when we
     # link to the inported target, we don't get export X depends on cds that is

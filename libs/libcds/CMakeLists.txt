@@ -17,8 +17,6 @@ if(NOT libcds_POPULATED)
   hpx_error("HPX_WITH_LIBCDS was set to ON, but HPX failed to fetch LibCDS")
 endif()
 
-hpx_add_config_define(HPX_HAVE_LIBCDS)
-
 # Default location is $HPX_ROOT/libs/libcds/include
 set(libcds_headers hpx/libcds/hpx_tls_manager.hpp)
 

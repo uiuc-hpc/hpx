@@ -77,7 +77,7 @@ int hpx_main(int, char**)
         using map_type = cds::container::MichaelHashMap<gc_type, int2str_list>;
 
         const int max_attach_concurrent_thread =
-            hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread_;
+            hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread;
 
         cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::construct(
             map_type::c_nHazardPtrCount + 1, max_attach_concurrent_thread, 16);

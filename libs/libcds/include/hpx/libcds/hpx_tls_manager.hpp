@@ -15,7 +15,7 @@
 
 #include <atomic>
 
-//@cond
+/// \cond NODETAIL
 namespace cds { namespace gc { namespace hp { namespace details {
 
     class HPXTLSManager
@@ -34,7 +34,7 @@ namespace hpx { namespace cds {
     struct hpxthread_manager_wrapper
     {
         // allow the std thread wrapper to use the same counter because
-        // the libCDS backen does not distinguihs between them yet.
+        // the libCDS backend does not distinguish between them yet.
         friend struct stdthread_manager_wrapper;
 
         // the boolean uselibcs option is provided to make comparison
@@ -45,7 +45,7 @@ namespace hpx { namespace cds {
         {
             if (uselibcds_)
             {
-                if (++thread_counter_ > max_concurrent_attach_thread_)
+                if (++thread_counter_ > max_concurrent_attach_thread)
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::thread_manager_wrapper ",
@@ -75,11 +75,15 @@ namespace hpx { namespace cds {
             }
         }
 
-        bool uselibcds_;
-        static std::atomic<std::size_t> max_concurrent_attach_thread_;
+        // max_concurrent_attach_thread is corresponding variable to
+        // the variable nMaxThreadCount in Hazard Pointer class. It defines
+        // max count of simultaneous working thread in the application, default 100
+        // and it is public to user for use
+        static std::atomic<std::size_t> max_concurrent_attach_thread;
 
     private:
         static std::atomic<std::size_t> thread_counter_;
+        bool uselibcds_;
     };
 
     // this wrapper will initialize a std::thread for use with libCDS
@@ -89,7 +93,7 @@ namespace hpx { namespace cds {
         explicit stdthread_manager_wrapper()
         {
             if (++hpxthread_manager_wrapper::thread_counter_ >
-                hpxthread_manager_wrapper::max_concurrent_attach_thread_)
+                hpxthread_manager_wrapper::max_concurrent_attach_thread)
             {
                 HPX_THROW_EXCEPTION(invalid_status,
                     "hpx::cds::thread_manager_wrapper ",

@@ -268,7 +268,7 @@ int hpx_main(variables_map& vm)
         const std::size_t nHazardPtrCount =
             1;    // Hazard pointer count per thread
         const std::size_t nMaxThreadCount = hpx::cds::hpxthread_manager_wrapper::
-            max_concurrent_attach_thread_;    // Max count of simultaneous working thread in the application
+            max_concurrent_attach_thread;    // Max count of simultaneous working thread in the application
         const std::size_t nMaxRetiredPtrCount =
             16;    // Capacity of the array of retired objects for the thread
         using hp_hpxtls =
@@ -301,9 +301,6 @@ int hpx_main(variables_map& vm)
         hpx::parallel::execution::parallel_executor par;
         hpx::parallel::execution::parallel_executor_aggregated par_agg;
         hpx::parallel::execution::thread_pool_executor tpe;
-        //        hpx::parallel::execution::thread_pool_executor tpe_nostack(
-        //            hpx::threads::thread_priority_default,
-        //            hpx::threads::thread_stacksize_nostack);
 
         for (int i = 0; i < repetitions; i++)
         {
@@ -317,8 +314,6 @@ int hpx_main(variables_map& vm)
                     count, csv, par_agg, bool(cds));
                 measure_function_futures_thread_count(
                     count, csv, tpe, bool(cds));
-                //                measure_function_futures_thread_count(
-                //                    count, csv, tpe_nostack, bool(cds));
             }
         }
     }

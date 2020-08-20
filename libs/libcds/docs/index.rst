@@ -64,7 +64,7 @@ launch Hazard Pointer in HPX threads is to do the following:
             const std::size_t nHazardPtrCount =
                 1;    // Hazard pointer count per thread
             const std::size_t nMaxThreadCount = hpx::cds::hpxthread_manager_wrapper::
-                max_concurrent_attach_thread_;    // Max count of simultaneous working thread in the application, default 100
+                max_concurrent_attach_thread;    // Max count of simultaneous working thread in the application, default 100
             const std::size_t nMaxRetiredPtrCount =
                 16;    // Capacity of the array of retired objects for the thread
             using hp_hpxtls =
@@ -132,7 +132,7 @@ The following API functions are exposed:
 and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::detach_thread()`
 This allows the calling hpx thread attach to Hazard Pointer threading infrastructure.
 
-- :cpp:var:`hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread_`:
+- :cpp:var:`hpx::cds::hpxthread_manager_wrapper::max_concurrent_attach_thread`:
 This variable of :cpp:type:`std::atomic<std::size_t>`
 is corresponding variable in LibCDS's :cpp:var:`nMaxThreadCount` in Hazard Pointer class.
 This variable sets max count of thread with using HP GC in your application.

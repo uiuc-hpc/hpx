@@ -31,7 +31,7 @@ namespace cds { namespace gc { namespace hp { namespace details {
 
 namespace hpx { namespace cds {
     std::atomic<std::size_t>
-        hpxthread_manager_wrapper::max_concurrent_attach_thread_{100};
+        hpxthread_manager_wrapper::max_concurrent_attach_thread{100};
 
     std::atomic<std::size_t> hpxthread_manager_wrapper::thread_counter_{0};
 
