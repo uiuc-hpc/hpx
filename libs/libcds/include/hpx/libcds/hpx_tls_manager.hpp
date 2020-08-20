@@ -48,7 +48,7 @@ namespace hpx { namespace cds {
                 if (++thread_counter_ > max_concurrent_attach_thread)
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
-                        "hpx::cds::thread_manager_wrapper ",
+                        "hpx::cds::hpxthread_manager_wrapper ",
                         "attaching more threads than number of maximum allowed "
                         "detached threads, consider update "
                         "hpx::cds::thread_manager_wrapper::max_concurrent_"
@@ -66,7 +66,7 @@ namespace hpx { namespace cds {
                 if (thread_counter_-- == 0)
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
-                        "hpx::cds::thread_manager_wrapper",
+                        "hpx::cds::hpxthread_manager_wrapper",
                         "detaching more threads than number of attached "
                         "threads");
                 }
@@ -96,13 +96,14 @@ namespace hpx { namespace cds {
                 hpxthread_manager_wrapper::max_concurrent_attach_thread)
             {
                 HPX_THROW_EXCEPTION(invalid_status,
-                    "hpx::cds::thread_manager_wrapper ",
+                    "hpx::cds::stdthread_manager_wrapper ",
                     "attaching more threads than number of maximum allowed "
                     "detached threads, consider update "
                     "hpx::cds::thread_manager_wrapper::max_concurrent_"
-                    "attach_thread_");
+                    "attach_thread");
             }
-            ::cds::threading::Manager::attachThread();
+            ::cds::gc::hp::custom_smr<
+                ::cds::gc::hp::details::DefaultTLSManager>::attach_thread();
         }
 
         ~stdthread_manager_wrapper()
@@ -110,11 +111,12 @@ namespace hpx { namespace cds {
             if (hpxthread_manager_wrapper::thread_counter_-- == 0)
             {
                 HPX_THROW_EXCEPTION(invalid_status,
-                    "hpx::cds::thread_manager_wrapper",
+                    "hpx::cds::stdthread_manager_wrapper",
                     "detaching more threads than number of attached "
                     "threads");
             }
-            ::cds::threading::Manager::detachThread();
+            ::cds::gc::hp::custom_smr<
+                ::cds::gc::hp::details::DefaultTLSManager>::detach_thread();
         }
     };
 

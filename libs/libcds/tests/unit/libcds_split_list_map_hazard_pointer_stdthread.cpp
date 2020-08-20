@@ -56,12 +56,9 @@ void run(Map& map, const std::size_t nMaxItemCount)
             std::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
 
             // enable this thread/task to run using libcds support
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+            hpx::cds::stdthread_manager_wrapper;
 
             map.insert(ele, std::to_string(ele));
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::DefaultTLSManager>::detach_thread();
         }));
     }
 
@@ -92,8 +89,7 @@ int main(int argc, char* argv[])
             construct(map_type::c_nHazardPtrCount + 1, 100, 16);
 
         // enable this thread/task to run using libcds support
-        cds::gc::hp::custom_smr<
-            cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+        hpx::cds::stdthread_manager_wrapper;
 
         const std::size_t nMaxItemCount =
             100;    // estimation of max item count in the hash map
