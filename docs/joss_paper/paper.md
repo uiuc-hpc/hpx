@@ -230,16 +230,24 @@ and their references are listed below:
     concurrency facilities and APIs [@standard2020programming], such as
     `hpx::jthread`, `hpx::latch`, `hpx::barrier`, etc.
 
-HPX is utilized in a diverse set of applications: [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
+HPX is utilized in a diverse set of applications: 
+
+- Scientific computing
+  * [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
 [@daiss2019piz;@heller2019harnessing; @pfander2018accelerating], an astrophysics code for
-stellar mergers; [libGeoDecomp](https://github.com/gentryx/libgeodecomp) [@Schafer:2008:LGL:1431669.1431721], an
-auto-parallelizing library to speed up stencil code based computer simulations;
-[NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a simulation tool for non-local models,
-e.g. Peridynamics; [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting]; Kokkos,
-C++ Performance Portability Programming EcoSystem [@10.1016/j.jpdc.2014.07.003]; Dynamical Cluster Approximation (DCA++),
-a high-performance research software framework to solve quantum many-body problems with cutting edge quantum cluster algorithms [@hahner2020dca];
-a modern OpenMP implementation leveraging HPX that supports shared memory multithread programming;
-and [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime]
+stellar mergers.
+  * [libGeoDecomp](https://github.com/gentryx/libgeodecomp) [@Schafer:2008:LGL:1431669.1431721], an
+auto-parallelizing library to speed up stencil code based computer simulations.
+  * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a simulation tool for non-local models,
+e.g. Peridynamics.
+  * Dynamical Cluster Approximation (DCA++) [@hahner2020dca], a high-performance research software framework to solve 
+quantum many-body problems with cutting edge quantum cluster algorithms. 
+
+- 
+  * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP) [@zhang2019introduction; @zhang2020supporting] a 
+modern OpenMP implementation leveraging HPX that supports shared memory multithread programming; 
+  * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003], the C++ Performance Portability Programming EcoSystem. 
+  * [Phylanx](https://github.com/STEllAR-GROUP/phylanx) [@tohid2018asynchronous;@wagle2019runtime]
 a distributed array toolkit.
 
 For a constantly updated list of applications, we refer to the
