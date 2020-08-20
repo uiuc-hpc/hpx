@@ -247,17 +247,8 @@ int hpx_main(variables_map& vm)
     hpx::cds::libcds_wrapper cds_init_wrapper;
 
     {
-        // Initialize Hazard Pointer singleton
-        const std::size_t nHazardPtrCount =
-            1;    // Hazard pointer count per thread
-        const std::size_t nMaxThreadCount = hpx::cds::hpxthread_manager_wrapper::
-            max_concurrent_attach_thread;    // Max count of simultaneous working thread in the application
-        const std::size_t nMaxRetiredPtrCount =
-            16;    // Capacity of the array of retired objects for the thread
-        using hp_hpxtls =
-            cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>;
-        hp_hpxtls::construct(
-            nHazardPtrCount, nMaxThreadCount, nMaxRetiredPtrCount);
+        hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXTLSManager>
+            hp_wrapper;
 
         if (vm.count("hpx:queuing"))
             queuing = vm["hpx:queuing"].as<std::string>();

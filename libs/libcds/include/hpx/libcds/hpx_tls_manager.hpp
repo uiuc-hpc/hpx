@@ -45,6 +45,35 @@ namespace hpx { namespace cds {
         }
     };
 
+    template <typename TLS>
+    struct hazard_pointer_wrapper
+    {
+        // this wrapper will create Hazard Pointer SMR singleton
+        hazard_pointer_wrapper(std::size_t hazard_pointer_count = 1,
+            std::size_t max_thread_count = max_concurrent_attach_thread_,
+            std::size_t max_retired_pointer_count = 16)
+        {
+            // hazard_pointer_count is corresponding var nHazardPtrCount
+            // in libcds that defines Hazard pointer count per thread;
+
+            // max_concurrent_attach_thread_ is corresponding var nMaxThreadCount
+            // in libcds that defines Max count of simultaneous working thread in your application
+
+            // max_retired_pointer_count is corresponding var nMaxRetiredPtrCount
+            // in libcds that defines Capacity of the array of retired objects for the thread
+            ::cds::gc::hp::custom_smr<TLS>::construct(hazard_pointer_count,
+                max_thread_count, max_retired_pointer_count);
+        }
+
+        static std::size_t get_max_concurrent_attach_thread()
+        {
+            return max_concurrent_attach_thread_;
+        }
+
+        // default 100 concurrent threads attached to Hazard Pointer SMR
+        static std::atomic<std::size_t> max_concurrent_attach_thread_;
+    };
+
     // this wrapper will initialize an HPX thread/task for use with libCDS
     // algorithms
     struct hpxthread_manager_wrapper
@@ -61,7 +90,9 @@ namespace hpx { namespace cds {
         {
             if (uselibcds_)
             {
-                if (++thread_counter_ > max_concurrent_attach_thread)
+                if (++thread_counter_ >
+                    hazard_pointer_wrapper<::cds::gc::hp::details::
+                            HPXTLSManager>::max_concurrent_attach_thread_)
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::hpxthread_manager_wrapper ",
@@ -95,7 +126,6 @@ namespace hpx { namespace cds {
         // the variable nMaxThreadCount in Hazard Pointer class. It defines
         // max count of simultaneous working thread in the application, default 100
         // and it is public to user for use
-        static std::atomic<std::size_t> max_concurrent_attach_thread;
 
     private:
         static std::atomic<std::size_t> thread_counter_;
@@ -109,7 +139,8 @@ namespace hpx { namespace cds {
         explicit stdthread_manager_wrapper()
         {
             if (++hpxthread_manager_wrapper::thread_counter_ >
-                hpxthread_manager_wrapper::max_concurrent_attach_thread)
+                hazard_pointer_wrapper<::cds::gc::hp::details::
+                        DefaultTLSManager>::max_concurrent_attach_thread_)
             {
                 HPX_THROW_EXCEPTION(invalid_status,
                     "hpx::cds::stdthread_manager_wrapper ",

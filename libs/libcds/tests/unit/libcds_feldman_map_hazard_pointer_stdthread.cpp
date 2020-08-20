@@ -38,7 +38,7 @@ void run(Map& map, const std::size_t nMaxItemCount)
     {
         futures.push_back(std::async([&, ele]() {
             // enable this thread/task to run using libcds support
-          hpx::cds::stdthread_manager_wrapper cds_std_wrap;
+            hpx::cds::stdthread_manager_wrapper cds_std_wrap;
 
             std::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
             map.insert(ele, std::to_string(ele));
@@ -68,14 +68,16 @@ int main(int argc, char* argv[])
         using map_type =
             cds::container::FeldmanHashMap<gc_type, key_type, value_type>;
 
-        cds::gc::hp::custom_smr<cds::gc::hp::details::DefaultTLSManager>::
-            construct(map_type::c_nHazardPtrCount + 1, 100, 16);
+        hpx::cds::hazard_pointer_wrapper<
+            cds::gc::hp::details::DefaultTLSManager>
+            hp_wrapper(map_type::c_nHazardPtrCount + 1, 100, 16);
 
         // enable this thread/task to run using libcds support
         hpx::cds::stdthread_manager_wrapper cds_std_wrap;
 
         const std::size_t nMaxItemCount =
-            100;    // estimation of max item count in the hash map
+            hp_wrapper.get_max_concurrent_attach_thread();
+        // estimation of max item count in the hash map
 
         map_type map;
 
