@@ -5,12 +5,13 @@
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/assert.hpp>
+
 #include <cds/container/michael_list_hp.h>
 #include <cds/container/split_list_map.h>
 #include <cds/init.h>    // for cds::Initialize and cds::Terminate
 
 #include <algorithm>
-#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <deque>
@@ -72,8 +73,8 @@ void run(Map& map, const std::size_t nMaxItemCount)
     while (!map.empty())
     {
         auto guarded_ptr = map.extract(rand_vec[count]);
-        assert(guarded_ptr->first == rand_vec[count]);
-        assert(guarded_ptr->second == std::to_string(rand_vec[count]));
+        HPX_ASSERT(guarded_ptr->first == rand_vec[count]);
+        HPX_ASSERT(guarded_ptr->second == std::to_string(rand_vec[count]));
         count++;
     }
 }

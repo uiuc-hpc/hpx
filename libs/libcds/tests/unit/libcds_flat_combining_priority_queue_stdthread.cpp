@@ -5,6 +5,7 @@
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/assert.hpp>
 #include <hpx/hpx_init.hpp>
 
 #include <hpx/libcds/hpx_tls_manager.hpp>
@@ -14,7 +15,6 @@
 #include <cds/init.h>    // for cds::Initialize and cds::Terminate
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <deque>
 #include <functional>

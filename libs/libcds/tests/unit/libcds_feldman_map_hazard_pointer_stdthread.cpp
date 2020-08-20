@@ -5,11 +5,13 @@
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/assert.hpp>
+#include <hpx/libcds/hpx_tls_manager.hpp>
+
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/init.h>    // for cds::Initialize and cds::Terminate
 
 #include <algorithm>
-#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <deque>
@@ -36,13 +38,10 @@ void run(Map& map, const std::size_t nMaxItemCount)
     {
         futures.push_back(std::async([&, ele]() {
             // enable this thread/task to run using libcds support
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+            hpx::cds::stdthread_manager_wrapper cdswrap;
 
             std::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
             map.insert(ele, std::to_string(ele));
-            cds::gc::hp::custom_smr<
-                cds::gc::hp::details::DefaultTLSManager>::detach_thread();
         }));
     }
 
@@ -54,8 +53,8 @@ void run(Map& map, const std::size_t nMaxItemCount)
     while (!map.empty())
     {
         auto guarded_ptr = map.extract(rand_vec[count]);
-        assert(guarded_ptr->first == rand_vec[count]);
-        assert(guarded_ptr->second == std::to_string(rand_vec[count]));
+        HPX_ASSERT(guarded_ptr->first == rand_vec[count]);
+        HPX_ASSERT(guarded_ptr->second == std::to_string(rand_vec[count]));
         count++;
     }
 }
@@ -73,8 +72,7 @@ int main(int argc, char* argv[])
             construct(map_type::c_nHazardPtrCount + 1, 100, 16);
 
         // enable this thread/task to run using libcds support
-        cds::gc::hp::custom_smr<
-            cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+        hpx::cds::stdthread_manager_wrapper cdswrap;
 
         const std::size_t nMaxItemCount =
             100;    // estimation of max item count in the hash map
