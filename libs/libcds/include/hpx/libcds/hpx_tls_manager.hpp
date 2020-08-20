@@ -11,6 +11,7 @@
 //
 #include <cds/gc/details/hp_common.h>
 #include <cds/gc/hp.h>
+#include <cds/init.h>
 #include <cds/threading/details/cxx11_manager.h>
 
 #include <atomic>
@@ -28,6 +29,21 @@ namespace cds { namespace gc { namespace hp { namespace details {
 }}}}    // namespace cds::gc::hp::details
 
 namespace hpx { namespace cds {
+    // this wrapper will initialize libCDS
+    struct libcds_wrapper
+    {
+        libcds_wrapper()
+        {
+            // Initialize libcds
+            ::cds::Initialize();
+        }
+
+        ~libcds_wrapper()
+        {
+            // Terminate libcds
+            ::cds::Terminate();
+        }
+    };
 
     // this wrapper will initialize an HPX thread/task for use with libCDS
     // algorithms

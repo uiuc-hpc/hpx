@@ -27,8 +27,6 @@ static const std::size_t vec_test_size = 10000;
 template <class PQueue>
 void run(PQueue& pq, std::size_t i, std::vector<std::size_t>& nums)
 {
-    hpx::cds::stdthread_manager_wrapper cdswrap;
-
     // generate a list of numbers in shuffled order
     nums.resize(vec_test_size, 0);
     std::iota(nums.begin(), nums.end(), i);
@@ -46,11 +44,9 @@ void run(PQueue& pq, std::size_t i, std::vector<std::size_t>& nums)
 int main(int argc, char* argv[])
 {
     // Initialize libcds
-    cds::Initialize();
+    hpx::cds::libcds_wrapper cds_init_wrapper;
 
     {
-        hpx::cds::stdthread_manager_wrapper cdswrap;
-
         // Create flat-combining priority queue object
         using fc_pqueue_type = cds::container::FCPriorityQueue<std::size_t,
             std::priority_queue<std::size_t, std::deque<std::size_t>,
@@ -104,8 +100,5 @@ int main(int argc, char* argv[])
         }
     }
 
-    // Terminate libcds
-    cds::Terminate();
-    //
     return hpx::util::report_errors();
 }

@@ -38,7 +38,7 @@ void run(Map& map, const std::size_t nMaxItemCount)
     {
         futures.push_back(hpx::async([&, ele]() {
             // enable this thread/task to run using libcds support
-            hpx::cds::hpxthread_manager_wrapper cdswrap;
+            hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
 
             hpx::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
             map.insert(ele, std::to_string(ele));
@@ -61,7 +61,7 @@ void run(Map& map, const std::size_t nMaxItemCount)
 int hpx_main(int, char**)
 {
     // Initialize libcds
-    cds::Initialize();
+    hpx::cds::libcds_wrapper cds_init_wrapper;
 
     {
         using map_type =
@@ -73,7 +73,7 @@ int hpx_main(int, char**)
             map_type::c_nHazardPtrCount + 1, max_attach_concurrent_thread, 16);
 
         // enable this thread/task to run using libcds support
-        hpx::cds::hpxthread_manager_wrapper cdswrap;
+        hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
 
         const std::size_t nMaxItemCount =
             100;    // estimation of max item count in the hash map
@@ -82,9 +82,6 @@ int hpx_main(int, char**)
 
         run(map, nMaxItemCount);
     }
-
-    // Terminate libcds
-    cds::Terminate();
 
     return hpx::finalize();
 }

@@ -23,7 +23,6 @@
 #include <hpx/modules/synchronization.hpp>
 
 #include <cds/gc/hp.h>    // for cds::HP (Hazard Pointer) SMR
-#include <cds/init.h>     // for cds::Initialize and cds::Terminate
 
 #include <array>
 #include <atomic>
@@ -109,7 +108,7 @@ std::uint64_t num_iterations = 0;
 double null_function(bool uselibcds) noexcept
 {
     // enable this thread/task to run using libcds support
-    hpx::cds::hpxthread_manager_wrapper cdswrap;
+    hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
 
     if (num_iterations > 0)
     {
@@ -242,26 +241,10 @@ void measure_function_futures_create_thread_hierarchical_placement(
         csv, uselibcds);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-struct libcds_wrapper
-{
-    libcds_wrapper()
-    {
-        // Initialize libcds
-        cds::Initialize();
-    }
-
-    ~libcds_wrapper()
-    {
-        // Terminate libcds
-        cds::Terminate();
-    }
-};
-
 int hpx_main(variables_map& vm)
 {
     // Initialize libcds
-    libcds_wrapper wrapper;
+    hpx::cds::libcds_wrapper cds_init_wrapper;
 
     {
         // Initialize Hazard Pointer singleton
