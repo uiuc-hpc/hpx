@@ -21,6 +21,7 @@
 #include <functional>
 #include <iterator>
 #include <random>
+#include <string>
 #include <vector>
 
 // Declare traits

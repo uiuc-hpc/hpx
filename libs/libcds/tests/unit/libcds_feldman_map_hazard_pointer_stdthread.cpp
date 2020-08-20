@@ -19,6 +19,7 @@
 #include <future>
 #include <iterator>
 #include <random>
+#include <string>
 #include <thread>
 #include <vector>
 

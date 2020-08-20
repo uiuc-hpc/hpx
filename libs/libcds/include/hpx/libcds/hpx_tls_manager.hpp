@@ -1,7 +1,11 @@
-// Copyright (c) 2020 Weile Wei
+//  Copyright (c) 2020 Weile Wei
 //
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
+//  SPDX-License-Identifier: BSL-1.0
+//  Distributed under the Boost Software License, Version 1.0.
+//  (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+
+#pragma once
 
 #ifndef LIBCDS_HPX_TLS_MANAGER
 #define LIBCDS_HPX_TLS_MANAGER
@@ -15,6 +19,7 @@
 #include <cds/threading/details/cxx11_manager.h>
 
 #include <atomic>
+#include <cstddef>
 
 /// \cond NODETAIL
 namespace cds { namespace gc { namespace hp { namespace details {
@@ -57,10 +62,12 @@ namespace hpx { namespace cds {
             // in libcds that defines Hazard pointer count per thread;
 
             // max_concurrent_attach_thread_ is corresponding var nMaxThreadCount
-            // in libcds that defines Max count of simultaneous working thread in your application
+            // in libcds that defines Max count of simultaneous working thread
+            // in your application
 
-            // max_retired_pointer_count is corresponding var nMaxRetiredPtrCount
-            // in libcds that defines Capacity of the array of retired objects for the thread
+            // max_retired_pointer_count is corresponding var
+            // nMaxRetiredPtrCount in libcds that defines Capacity
+            // of the array of retired objects for the thread
             ::cds::gc::hp::custom_smr<TLS>::construct(hazard_pointer_count,
                 max_thread_count, max_retired_pointer_count);
         }

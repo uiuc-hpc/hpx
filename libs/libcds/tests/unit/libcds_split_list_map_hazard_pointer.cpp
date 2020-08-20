@@ -21,6 +21,7 @@
 #include <functional>
 #include <iterator>
 #include <random>
+#include <string>
 #include <vector>
 
 using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXTLSManager>;
