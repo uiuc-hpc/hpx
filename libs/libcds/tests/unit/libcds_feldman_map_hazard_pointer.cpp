@@ -9,11 +9,13 @@
 #include <hpx/hpx_init.hpp>
 #include <hpx/include/async.hpp>
 #include <hpx/libcds/hpx_tls_manager.hpp>
+#include <hpx/modules/testing.hpp>
 
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/init.h>    // for cds::Initialize and cds::Terminate
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstddef>
 #include <deque>
@@ -23,39 +25,96 @@
 #include <string>
 #include <vector>
 
-using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXTLSManager>;
-using key_type = std::size_t;
-using value_type = std::string;
-
-template <typename Map>
-void run(Map& map, const std::size_t nMaxItemCount)
+template <typename T>
+struct atomwrapper
 {
-    std::vector<key_type> rand_vec(nMaxItemCount);
-    std::generate(rand_vec.begin(), rand_vec.end(), std::rand);
+    std::atomic<T> _a;
 
-    std::vector<hpx::future<void>> futures;
-
-    for (auto ele : rand_vec)
+    atomwrapper()
+      : _a()
     {
-        futures.push_back(hpx::async([&, ele]() {
-            // enable this thread/task to run using libcds support
-            hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
-
-            hpx::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
-            map.insert(ele, std::to_string(ele));
-        }));
     }
 
-    hpx::wait_all(futures);
-
-    std::size_t count = 0;
-
-    while (!map.empty())
+    atomwrapper(const std::atomic<T>& a)
+      : _a(a.load())
     {
-        auto guarded_ptr = map.extract(rand_vec[count]);
-        HPX_ASSERT(guarded_ptr->first == rand_vec[count]);
-        HPX_ASSERT(guarded_ptr->second == std::to_string(rand_vec[count]));
-        count++;
+    }
+
+    atomwrapper(const atomwrapper& other)
+      : _a(other._a.load())
+    {
+    }
+
+    atomwrapper& operator=(const atomwrapper& other)
+    {
+        _a.store(other._a.load());
+    }
+};
+
+using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXTLSManager>;
+using key_type = std::size_t;
+using value_type = atomwrapper<std::size_t>;
+
+template <typename Map>
+void run(Map& map, const std::size_t n_items, const std::size_t n_threads)
+{
+    // a reference counter vector to keep track of counter on
+    // value [0, 1000)
+    std::array<std::atomic<std::size_t>, 1000> counter_vec;
+    std::fill(std::begin(counter_vec), std::end(counter_vec), 0);
+
+    std::vector<hpx::thread> threads;
+
+    // each thread inserts number of n_items/n_threads items to the map
+    std::vector<std::vector<std::size_t>> numbers_vec(
+        n_threads, std::vector<std::size_t>(n_items / n_threads, 0));
+
+    // map init
+    std::size_t val = 0;
+    while (val < 1000)
+    {
+        std::atomic<std::size_t> counter(0);
+        map.insert(val, counter);
+        val++;
+    }
+
+    auto insert_val_and_increase_counter =
+        [&](std::vector<std::size_t>& number_vec) {
+            hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
+            hpx::this_thread::sleep_for(std::chrono::seconds(rand() % 5));
+            for (auto val : number_vec)
+            {
+                typename Map::guarded_ptr gp;
+
+                gp = map.get(val);
+                if (gp)
+                {
+                    (gp->second)._a++;
+                    counter_vec[gp->first]++;
+                }
+            }
+        };
+
+    for (auto& v : numbers_vec)
+    {
+        std::generate(v.begin(), v.end(),
+            [&]() { return rand() % (n_items / n_threads); });
+
+        threads.emplace_back(insert_val_and_increase_counter, std::ref(v));
+    }
+
+    // wait for all threads to complete
+    for (auto& t : threads)
+    {
+        if (t.joinable())
+            t.join();
+    }
+
+    for (auto it = map.cbegin(); it != map.cend(); ++it)
+    {
+        HPX_TEST_EQ(counter_vec[it->first], (it->second)._a);
+        //        std::cout << "map key: " << it->first << " value: " << (it->second)._a
+        //                  << " and counter_vec: " << counter_vec[it->first] << "\n";
     }
 }
 
@@ -74,13 +133,12 @@ int hpx_main(int, char**)
         // enable this thread/task to run using libcds support
         hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
 
-        const std::size_t nMaxItemCount =
-            hp_wrapper.get_max_concurrent_attach_thread();
-        // estimation of max item count in the hash map
-
         map_type map;
 
-        run(map, nMaxItemCount);
+        const std::size_t n_items = 10000;
+        const std::size_t n_threads = 10;
+
+        run(map, n_items, n_threads);
     }
 
     return hpx::finalize();
