@@ -17,6 +17,7 @@
 #include <cds/gc/hp.h>
 #include <cds/init.h>
 #include <cds/threading/details/cxx11_manager.h>
+#include <cds/urcu/general_buffered.h>
 
 #include <atomic>
 #include <cstddef>
@@ -58,6 +59,9 @@ namespace hpx { namespace cds {
             // Initialize libcds
             ::cds::Initialize();
 
+            // hazard_pointer_count, max_thread_count, max_retired_pointer_count
+            // are only used in hazard pointer
+
             // hazard_pointer_count is corresponding var nHazardPtrCount
             // in libcds that defines Hazard pointer count per thread;
 
@@ -83,7 +87,11 @@ namespace hpx { namespace cds {
                     max_thread_count, max_retired_pointer_count);
                 break;
             case smr_t::rcu:
-                // do nothing
+                typedef ::cds::urcu::gc<::cds::urcu::general_buffered<>>
+                    rcu_gpb;
+                // Initialize general_buffered RCU
+                rcu_gpb gpbRCU;
+                ::cds::threading::Manager::attachThread();
                 break;
             }
         }
@@ -103,7 +111,7 @@ namespace hpx { namespace cds {
                     ::cds::gc::hp::details::DefaultTLSManager>::destruct(true);
                 break;
             case smr_t::rcu:
-                // do nothing
+                ::cds::threading::Manager::detachThread();
                 break;
             }
         }
@@ -146,8 +154,20 @@ namespace hpx { namespace cds {
                         "hpx::cds::thread_manager_wrapper::max_concurrent_"
                         "attach_thread_");
                 }
-                ::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::HPXTLSManager>::attach_thread();
+
+                if (::cds::gc::hp::custom_smr<
+                        ::cds::gc::hp::details::HPXTLSManager>::isUsed())
+                {
+                    ::cds::gc::hp::custom_smr<
+                        ::cds::gc::hp::details::HPXTLSManager>::attach_thread();
+                }
+                else
+                {
+                    HPX_THROW_EXCEPTION(invalid_status,
+                        "hpx::cds::hpxthread_manager_wrapper ",
+                        "failed to attach_thread to HPXTLSManager, please check"
+                        "if hazard pointer is constructed.");
+                }
             }
         }
 
@@ -193,8 +213,20 @@ namespace hpx { namespace cds {
                     "hpx::cds::thread_manager_wrapper::max_concurrent_"
                     "attach_thread");
             }
-            ::cds::gc::hp::custom_smr<
-                ::cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+
+            if (::cds::gc::hp::custom_smr<
+                    ::cds::gc::hp::details::DefaultTLSManager>::isUsed())
+            {
+                ::cds::gc::hp::custom_smr<
+                    ::cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+            }
+            else
+            {
+                HPX_THROW_EXCEPTION(invalid_status,
+                    "hpx::cds::stdthread_manager_wrapper ",
+                    "failed to attach_thread to DefaultTLSManager, please check"
+                    "if hazard pointer is constructed.");
+            }
         }
 
         ~stdthread_manager_wrapper()
