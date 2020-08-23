@@ -34,7 +34,8 @@ namespace cds { namespace gc { namespace hp { namespace details {
 }}}}    // namespace cds::gc::hp::details
 
 namespace hpx { namespace cds {
-    std::atomic<std::size_t> libcds_wrapper::max_concurrent_attach_thread_hazard_pointer_{100};
+    std::atomic<std::size_t>
+        libcds_wrapper::max_concurrent_attach_thread_hazard_pointer_{100};
 
     std::atomic<std::size_t> hpxthread_manager_wrapper::thread_counter_{0};
 
