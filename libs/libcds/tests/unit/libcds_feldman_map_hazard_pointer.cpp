@@ -120,16 +120,15 @@ void run(Map& map, const std::size_t n_items, const std::size_t n_threads)
 
 int hpx_main(int, char**)
 {
-    // Initialize libcds
-    hpx::cds::libcds_wrapper cds_init_wrapper;
+    using map_type =
+        cds::container::FeldmanHashMap<gc_type, key_type, value_type>;
+
+    // Initialize libcds and hazard pointer
+    hpx::cds::libcds_wrapper cds_init_wrapper(
+        hpx::cds::smr_t::hazard_pointer_hpxthread,
+        map_type::c_nHazardPtrCount + 1, 100, 16);
 
     {
-        using map_type =
-            cds::container::FeldmanHashMap<gc_type, key_type, value_type>;
-
-        hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXTLSManager>
-            hp_wrapper(map_type::c_nHazardPtrCount + 1, 100, 16);
-
         // enable this thread/task to run using libcds support
         hpx::cds::hpxthread_manager_wrapper cds_hpx_wrap;
 

@@ -247,9 +247,6 @@ int hpx_main(variables_map& vm)
     hpx::cds::libcds_wrapper cds_init_wrapper;
 
     {
-        hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXTLSManager>
-            hp_wrapper;
-
         if (vm.count("hpx:queuing"))
             queuing = vm["hpx:queuing"].as<std::string>();
 

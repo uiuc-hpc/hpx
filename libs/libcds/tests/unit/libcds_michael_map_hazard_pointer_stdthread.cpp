@@ -72,21 +72,19 @@ void run(Map& map, const std::size_t nMaxItemCount)
 
 int main(int argc, char* argv[])
 {
+    using map_type = cds::container::MichaelHashMap<gc_type, int2str_list>;
+
     // Initialize libcds
-    hpx::cds::libcds_wrapper cds_init_wrapper;
+    hpx::cds::libcds_wrapper cds_init_wrapper(
+        hpx::cds::smr_t::hazard_pointer_stdthread,
+        map_type::c_nHazardPtrCount + 1, 100, 16);
 
     {
-        using map_type = cds::container::MichaelHashMap<gc_type, int2str_list>;
-
-        hpx::cds::hazard_pointer_wrapper<
-            cds::gc::hp::details::DefaultTLSManager>
-            hp_wrapper(map_type::c_nHazardPtrCount + 1, 100, 16);
-
         // enable this thread/task to run using libcds support
         hpx::cds::stdthread_manager_wrapper cds_std_wrap;
 
         const std::size_t nMaxItemCount =
-            hp_wrapper.get_max_concurrent_attach_thread();
+            cds_init_wrapper.get_max_concurrent_attach_thread();
         // estimation of max item count in the hash map
         const std::size_t nLoadFactor =
             100;    // load factor: estimation of max number of items in the bucket

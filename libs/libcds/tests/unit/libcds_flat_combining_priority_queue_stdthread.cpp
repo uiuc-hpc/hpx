@@ -44,7 +44,7 @@ void run(PQueue& pq, std::size_t i, std::vector<std::size_t>& nums)
 int main(int argc, char* argv[])
 {
     // Initialize libcds
-    hpx::cds::libcds_wrapper cds_init_wrapper;
+    hpx::cds::libcds_wrapper cds_init_wrapper(hpx::cds::smr_t::hazard_pointer_hpxthread);
 
     {
         // Create flat-combining priority queue object
