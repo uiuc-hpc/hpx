@@ -134,7 +134,7 @@ struct stepper
     // elements of a partition.
     static partition_data heat_part(std::size_t sti,
         partition_data const& left_input, partition_data const& center_input,
-        partition_data const& right_input)
+        partition_data const& right_input, double error = 0)
     {
         std::uniform_real_distribution<> dist_(0.,1.);
 
