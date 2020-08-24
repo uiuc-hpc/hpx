@@ -224,7 +224,7 @@ and their references are listed below:
 **Local Control Objects (synchronization support facilities)**
   HPX has support for many of the C++20 primitives, such as `hpx::latch`,
   `hpx::barrier`, and `hpx::counting_semaphore` to synchronize the execution of
-  different threads allowing to overlap computation and communication. These
+  different threads allowing overlapping computation and communication. These
   facilities fully conform to the C++20 standard [@standard2020programming].
   For asynchronous computing HPX provides `hpx::async` and `hpx::future`, see
   the second example in the next section.
