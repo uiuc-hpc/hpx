@@ -153,13 +153,13 @@ struct stepper
         partition_data const& left_input, partition_data const& center_input,
         partition_data const& right_input)
     {
-        static thread_local std::exponential_distribution<> dist_(error);
+        static thread_local std::uniform_real_distribution<> dist_(0.,1.);
 
-        double num = dist_(gen);
+        double num = dist_(gen) * 100;
         bool error_flag = false;
 
         // Probability of error occurrence is proportional to exp(-error_rate)
-        if (num > 1.0)
+        if (num < error)
         {
             error_flag = true;
             ++counter;
