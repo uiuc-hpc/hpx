@@ -5,12 +5,8 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 set(tests
-    libcds_michael_map_hazard_pointer
-    libcds_feldman_map_hazard_pointer
-    libcds_split_list_map_hazard_pointer
-    libcds_michael_map_hazard_pointer_stdthread
-    libcds_feldman_map_hazard_pointer_stdthread
-    libcds_split_list_map_hazard_pointer_stdthread
+    libcds_map_hazard_pointer_hpxthread
+    libcds_map_hazard_pointer_stdthread
 )
 
 # Flat combining test uses boost thread for thread_specific_ptr
