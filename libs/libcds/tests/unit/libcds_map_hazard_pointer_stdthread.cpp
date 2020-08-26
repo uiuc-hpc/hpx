@@ -158,16 +158,18 @@ int main(int argc, char* argv[])
             michaelhash_map_type::c_nHazardPtrCount + 1,
             splitlist_map_type::c_nHazardPtrCount + 1});
 
+    const std::size_t n_threads = 128;
+
     // Initialize libcds and hazard pointer
     hpx::cds::libcds_wrapper cds_init_wrapper(
-        hpx::cds::smr_t::hazard_pointer_stdthread, max_hazard_pointer, 100, 16);
+        hpx::cds::smr_t::hazard_pointer_stdthread, max_hazard_pointer,
+        n_threads, 16);
 
     {
         // enable this thread/task to run using libcds support
         hpx::cds::stdthread_manager_wrapper cds_std_wrap;
 
         const std::size_t n_items = 10000;
-        const std::size_t n_threads = 100;
         // load factor: estimation of max number of items in the bucket
         const std::size_t n_load_factor = 100;
 

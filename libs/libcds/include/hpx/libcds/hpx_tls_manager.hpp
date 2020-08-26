@@ -65,12 +65,6 @@ namespace hpx { namespace cds {
             // Initialize libcds
             ::cds::Initialize();
 
-            std::cout << " max_thread_count "
-                      << hpx::get_config_entry(
-                             "hpx.cds.num_concurrent_hazard_pointer_threads",
-                             "128")
-                      << "\n";
-
             // hazard_pointer_count, max_thread_count, max_retired_pointer_count
             // are only used in hazard pointer
 
@@ -157,8 +151,8 @@ namespace hpx { namespace cds {
                         "hpx::cds::hpxthread_manager_wrapper ",
                         "attaching more threads than number of maximum allowed "
                         "detached threads, consider update "
-                        "hpx::cds::thread_manager_wrapper::max_concurrent_"
-                        "attach_thread_");
+                        "--hpx:ini=hpx.cds.num_concurrent_hazard_pointer_"
+                        "threads to a larger number");
                 }
 
                 if (::cds::gc::hp::custom_smr<
@@ -217,8 +211,8 @@ namespace hpx { namespace cds {
                     "hpx::cds::stdthread_manager_wrapper ",
                     "attaching more threads than number of maximum allowed "
                     "detached threads, consider update "
-                    "hpx::cds::thread_manager_wrapper::max_concurrent_"
-                    "attach_thread");
+                    "--hpx:ini=hpx.cds.num_concurrent_hazard_pointer_"
+                    "threads to a larger number");
             }
 
             if (::cds::gc::hp::custom_smr<

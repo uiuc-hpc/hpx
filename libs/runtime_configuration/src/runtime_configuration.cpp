@@ -243,7 +243,8 @@ namespace hpx { namespace util {
 
 #if defined(HPX_HAVE_LIBCDS)
             "[hpx.cds]",
-            "num_concurrent_hazard_pointer_threads=${HPX_NUM_CONCURRENT_HAZARD_POINTER_THREADS:128}",
+            "num_concurrent_hazard_pointer_threads="
+            "${HPX_NUM_CONCURRENT_HAZARD_POINTER_THREADS:128}",
 #endif
 
             "[hpx.thread_queue]",
