@@ -105,6 +105,22 @@ struct communicator
                 // can find it.
                 hpx::register_with_basename(right_name, send[right], rank);
             }
+            if (rank == 0)
+            {
+                // We connect the left most locality to the right most locality
+                recv[left] = hpx::find_from_basename<
+                                channel_type>(right_name, num - 1);
+                send[left] = channel_type(hpx::find_here());
+                hpx::register_with_basename(left_name, send[left], rank);
+            }
+            if (rank == num - 1)
+            {
+                // We connect the right most locality to the left most locality
+                recv[right] = hpx::find_from_basename<
+                                channel_type>(left_name, 0);
+                send[right] = channel_type(hpx::find_here());
+                hpx::register_with_basename(right_name, send[right], rank);
+            }
         }
     }
 
