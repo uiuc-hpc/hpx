@@ -21,6 +21,8 @@
 
 #include <atomic>
 #include <cstddef>
+#include <iostream>
+#include <string>
 
 /// \cond NODETAIL
 namespace cds { namespace gc { namespace hp { namespace details {
@@ -145,6 +147,11 @@ namespace hpx { namespace cds {
         explicit hpxthread_manager_wrapper(bool uselibcds = true)
           : uselibcds_(uselibcds)
         {
+//            std::cout
+//                << "test_config: "
+//                << libcds_wrapper::max_concurrent_attach_thread_hazard_pointer_
+//                << "\n";
+
             if (uselibcds_)
             {
                 if (++thread_counter_ >
