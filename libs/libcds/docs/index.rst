@@ -61,7 +61,7 @@ launch Hazard Pointer in HPX threads is to do the following:
 
         {
             // Initialize Hazard Pointer singleton
-            hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXTLSManager>
+            hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXDataHolder>
                 hp_wrapper;
 
             // If main thread uses lock-free containers
@@ -86,7 +86,7 @@ Use Hazard Pointer supported Container w/ HPX threads or std::threads
 To note, to use Hazard Pointer in the context of HPX user-level threads,
 one must use LibCDS template
 TLS manager :cpp:type:`hpx::cds::hazard_pointer_wrapper<TLS_type>` supplied with
-:cpp:type:`cds::gc::hp::details::HPXTLSManager`. This ensures the thread data is bound
+:cpp:type:`cds::gc::hp::details::HPXDataHolder`. This ensures the thread data is bound
 to user-level thread, as hpx thread can migrate from one kernel thread to another
 depending on HPX scheduler.
 If one wants to use use default kernel thread and thus keep thread-private data
@@ -99,7 +99,7 @@ One simplest map is :cpp:type:`FeldmanHashMap`:
 
 .. code-block:: c++
 
-    using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXTLSManager>;
+    using gc_type = cds::gc::custom_HP<cds::gc::hp::details::HPXDataHolder>;
     using key_type = std::size_t;
     using value_type = std::string;
     using map_type =
@@ -107,7 +107,7 @@ One simplest map is :cpp:type:`FeldmanHashMap`:
 
 A more complex map example can be found in `libcds_michael_map_hazard_pointer.cpp`,
 where the map is built on top of a list. In this case, both map and list need to
-use :cpp:type:`cds::gc::hp::details::HPXTLSManager` to template the Garbage Collector
+use :cpp:type:`cds::gc::hp::details::HPXDataHolder` to template the Garbage Collector
 type.
 
 API
@@ -126,8 +126,8 @@ construct hazard pointer object in libcds. More reference can be found in
 `HP in LibCDS <https://github.com/khizmax/libcds/blob/master/cds/gc/hp.h>`_.
 
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper`: This is a wrapper of
-:cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::attach_thread()`
-and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXTLSManager>::detach_thread()`
+:cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::attach_thread()`
+and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::detach_thread()`
 This allows the calling hpx thread attach to Hazard Pointer threading infrastructure.
 
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper::get_max_concurrent_attach_thread`:

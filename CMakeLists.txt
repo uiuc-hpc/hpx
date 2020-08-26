@@ -970,7 +970,7 @@ if(HPX_WITH_LIBCDS)
     https://github.com/khizmax/libcds.git CATEGORY "Thread Manager" ADVANCED
   )
   hpx_option(
-    HPX_WITH_LIBCDS_GIT_TAG STRING "Define the LibCDS git tag to use." master
+    HPX_WITH_LIBCDS_GIT_TAG STRING "Define the LibCDS git tag to use." hpx-1.5
     CATEGORY "Thread Manager" ADVANCED
   )
   hpx_add_config_define(HPX_HAVE_LIBCDS)

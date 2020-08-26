@@ -55,7 +55,7 @@ struct atomwrapper
     }
 };
 
-using gc_type = cds::gc::custom_HP<cds::gc::hp::details::DefaultTLSManager>;
+using gc_type = cds::gc::custom_HP<cds::gc::hp::details::DefaultDataHolder>;
 using key_type = std::size_t;
 using value_type = atomwrapper<std::size_t>;
 

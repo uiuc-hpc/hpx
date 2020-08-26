@@ -25,11 +25,14 @@
 /// \cond NODETAIL
 namespace cds { namespace gc { namespace hp { namespace details {
 
-    class HPXTLSManager
+    class HPXDataHolder
     {
     public:
         static CDS_EXPORT_API thread_data* getTLS();
         static CDS_EXPORT_API void setTLS(thread_data*);
+        static CDS_EXPORT_API generic_smr<HPXDataHolder>* getInstance();
+        static CDS_EXPORT_API void setInstance(
+            generic_smr<HPXDataHolder>* new_instance);
     };
 
 }}}}    // namespace cds::gc::hp::details
@@ -78,12 +81,12 @@ namespace hpx { namespace cds {
             default:
             case smr_t::hazard_pointer_hpxthread:
                 ::cds::gc::hp::custom_smr<::cds::gc::hp::details::
-                        HPXTLSManager>::construct(hazard_pointer_count,
+                        HPXDataHolder>::construct(hazard_pointer_count,
                     max_thread_count, max_retired_pointer_count);
                 break;
             case smr_t::hazard_pointer_stdthread:
                 ::cds::gc::hp::custom_smr<::cds::gc::hp::details::
-                        DefaultTLSManager>::construct(hazard_pointer_count,
+                        DefaultDataHolder>::construct(hazard_pointer_count,
                     max_thread_count, max_retired_pointer_count);
                 break;
             case smr_t::rcu:
@@ -104,11 +107,11 @@ namespace hpx { namespace cds {
             {
             case smr_t::hazard_pointer_hpxthread:
                 ::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::HPXTLSManager>::destruct(true);
+                    ::cds::gc::hp::details::HPXDataHolder>::destruct(true);
                 break;
             case smr_t::hazard_pointer_stdthread:
                 ::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::DefaultTLSManager>::destruct(true);
+                    ::cds::gc::hp::details::DefaultDataHolder>::destruct(true);
                 break;
             case smr_t::rcu:
                 ::cds::threading::Manager::detachThread();
@@ -156,16 +159,16 @@ namespace hpx { namespace cds {
                 }
 
                 if (::cds::gc::hp::custom_smr<
-                        ::cds::gc::hp::details::HPXTLSManager>::isUsed())
+                        ::cds::gc::hp::details::HPXDataHolder>::isUsed())
                 {
                     ::cds::gc::hp::custom_smr<
-                        ::cds::gc::hp::details::HPXTLSManager>::attach_thread();
+                        ::cds::gc::hp::details::HPXDataHolder>::attach_thread();
                 }
                 else
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::hpxthread_manager_wrapper ",
-                        "failed to attach_thread to HPXTLSManager, please check"
+                        "failed to attach_thread to HPXDataHolder, please check"
                         "if hazard pointer is constructed.");
                 }
             }
@@ -183,7 +186,7 @@ namespace hpx { namespace cds {
                         "threads");
                 }
                 ::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::HPXTLSManager>::detach_thread();
+                    ::cds::gc::hp::details::HPXDataHolder>::detach_thread();
             }
         }
 
@@ -215,16 +218,16 @@ namespace hpx { namespace cds {
             }
 
             if (::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::DefaultTLSManager>::isUsed())
+                    ::cds::gc::hp::details::DefaultDataHolder>::isUsed())
             {
                 ::cds::gc::hp::custom_smr<
-                    ::cds::gc::hp::details::DefaultTLSManager>::attach_thread();
+                    ::cds::gc::hp::details::DefaultDataHolder>::attach_thread();
             }
             else
             {
                 HPX_THROW_EXCEPTION(invalid_status,
                     "hpx::cds::stdthread_manager_wrapper ",
-                    "failed to attach_thread to DefaultTLSManager, please check"
+                    "failed to attach_thread to DefaultDataHolder, please check"
                     "if hazard pointer is constructed.");
             }
         }
@@ -239,7 +242,7 @@ namespace hpx { namespace cds {
                     "threads");
             }
             ::cds::gc::hp::custom_smr<
-                ::cds::gc::hp::details::DefaultTLSManager>::detach_thread();
+                ::cds::gc::hp::details::DefaultDataHolder>::detach_thread();
         }
     };
 
