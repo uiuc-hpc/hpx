@@ -250,6 +250,8 @@ and their references are listed below:
   concurrency facilities and APIs [@standard2020programming], such as
   `hpx::jthread`, `hpx::latch`, `hpx::barrier`, etc.
 
+# Applications
+
 HPX is utilized in a diverse set of applications: 
 
 - Scientific computing
