@@ -1,83 +1,83 @@
 ﻿---
 title: 'HPX - The C++ Standard Library for Parallelism and Concurrency'
 tags:
-  - concurrency
-  - task-based run time system
-  - parallelism
-  - distributed
+ - concurrency
+ - task-based run time system
+ - parallelism
+ - distributed
 authors:
-  - name: Hartmut Kaiser
-    orcid: 0000-0002-8712-2806
-    affiliation: "1"
-  - name: Patrick Diehl
-    orcid: 0000-0003-3922-8419
-    affiliation: "1"
-  - name: Adrian S. Lemoine
-    affiliation: "6"
-  - name: Bryce Adelstein Lelbach
-    orcid: 0000-0002-7995-5226
-    affiliation: "5"
-  - name: Parsa Amini
-    orcid: 0000-0002-6439-8404
-    affiliation: "1"
-  - name: Agustín Berge
-    affiliation: "6"
-  - name: John Biddiscombe
-    orcid: 0000-0002-6552-2833
-    affiliation: "4"
-  - name: Steven R. Brandt
-    orcid: 0000-0002-7979-2906
-    affiliation: "1"
-  - name: Nikunj Gupta
-    orcid: 0000-0003-0525-3667
-    affiliation: "3"
-  - name: Thomas Heller
-    orcid: 0000-0003-2620-9438
-    affiliation: "2"
-  - name: Kevin Huck
-    orcid: 0000-0001-7064-8417
-    affiliation: "8"
-  - name: Zahra Khatami
-    orcid: 0000-0001-6654-6856
-    affiliation: "7"
-  - name: Alireza Kheirkhahan
-    orcid: 0000-0002-4624-4647
-    affiliation: "1"
-  - name: Auriane Reverdell
-    orcid: 0000-0002-5531-0458
-    affiliation: "4"
-  - name: Shahrzad Shirzad
-    orcid: 0000-0001-9496-8044
-    affiliation: "1"
-  - name: Mikael Simberg
-    orcid: 0000-0002-7238-8935
-    affiliation: "4"
-  - name: Bibek Wagle
-    orcid: 0000-0001-6619-7115
-    affiliation: "1"
-  - name: Weile Wei
-    orcid: 0000-0002-3065-4959
-    affiliation: "1"
-  - name: Tianyi Zhang
-    orcid: 0000-0002-1000-4887
-    affiliation: "6"
+ - name: Hartmut Kaiser
+ orcid: 0000-0002-8712-2806
+ affiliation: "1"
+ - name: Patrick Diehl
+ orcid: 0000-0003-3922-8419
+ affiliation: "1"
+ - name: Adrian S. Lemoine
+ affiliation: "6"
+ - name: Bryce Adelstein Lelbach
+ orcid: 0000-0002-7995-5226
+ affiliation: "5"
+ - name: Parsa Amini
+ orcid: 0000-0002-6439-8404
+ affiliation: "1"
+ - name: Agustín Berge
+ affiliation: "6"
+ - name: John Biddiscombe
+ orcid: 0000-0002-6552-2833
+ affiliation: "4"
+ - name: Steven R. Brandt
+ orcid: 0000-0002-7979-2906
+ affiliation: "1"
+ - name: Nikunj Gupta
+ orcid: 0000-0003-0525-3667
+ affiliation: "3"
+ - name: Thomas Heller
+ orcid: 0000-0003-2620-9438
+ affiliation: "2"
+ - name: Kevin Huck
+ orcid: 0000-0001-7064-8417
+ affiliation: "8"
+ - name: Zahra Khatami
+ orcid: 0000-0001-6654-6856
+ affiliation: "7"
+ - name: Alireza Kheirkhahan
+ orcid: 0000-0002-4624-4647
+ affiliation: "1"
+ - name: Auriane Reverdell
+ orcid: 0000-0002-5531-0458
+ affiliation: "4"
+ - name: Shahrzad Shirzad
+ orcid: 0000-0001-9496-8044
+ affiliation: "1"
+ - name: Mikael Simberg
+ orcid: 0000-0002-7238-8935
+ affiliation: "4"
+ - name: Bibek Wagle
+ orcid: 0000-0001-6619-7115
+ affiliation: "1"
+ - name: Weile Wei
+ orcid: 0000-0002-3065-4959
+ affiliation: "1"
+ - name: Tianyi Zhang
+ orcid: 0000-0002-1000-4887
+ affiliation: "6"
 affiliations:
  - name: Center for Computation \& Technology, Louisiana State University, LA, Baton Rouge, United States of America
-   index: 1
+ index: 1
  - name: Exasol, Erlangen, Germany
-   index: 2
+ index: 2
  - name: Indian Institute of Technology, Roorkee, India
-   index: 3
+ index: 3
  - name: Swiss National Supercomputing Centre, Lugano, Switzerland
-   index: 4
+ index: 4
  - name: NVIDIA, CA, Santa Clara, United States of America
-   index: 5
+ index: 5
  - name: STE$||$AR Group
-   index: 6
+ index: 6
  - name: Oracle, CA, Redwood City, United States of America
-   index: 7
- - name: Oregon Advanced Computing Institute for Science and Society (OACISS), University of Oregon, OR, Eugene,  United States of America
-   index: 8
+ index: 7
+ - name: Oregon Advanced Computing Institute for Science and Society (OACISS), University of Oregon, OR, Eugene, United States of America
+ index: 8
 date: 11.06.2020
 bibliography: paper.bib
 ---
@@ -153,129 +153,129 @@ standardization process.
 and their references are listed below:
 
 **Threading Subsystem** [@kaiser2009parallex] The thread manager manages the
-  light-weight user level threads created by HPX. These light-weight threads
-  have extremely short context switching times resulting in reduced latencies
-  even for very short operations. This also ensures reduced synchronization
-  overheads for coordinating execution between different threads. HPX provides
-  a set of scheduling policies that enable the user to flexibly customize the
-  execution of HPX threads. Work-stealing and work-sharing policies ensure
-  automatic local load balancing of tasks which is important for achieving high
-  system utilization and good scalability of the user's code.
+ light-weight user level threads created by HPX. These light-weight threads
+ have extremely short context switching times resulting in reduced latencies
+ even for very short operations. This also ensures reduced synchronization
+ overheads for coordinating execution between different threads. HPX provides
+ a set of scheduling policies that enable the user to flexibly customize the
+ execution of HPX threads. Work-stealing and work-sharing policies ensure
+ automatic local load balancing of tasks which is important for achieving high
+ system utilization and good scalability of the user's code.
 
 **Active Global Address Space (AGAS)** [@kaiser2014hpx;@amini2019agas]
-  To support distributed objects, HPX supports a component for resolving
-  global addresses that extends the Partitioned Global Address Space
-  (PGAS) model, enabling dynamic runtime-based resource allocation and
-  data placement.
-  This layer enables HPX to expose a uniform API for local and remote
-  execution. Unlike PGAS, AGAS provides the user with the ability to
-  transparently move global objects in between nodes of a distributed computer
-  system without changing the object's global address. This capability is
-  fundamental for supporting load balancing via object migration.
+ To support distributed objects, HPX supports a component for resolving
+ global addresses that extends the Partitioned Global Address Space
+ (PGAS) model, enabling dynamic runtime-based resource allocation and
+ data placement.
+ This layer enables HPX to expose a uniform API for local and remote
+ execution. Unlike PGAS, AGAS provides the user with the ability to
+ transparently move global objects in between nodes of a distributed computer
+ system without changing the object's global address. This capability is
+ fundamental for supporting load balancing via object migration.
 
 **Parcel Transport Layer** [@kaiser2009parallex;@biddiscombe2017zero]
-  This component is an active-message networking layer.
-  The parcelport leverages AGAS in order to deliver messages to and to launch
-  functions on global objects regardless of their current placement in a
-  distributed system.
-  Additionally, its asynchronous protocol enables the
-  parcelport to implicitly overlap communication and computation.
-  The parcelport is modular to support multiple communication library
-  backends. By default, HPX supports TCP/IP, Message passing Interface (MPI),
-  and libfabric [@daiss2019piz].
+ This component is an active-message networking layer.
+ The parcelport leverages AGAS in order to deliver messages to and to launch
+ functions on global objects regardless of their current placement in a
+ distributed system.
+ Additionally, its asynchronous protocol enables the
+ parcelport to implicitly overlap communication and computation.
+ The parcelport is modular to support multiple communication library
+ backends. By default, HPX supports TCP/IP, Message passing Interface (MPI),
+ and libfabric [@daiss2019piz].
 
 **Performance counters** [@grubel2016dynamic]
-  HPX provides its users with a uniform suite of globally accessible
-  performance counters to monitor system metrics *in-situ*. These counters have
-  their names registered with AGAS, which enables the users to
-  easily query for different metrics at runtime.
-  Additionally, HPX provides an API for users to create their
-  own application-specific counters to gather information customized to their
-  own application. These user-defined counters are exposed through the same
-  interface as their predefined counterparts.
-  By default, HPX provides performance counters for its own components, such as
-  networking, AGAS operations, thread scheduling, and various statistics.
+ HPX provides its users with a uniform suite of globally accessible
+ performance counters to monitor system metrics *in-situ*. These counters have
+ their names registered with AGAS, which enables the users to
+ easily query for different metrics at runtime.
+ Additionally, HPX provides an API for users to create their
+ own application-specific counters to gather information customized to their
+ own application. These user-defined counters are exposed through the same
+ interface as their predefined counterparts.
+ By default, HPX provides performance counters for its own components, such as
+ networking, AGAS operations, thread scheduling, and various statistics.
 
 **Policy Engine/Policies** [@huck2015autonomic;@khatami2017hpx;@laberge2019scheduling]
-  Often, modern applications must adapt to runtime environments
-  to ensure acceptable performance. Autonomic Performance Environment for
-  Exascale (APEX) enables this flexibility by measuring HPX tasks, monitoring
-  system utilization, and accepting user provided policies
-  that are triggered by defined events.
-  In this way, features such as parcel coalescing [@wagle2018methodology] can
-  adapt to the current phase of an application or even state of a system.
+ Often, modern applications must adapt to runtime environments
+ to ensure acceptable performance. Autonomic Performance Environment for
+ Exascale (APEX) enables this flexibility by measuring HPX tasks, monitoring
+ system utilization, and accepting user provided policies
+ that are triggered by defined events.
+ In this way, features such as parcel coalescing [@wagle2018methodology] can
+ adapt to the current phase of an application or even state of a system.
 
 **Accelerator Support**
-  HPX has support for several methods of integration with GPUs:
-  HPXCL [@diehl2018integration; @martin_stumpf_2018_1409043] and HPX.Compute
-  [@copik2017using]
-  HPXCL provides users the ability to manage GPU kernels through a
-  global object. This enables HPX to coordinate the launching and
-  synchronization of CPU and GPU code.
-  HPX.Compute [@copik2017using] aims to provide a single-source
-  solution to heterogeneity by automatically generating GPU kernels
-  from C++ code. This enables HPX to launch both CPU and GPU kernels
-  as dictated by the current state of the system. Support for integrating
-  HPX with Kokkos [@edwards2014kokkos] is currently being developed. This
-  integration already has added HPX as an asynchronous backend to Kokkos and
-  will expose Kokkos accelerator functionalities through HPX's asynchronous APIs
-  in a C++ standards-conforming way.
+ HPX has support for several methods of integration with GPUs:
+ HPXCL [@diehl2018integration; @martin_stumpf_2018_1409043] and HPX.Compute
+ [@copik2017using]
+ HPXCL provides users the ability to manage GPU kernels through a
+ global object. This enables HPX to coordinate the launching and
+ synchronization of CPU and GPU code.
+ HPX.Compute [@copik2017using] aims to provide a single-source
+ solution to heterogeneity by automatically generating GPU kernels
+ from C++ code. This enables HPX to launch both CPU and GPU kernels
+ as dictated by the current state of the system. Support for integrating
+ HPX with Kokkos [@edwards2014kokkos] is currently being developed. This
+ integration already has added HPX as an asynchronous backend to Kokkos and
+ will expose Kokkos accelerator functionalities through HPX's asynchronous APIs
+ in a C++ standards-conforming way.
 
 **Local Control Objects (synchronization support facilities)**
-  HPX has support for many of the C++20 primitives, such as `hpx::latch`,
-  `hpx::barrier`, and `hpx::counting_semaphore` to synchronize the execution of
-  different threads allowing overlapping computation and communication. These
-  facilities fully conform to the C++20 standard [@standard2020programming].
-  For asynchronous computing HPX provides `hpx::async` and `hpx::future`, see
-  the second example in the next section.
+ HPX has support for many of the C++20 primitives, such as `hpx::latch`,
+ `hpx::barrier`, and `hpx::counting_semaphore` to synchronize the execution of
+ different threads allowing overlapping computation and communication. These
+ facilities fully conform to the C++20 standard [@standard2020programming].
+ For asynchronous computing HPX provides `hpx::async` and `hpx::future`, see
+ the second example in the next section.
 
 **Software Resilience**
-  HPX supports software-level resilience [@gupta2020implementing] through its
-  resiliency API, such as `hpx::async_replay` and `hpx::async_replicate` and
-  its dataflow counterparts `hpx::dataflow_replay` and
-  `hpx::dataflow_replicate`. These APIs are resilient against memory bit
-  flips and other hardware errors.
-  HPX provides an easy method to port codes to the resilient API by replacing
-  `hpx::async` or `hpx::dataflow` with its resilient API counterparts everywhere
-  in the code without making any other changes.
+ HPX supports software-level resilience [@gupta2020implementing] through its
+ resiliency API, such as `hpx::async_replay` and `hpx::async_replicate` and
+ its dataflow counterparts `hpx::dataflow_replay` and
+ `hpx::dataflow_replicate`. These APIs are resilient against memory bit
+ flips and other hardware errors.
+ HPX provides an easy method to port codes to the resilient API by replacing
+ `hpx::async` or `hpx::dataflow` with its resilient API counterparts everywhere
+ in the code without making any other changes.
 
 **C++ Standards conforming API**
-  HPX implements all the C++17 parallel algorithms [@standard2017programming]
-  and extends those with asynchronous versions. Here, HPX provides the
-  `hpx::execution::seq`, `hpx::execution::par` execution policies, and (as an
-  extension) their asynchronous equivalents
-  `hpx::execution::seq(hpx::execution::task)` and
-  `hpx::execution::par(hpx::execution::task)` (see the first code example
-  in the next section). HPX also implements the C++20
-  concurrency facilities and APIs [@standard2020programming], such as
-  `hpx::jthread`, `hpx::latch`, `hpx::barrier`, etc.
+ HPX implements all the C++17 parallel algorithms [@standard2017programming]
+ and extends those with asynchronous versions. Here, HPX provides the
+ `hpx::execution::seq`, `hpx::execution::par` execution policies, and (as an
+ extension) their asynchronous equivalents
+ `hpx::execution::seq(hpx::execution::task)` and
+ `hpx::execution::par(hpx::execution::task)` (see the first code example
+ in the next section). HPX also implements the C++20
+ concurrency facilities and APIs [@standard2020programming], such as
+ `hpx::jthread`, `hpx::latch`, `hpx::barrier`, etc.
 
 # Applications
 
 HPX is utilized in a diverse set of applications: 
 
 - Scientific computing
-  * [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
-    [@daiss2019piz;@heller2019harnessing;@pfander2018accelerating], an
-    astrophysics code for stellar mergers.
-  * [libGeoDecomp](https://github.com/gentryx/libgeodecomp)
-    [@Schafer:2008:LGL:1431669.1431721], an auto-parallelizing library to speed
-    up stencil-code-based computer simulations.
-  * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a
-     simulation tool for non-local models, e.g. Peridynamics.
-  * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++)
-    [@hahner2020dca], a high-performance research software framework to solve 
-    quantum many-body problems with cutting edge quantum cluster algorithms. 
+ * [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
+ [@daiss2019piz;@heller2019harnessing;@pfander2018accelerating], an
+ astrophysics code for stellar mergers.
+ * [libGeoDecomp](https://github.com/gentryx/libgeodecomp)
+ [@Schafer:2008:LGL:1431669.1431721], an auto-parallelizing library to speed
+ up stencil-code-based computer simulations.
+ * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a
+ simulation tool for non-local models, e.g. Peridynamics.
+ * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++)
+ [@hahner2020dca], a high-performance research software framework to solve 
+ quantum many-body problems with cutting edge quantum cluster algorithms. 
 
 - Libaries
-  * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP)
-    [@zhang2019introduction; @zhang2020supporting] a modern OpenMP implementation
-    leveraging HPX that supports shared memory multithread programming. 
-  * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003],
-     the C++ Performance Portability Programming EcoSystem. 
-  * [Phylanx](https://github.com/STEllAR-GROUP/phylanx)
-    [@tohid2018asynchronous;@wagle2019runtime] An Asynchronous Distributed C++
-    Array Processing Toolkit.
+ * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP)
+ [@zhang2019introduction; @zhang2020supporting] a modern OpenMP implementation
+ leveraging HPX that supports shared memory multithread programming. 
+ * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003],
+ the C++ Performance Portability Programming EcoSystem. 
+ * [Phylanx](https://github.com/STEllAR-GROUP/phylanx)
+ [@tohid2018asynchronous;@wagle2019runtime] An Asynchronous Distributed C++
+ Array Processing Toolkit.
 
 For a updated list of applications, we refer to the
 corresponding [HPX website](https://hpx.stellar-group.org/hpx-users/).
@@ -298,18 +298,18 @@ HPX's parallel algorithm library API is completely standards conforming.
 
 int main()
 {
-    std::vector<int> values = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+ std::vector<int> values = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    // Compute the sum in a sequential fashion
-    int sum1 = hpx::reduce(
-        hpx::execution::seq, values.begin(), values.end(), 0);
-    std::cout << sum1 << '\n';      // will print 55
+ // Compute the sum in a sequential fashion
+ int sum1 = hpx::reduce(
+ hpx::execution::seq, values.begin(), values.end(), 0);
+ std::cout << sum1 << '\n'; // will print 55
 
-    // Compute the sum in a parallel fashion based on a range of values
-    int sum2 = hpx::ranges::reduce(hpx::execution::par, values, 0);
-    std::cout << sum2 << '\n';      // will print 55 as well
+ // Compute the sum in a parallel fashion based on a range of values
+ int sum2 = hpx::ranges::reduce(hpx::execution::par, values, 0);
+ std::cout << sum2 << '\n'; // will print 55 as well
 
-    return 0;
+ return 0;
 }
 ```
 
@@ -336,29 +336,29 @@ output stream.
 // Define the partial taylor function
 double taylor(size_t begin, size_t end, size_t n, double x)
 {
-    double denom = factorial(2 * n);
-    double res = 0;
-    for (size_t i = begin; i != end; ++i)
-    {
-        res += std::pow(-1, i - 1) * std::pow(x, 2 * n) / denom;
-    }
-    return res;
+ double denom = factorial(2 * n);
+ double res = 0;
+ for (size_t i = begin; i != end; ++i)
+ {
+ res += std::pow(-1, i - 1) * std::pow(x, 2 * n) / denom;
+ }
+ return res;
 }
 
 int main()
 {
-    // Compute the Talor series sin(2.0) for 100 iterations
-    size_t n = 100;
+ // Compute the Talor series sin(2.0) for 100 iterations
+ size_t n = 100;
 
-    // Launch two concurrent computations of each partial result
-    hpx::future<double> f1 = hpx::async(taylor, 0, n / 2, n, 2.);
-    hpx::future<double> f2 = hpx::async(taylor, (n / 2) + 1, n, n, 2.);
+ // Launch two concurrent computations of each partial result
+ hpx::future<double> f1 = hpx::async(taylor, 0, n / 2, n, 2.);
+ hpx::future<double> f2 = hpx::async(taylor, (n / 2) + 1, n, n, 2.);
 
-    // Introduce a barrier to gather the results
-    double res = f1.get() + f2.get();
+ // Introduce a barrier to gather the results
+ double res = f1.get() + f2.get();
 
-    // Print the result
-    std::cout << "Sin(2.) = " << res << std::endl;
+ // Print the result
+ std::cout << "Sin(2.) = " << res << std::endl;
 }
 ```
 
@@ -387,19 +387,19 @@ At the time the paper was written, HPX was directly funded by the following
 grants:
 
 - The National Science Foundation through awards 1339782 (STORM) and 1737785
-  (Phylanx).
+ (Phylanx).
 
 - The Department of Energy (DoE) through the awards DE-AC52-06NA25396 (FLeCSI)
-  DE-NA0003525 (Resilience), and DE-AC05-00OR22725 (DCA++).
+ DE-NA0003525 (Resilience), and DE-AC05-00OR22725 (DCA++).
 
 - The Defense Technical Information Center (DTIC) under contract
-  FA8075-14-D-0002/0007.
+ FA8075-14-D-0002/0007.
 
 - The Bavarian Research Foundation (Bayerische Forschungsstiftung) through the
-  grant AZ-987-11.
+ grant AZ-987-11.
 
 - The European Commission's Horizon 2020 programme through the grant
-  H2020-EU.1.2.2. 671603 (AllScale).
+ H2020-EU.1.2.2. 671603 (AllScale).
 
 
 For a updated list of previous and current funding, we refer to the
