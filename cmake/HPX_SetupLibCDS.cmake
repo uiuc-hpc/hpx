@@ -39,7 +39,7 @@ if(HPX_WITH_LIBCDS)
     #set_target_properties(cds-s PROPERTIES FOLDER "Core")
 
     # create an imported target that links to the real libcds so that when we
-    # link to the inported target, we don't get export X depends on cds that is
+    # link to the imported target, we don't get export X depends on cds that is
     # not in the export set
     add_library(libcds::cds INTERFACE IMPORTED)
     target_link_libraries(libcds::cds INTERFACE cds)

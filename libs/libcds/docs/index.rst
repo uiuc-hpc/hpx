@@ -56,14 +56,10 @@ launch Hazard Pointer in HPX threads is to do the following:
 
     int hpx_main(int, char**)
     {
-        // Initialize libcds
+        // Initialize libcds (hazard pointer type by default)
         hpx::cds::libcds_wrapper cds_init_wrapper;
 
         {
-            // Initialize Hazard Pointer singleton
-            hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::HPXDataHolder>
-                hp_wrapper;
-
             // If main thread uses lock-free containers
             // the main thread should be attached to libcds infrastructure
             hpx::cds::hpxthread_manager_wrapper cdswrap;
@@ -84,14 +80,15 @@ Use Hazard Pointer supported Container w/ HPX threads or std::threads
 #####################################################################
 
 To note, to use Hazard Pointer in the context of HPX user-level threads,
-one must use LibCDS template
-TLS manager :cpp:type:`hpx::cds::hazard_pointer_wrapper<TLS_type>` supplied with
-:cpp:type:`cds::gc::hp::details::HPXDataHolder`. This ensures the thread data is bound
-to user-level thread, as hpx thread can migrate from one kernel thread to another
-depending on HPX scheduler.
+one must use construct libcds object with
+:cpp:type:`hpx::cds::libcds_wrapper cds_init_wrapper
+(hpx::cds::smr_t::hazard_pointer_hpxthread)`. This ensures
+hazard pointer is used as well as the thread data is bound
+to user-level thread.
 If one wants to use use default kernel thread and thus keep thread-private data
 at kernel-level threads, the following should be used to create Hazard Pointer SMR
-:cpp:type:`hpx::cds::hazard_pointer_wrapper<cds::gc::hp::details::DefaultLSManager>`.
+:cpp:type:`hpx::cds::libcds_wrapper cds_init_wrapper
+(hpx::cds::smr_t::hazard_pointer_stdthread)`.
 
 To use any Hazard Pointer supported container, one also needs to populate TLS type
 to all levels of the container.
@@ -115,25 +112,32 @@ API
 
 The following API functions are exposed:
 
-- :cpp:func:`hpx::cds::libcds_wrapper`: This is a wrapper of
-:cpp:func:`cds::Initialize()` and :cpp:func:`cds::Terminate()`.
-This allows initializing libcds infrastructure (and destroying it after the object's lifetime).
+- :cpp:func:`hpx::cds::libcds_wrapper(smr_t smr_type = smr_t::hazard_pointer_hpxthread,
+            std::size_t hazard_pointer_count = 1,
+            std::size_t max_thread_count = std::stoul(hpx::get_config_entry(
+                "hpx.cds.num_concurrent_hazard_pointer_threads", "128")),
+            std::size_t max_retired_pointer_count = 16)`: This is a wrapper of
+:cpp:func:`cds::Initialize()` and :cpp:func:`cds::Terminate()` as well as
+supported SMR type. This allows initializing libcds infrastructure
+(and destroying it after the object's lifetime).
 
-- :cpp:func:`hpx::cds::hazard_pointer_wrapper`: This is a wrapper of
-creating Hazard Pointer singleton. It constructs hazard_pointer_count,
-max_concurrent_attach_thread_, max_retired_pointer_count, which are corresponding variables to
-construct hazard pointer object in libcds. More reference can be found in
+To initialize different SMR for libcds,
+one can pass different :cpp:func:`hpx::cds::smr_t::*` to libcds_wrapper constructor.
+Current supported smr_t has :cpp:type:`hazard_pointer_hpxthread` (default),
+:cpp:type:`hazard_pointer_stdthread`, :cpp:type:`rcu` (experimental).
+
+To update max concurrent attached thread to Hazard Pointer SMR in HPX thread, one can
+pass different command line values, for example:
+:cpp:type:`--hpx:ini=hpx.cds.num_concurrent_hazard_pointer_threads=256`
+
+To understand max_retired_pointer_count and the above mentioned variables
+, more reference can be found in
 `HP in LibCDS <https://github.com/khizmax/libcds/blob/master/cds/gc/hp.h>`_.
 
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper`: This is a wrapper of
 :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::attach_thread()`
 and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::detach_thread()`
 This allows the calling hpx thread attach to Hazard Pointer threading infrastructure.
-
-- :cpp:func:`hpx::cds::hpxthread_manager_wrapper::get_max_concurrent_attach_thread`:
-returns max count of thread with using HP GC in your application.
-Default is 100. More reference can be found in
-`HP in LibCDS <https://github.com/khizmax/libcds/blob/master/cds/gc/hp.h>`_.
 
 
 See the :ref:`API reference <libs_libcds_api>` of this module for more
