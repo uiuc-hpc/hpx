@@ -7,78 +7,78 @@ tags:
  - distributed
 authors:
  - name: Hartmut Kaiser
- orcid: 0000-0002-8712-2806
- affiliation: "1"
+   orcid: 0000-0002-8712-2806
+   affiliation: "1"
  - name: Patrick Diehl
- orcid: 0000-0003-3922-8419
- affiliation: "1"
+   orcid: 0000-0003-3922-8419
+   affiliation: "1"
  - name: Adrian S. Lemoine
- affiliation: "6"
+   affiliation: "6"
  - name: Bryce Adelstein Lelbach
- orcid: 0000-0002-7995-5226
- affiliation: "5"
+   orcid: 0000-0002-7995-5226
+   affiliation: "5"
  - name: Parsa Amini
- orcid: 0000-0002-6439-8404
- affiliation: "1"
+   orcid: 0000-0002-6439-8404
+   affiliation: "1"
  - name: Agustín Berge
- affiliation: "6"
+   affiliation: "6"
  - name: John Biddiscombe
- orcid: 0000-0002-6552-2833
- affiliation: "4"
+   orcid: 0000-0002-6552-2833
+   affiliation: "4"
  - name: Steven R. Brandt
- orcid: 0000-0002-7979-2906
- affiliation: "1"
+   orcid: 0000-0002-7979-2906
+   affiliation: "1"
  - name: Nikunj Gupta
- orcid: 0000-0003-0525-3667
- affiliation: "3"
+   orcid: 0000-0003-0525-3667
+   affiliation: "3"
  - name: Thomas Heller
- orcid: 0000-0003-2620-9438
- affiliation: "2"
+   orcid: 0000-0003-2620-9438
+   affiliation: "2"
  - name: Kevin Huck
- orcid: 0000-0001-7064-8417
- affiliation: "8"
+   orcid: 0000-0001-7064-8417
+   affiliation: "8"
  - name: Zahra Khatami
- orcid: 0000-0001-6654-6856
- affiliation: "7"
+   orcid: 0000-0001-6654-6856
+   affiliation: "7"
  - name: Alireza Kheirkhahan
- orcid: 0000-0002-4624-4647
- affiliation: "1"
+   orcid: 0000-0002-4624-4647
+   affiliation: "1"
  - name: Auriane Reverdell
- orcid: 0000-0002-5531-0458
- affiliation: "4"
+   orcid: 0000-0002-5531-0458
+   affiliation: "4"
  - name: Shahrzad Shirzad
- orcid: 0000-0001-9496-8044
- affiliation: "1"
+   orcid: 0000-0001-9496-8044
+   affiliation: "1"
  - name: Mikael Simberg
- orcid: 0000-0002-7238-8935
- affiliation: "4"
+   orcid: 0000-0002-7238-8935
+   affiliation: "4"
  - name: Bibek Wagle
- orcid: 0000-0001-6619-7115
- affiliation: "1"
+   orcid: 0000-0001-6619-7115
+   affiliation: "1"
  - name: Weile Wei
- orcid: 0000-0002-3065-4959
- affiliation: "1"
+   orcid: 0000-0002-3065-4959
+   affiliation: "1"
  - name: Tianyi Zhang
- orcid: 0000-0002-1000-4887
- affiliation: "6"
+   orcid: 0000-0002-1000-4887
+   affiliation: "6"
 affiliations:
  - name: Center for Computation \& Technology, Louisiana State University, LA, Baton Rouge, United States of America
- index: 1
+   index: 1
  - name: Exasol, Erlangen, Germany
- index: 2
+   index: 2
  - name: Indian Institute of Technology, Roorkee, India
- index: 3
+   index: 3
  - name: Swiss National Supercomputing Centre, Lugano, Switzerland
- index: 4
+   index: 4
  - name: NVIDIA, CA, Santa Clara, United States of America
- index: 5
+   index: 5
  - name: STE$||$AR Group
- index: 6
+   index: 6
  - name: Oracle, CA, Redwood City, United States of America
- index: 7
+   index: 7
  - name: Oregon Advanced Computing Institute for Science and Society (OACISS), University of Oregon, OR, Eugene, United States of America
- index: 8
-date: 11.06.2020
+   index: 8
+date: 26.08.2020
 bibliography: paper.bib
 ---
 
