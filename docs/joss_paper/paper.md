@@ -87,7 +87,7 @@ bibliography: paper.bib
 The new challenges presented by Exascale system architectures have resulted in
 difficulty achieving a desired scalability using traditional distributed-memory
 runtimes. Asynchronous many-task systems (AMT) are based on a new paradigm
-showing promises in addressing these challenges, providing application
+showing promising solutions in addressing these challenges, providing application
 developers with a productive and performant approach to programming on next
 generation systems.
 
@@ -95,7 +95,7 @@ HPX is a C++ Library for Concurrency and Parallelism that is
 developed by The STE||AR Group, an international group of collaborators working
 in the field of distributed and parallel programming
 [@heller2017hpx;@hpx_github;@tabbal2011preliminary]. It is a runtime system
-written using modern C++ techniques that is linked as part of an application.
+written using modern C++ techniques that are linked as part of an application.
 HPX exposes extended services and functionalities supporting the implementation
 of parallel, concurrent, and distributed capabilities for applications in any
 domain - it has been used in scientific computing, gaming, finances, data
@@ -115,7 +115,7 @@ keyword [@standard2020programming]) enables intrinsic overlap of computation and
 communication, prefers moving work to data over moving data to work, and exposes
 minimal overheads from its lightweight threading subsystem, ensuring efficient
 fine-grained parallelization and minimal-overhead synchronization and context
-switching. This programming model natively ensures high system utilization and
+switching. This programming model natively ensures high-system utilization and
 perfect scalability.
 
 A detailed comparison of HPX with various other AMT's is given in [@thoman2018taxonomy].
@@ -133,8 +133,8 @@ asynchronous API and employing adaptive scheduling. The consequent use of
 _Futures_ intrinsically enables overlap of computation and communication and
 constraint-based synchronization. HPX is able to maintain a balanced load among
 all the available resources resulting in significantly reducing processor
-starvation and effective latencies while controlling overheads. HPX is fully
-conforming to the C++ ISO Standards and implements the standardized concurrency
+starvation and effective latencies while controlling overheads. HPX fully
+conforms to the C++ ISO Standards and implements the standardized concurrency
 mechanisms and parallelism facilities. Further, HPX extends those facilities to
 distributed use cases, thus enabling syntactic and semantic equivalence of local
 and remote operations on the API level. HPX uses the concept of C++ _Futures_ to
@@ -164,8 +164,8 @@ and their references are listed below:
 
 **Active Global Address Space (AGAS)** [@kaiser2014hpx;@amini2019agas]
   To support distributed objects, HPX supports a component for resolving
-  global addresses that is extending the Partitioned Global Address Space
-  (PGAS) model enabling dynamic runtime based resource allocation and
+  global addresses that extends the Partitioned Global Address Space
+  (PGAS) model, enabling dynamic runtime-based resource allocation and
   data placement.
   This layer enables HPX to expose a uniform API for local and remote
   execution. Unlike PGAS, AGAS provides the user with the ability to
@@ -175,7 +175,7 @@ and their references are listed below:
 
 **Parcel Transport Layer** [@kaiser2009parallex;@biddiscombe2017zero]
   This component is an active-message networking layer.
-  The parcelport leverages AGAS in order to deliver message to and to launch
+  The parcelport leverages AGAS in order to deliver messages to and to launch
   functions on global objects regardless of their current placement in a
   distributed system.
   Additionally, its asynchronous protocol enables the
@@ -230,7 +230,7 @@ and their references are listed below:
   the second example in the next section.
 
 **Software Resilience**
-  HPX supports software level resilience [@gupta2020implementing] through its
+  HPX supports software-level resilience [@gupta2020implementing] through its
   resiliency API, such as `hpx::async_replay` and `hpx::async_replicate` and
   its dataflow counterparts `hpx::dataflow_replay` and
   `hpx::dataflow_replicate`. These APIs are resilient against memory bit
@@ -260,7 +260,7 @@ HPX is utilized in a diverse set of applications:
     astrophysics code for stellar mergers.
   * [libGeoDecomp](https://github.com/gentryx/libgeodecomp)
     [@Schafer:2008:LGL:1431669.1431721], an auto-parallelizing library to speed
-    up stencil code based computer simulations.
+    up stencil-code-based computer simulations.
   * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a
      simulation tool for non-local models, e.g. Peridynamics.
   * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++)
@@ -319,7 +319,7 @@ function is computed. The Taylor series is given by,
 $$ \sin(x) \approx = \sum\limits_{n=0}^N (-1)^{n-1} \frac{x^{2n}}{(2n)!}.$$
 
 For the concurrent computation, the interval $[0, N]$ is split in two
-partitions from $[0, N/2]$ and $[(N/2)+1, N]$ and these are computed
+partitions from $[0, N/2]$ and $[(N/2)+1, N]$, and these are computed
 asynchronously using `hpx::async`. Note that each asynchronous function call
 returns an `hpx::future` which is needed to synchronize the collection
 of the partial results. The future has a `get()` method that returns the result
@@ -402,7 +402,7 @@ grants:
   H2020-EU.1.2.2. 671603 (AllScale).
 
 
-For a constantly updated list of previous and current funding, we refer to the
+For a updated list of previous and current funding, we refer to the
 corresponding [HPX website](http://hpx.stellar-group.org/funding-acknowledgements/).
 
 # References
