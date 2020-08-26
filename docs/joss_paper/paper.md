@@ -255,27 +255,27 @@ and their references are listed below:
 HPX is utilized in a diverse set of applications: 
 
 - Scientific computing
- * [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
- [@daiss2019piz;@heller2019harnessing;@pfander2018accelerating], an
- astrophysics code for stellar mergers.
- * [libGeoDecomp](https://github.com/gentryx/libgeodecomp)
- [@Schafer:2008:LGL:1431669.1431721], an auto-parallelizing library to speed
- up stencil-code-based computer simulations.
- * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a
- simulation tool for non-local models, e.g. Peridynamics.
- * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++)
- [@hahner2020dca], a high-performance research software framework to solve 
- quantum many-body problems with cutting edge quantum cluster algorithms. 
+   * [Octo-Tiger](https://github.com/STEllAR-GROUP/octotiger)
+   [@daiss2019piz;@heller2019harnessing;@pfander2018accelerating], an
+   astrophysics code for stellar mergers.
+   * [libGeoDecomp](https://github.com/gentryx/libgeodecomp)
+   [@Schafer:2008:LGL:1431669.1431721], an auto-parallelizing library to speed
+   up stencil-code-based computer simulations.
+   * [NLMech](https://github.com/nonlocalmodels) [@diehl2018implementation], a
+   simulation tool for non-local models, e.g. Peridynamics.
+   * [Dynamical Cluster Approximation](https://github.com/CompFUSE/DCA) (DCA++)
+   [@hahner2020dca], a high-performance research software framework to solve 
+   quantum many-body problems with cutting edge quantum cluster algorithms. 
 
 - Libaries
- * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP)
- [@zhang2019introduction; @zhang2020supporting] a modern OpenMP implementation
- leveraging HPX that supports shared memory multithread programming. 
- * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003],
- the C++ Performance Portability Programming EcoSystem. 
- * [Phylanx](https://github.com/STEllAR-GROUP/phylanx)
- [@tohid2018asynchronous;@wagle2019runtime] An Asynchronous Distributed C++
- Array Processing Toolkit.
+   * [hpxMP](https://github.com/STEllAR-GROUP/hpxMP)
+   [@zhang2019introduction; @zhang2020supporting] a modern OpenMP implementation
+   leveraging HPX that supports shared memory multithread programming. 
+   * [Kokkos](https://github.com/kokkos/kokkos) [@10.1016/j.jpdc.2014.07.003],
+   the C++ Performance Portability Programming EcoSystem. 
+   * [Phylanx](https://github.com/STEllAR-GROUP/phylanx)
+   [@tohid2018asynchronous;@wagle2019runtime] An Asynchronous Distributed C++
+   Array Processing Toolkit.
 
 For a updated list of applications, we refer to the
 corresponding [HPX website](https://hpx.stellar-group.org/hpx-users/).
