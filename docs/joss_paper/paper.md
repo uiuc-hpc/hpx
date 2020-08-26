@@ -123,7 +123,7 @@ Some notable AMT solutions are: Uintah [@germain2000uintah], Chapel [@chamberlai
 Charm++ [@kale1993charm], Kokkos [@edwards2014kokkos], Legion [@bauer2012legion],
 and PaRSEC [@bosilca2013parsec]. Note that we only refer to distributed memory solutions,
 since this is an important feature for scientific applications to run large scale simulations.
-The major show piece of HPX compared to the mentioned distributed AMTs is its future-proof C++
+The major showpiece of HPX compared to the mentioned distributed AMTs is its future-proof C++
 standards conforming API and the exposed asynchronous programming model.
 
 HPX's main goal is to
@@ -212,7 +212,7 @@ and their references are listed below:
   HPXCL provides users the ability to manage GPU kernels through a
   global object. This enables HPX to coordinate the launching and
   synchronization of CPU and GPU code.
-  HPX.Compute [@copik2017using] aims to provide a single source
+  HPX.Compute [@copik2017using] aims to provide a single-source
   solution to heterogeneity by automatically generating GPU kernels
   from C++ code. This enables HPX to launch both CPU and GPU kernels
   as dictated by the current state of the system. Support for integrating
@@ -277,7 +277,7 @@ HPX is utilized in a diverse set of applications:
     [@tohid2018asynchronous;@wagle2019runtime] An Asynchronous Distributed C++
     Array Processing Toolkit.
 
-For a constantly updated list of applications, we refer to the
+For a updated list of applications, we refer to the
 corresponding [HPX website](https://hpx.stellar-group.org/hpx-users/).
 
 # Example code
