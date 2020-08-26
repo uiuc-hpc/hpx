@@ -12,6 +12,7 @@
 
 #include <hpx/config.hpp>
 #include <hpx/errors/exception.hpp>
+#include <hpx/runtime_local/config_entry.hpp>
 //
 #include <cds/gc/details/hp_common.h>
 #include <cds/gc/hp.h>
@@ -56,13 +57,19 @@ namespace hpx { namespace cds {
 
         libcds_wrapper(smr_t smr_type = smr_t::hazard_pointer_hpxthread,
             std::size_t hazard_pointer_count = 1,
-            std::size_t max_thread_count =
-                max_concurrent_attach_thread_hazard_pointer_,
+            std::size_t max_thread_count = std::stoul(hpx::get_config_entry(
+                "hpx.cds.num_concurrent_hazard_pointer_threads", "128")),
             std::size_t max_retired_pointer_count = 16)
           : smr_(smr_type)
         {
             // Initialize libcds
             ::cds::Initialize();
+
+            std::cout << " max_thread_count "
+                      << hpx::get_config_entry(
+                             "hpx.cds.num_concurrent_hazard_pointer_threads",
+                             "128")
+                      << "\n";
 
             // hazard_pointer_count, max_thread_count, max_retired_pointer_count
             // are only used in hazard pointer
@@ -121,15 +128,7 @@ namespace hpx { namespace cds {
             }
         }
 
-        static std::size_t get_max_concurrent_attach_thread()
-        {
-            return max_concurrent_attach_thread_hazard_pointer_;
-        }
-
     private:
-        // default 100 concurrent threads attached to Hazard Pointer SMR
-        static std::atomic<std::size_t>
-            max_concurrent_attach_thread_hazard_pointer_;
         smr_t smr_;
     };
 
@@ -147,15 +146,12 @@ namespace hpx { namespace cds {
         explicit hpxthread_manager_wrapper(bool uselibcds = true)
           : uselibcds_(uselibcds)
         {
-//            std::cout
-//                << "test_config: "
-//                << libcds_wrapper::max_concurrent_attach_thread_hazard_pointer_
-//                << "\n";
-
             if (uselibcds_)
             {
                 if (++thread_counter_ >
-                    libcds_wrapper::get_max_concurrent_attach_thread())
+                    std::stoul(hpx::get_config_entry(
+                        "hpx.cds.num_concurrent_hazard_pointer_threads",
+                        "128")))
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::hpxthread_manager_wrapper ",
@@ -214,7 +210,8 @@ namespace hpx { namespace cds {
         explicit stdthread_manager_wrapper()
         {
             if (++hpxthread_manager_wrapper::thread_counter_ >
-                libcds_wrapper::get_max_concurrent_attach_thread())
+                std::stoul(hpx::get_config_entry(
+                    "hpx.cds.num_concurrent_hazard_pointer_threads", "128")))
             {
                 HPX_THROW_EXCEPTION(invalid_status,
                     "hpx::cds::stdthread_manager_wrapper ",

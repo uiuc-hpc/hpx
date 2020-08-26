@@ -7,7 +7,6 @@
 
 #include <hpx/libcds/hpx_tls_manager.hpp>
 #include <hpx/modules/threading.hpp>
-#include <hpx/runtime_local/config_entry.hpp>
 #include <hpx/threading_base/thread_data.hpp>
 
 #include <cds/gc/details/hp_common.h>
@@ -48,10 +47,6 @@ namespace cds { namespace gc { namespace hp { namespace details {
 }}}}    // namespace cds::gc::hp::details
 
 namespace hpx { namespace cds {
-    std::atomic<std::size_t>
-        libcds_wrapper::max_concurrent_attach_thread_hazard_pointer_{
-            std::stoul(hpx::get_config_entry(
-                "hpx.cds.num_concurrent_hazard_pointer_threads", "128"))};
 
     std::atomic<std::size_t> hpxthread_manager_wrapper::thread_counter_{0};
 
