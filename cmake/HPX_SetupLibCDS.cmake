@@ -34,9 +34,8 @@ if(HPX_WITH_LIBCDS)
     add_subdirectory(${libcds_SOURCE_DIR} ${libcds_BINARY_DIR})
     list(TRANSFORM LIBCDS_SOURCELIST PREPEND "${libcds_SOURCE_DIR}/")
     set(LIBCDS_SOURCE_DIR ${libcds_SOURCE_DIR})
-    # leave the FOLDER properties in place
-    #set_target_properties(cds PROPERTIES FOLDER "Core")
-    #set_target_properties(cds-s PROPERTIES FOLDER "Core")
+    # leave the FOLDER properties in place set_target_properties(cds PROPERTIES
+    # FOLDER "Core") set_target_properties(cds-s PROPERTIES FOLDER "Core")
 
     # create an imported target that links to the real libcds so that when we
     # link to the imported target, we don't get export X depends on cds that is
