@@ -13,7 +13,7 @@ libcds
 ======
 
 LibCDS Overview
-###############
+---------------
 
 `LibCDS <https://github.com/khizmax/libcds>`_ implements a collection of
 concurrent containers that don't require external (manual) synchronization
@@ -21,14 +21,14 @@ for shared access, and safe memory reclamation (SMR) algorithms like
 Hazard Pointer and user-space RCU that is used as an epoch-based SMR.
 
 Supporting features
-###################
+-------------------
 Currently, this module **only** supports *Hazard Pointer*
 (a type of safe memory reclamation schemas/garbage collectors)
 based containers in LibCDS
-at HPX light-weight user-level thread. In the future, we might consider
+at |hpx| light-weight user-level thread. In the future, we might consider
 adding support to other containers, including dynamic Hazard Pointer, RCU, etc,
-at HPX user-level thread,
-and might also explore suitable containers (i.e. flat-combining queue) in HPX
+at |hpx| user-level thread,
+and might also explore suitable containers (i.e. flat-combining queue) in |hpx|
 runtime scheduler.
 
 To find out which container supports Hazard Pointer based garbage collector,
@@ -39,14 +39,14 @@ For example, after clicking `cds > Modules > FeldmanHashMap <http://libcds.sourc
 :cpp:class:`cds::container::FeldmanHashMap< GC, Key, T, Traits >`
 suggests *GC - safe memory reclamation schema. Can be gc::HP, gc::DHP or one of RCU type`*
 This means :cpp:type:`FeldmanHashMap` can be safely used with Hazard Pointer GC. However,
-again, current HPX does not support *gc:DHP or RCU*, so we cannot use these two types of garbage collectors.
+again, current |hpx| does not support *gc:DHP or RCU*, so we cannot use these two types of garbage collectors.
 
-Build Hazard Pointer w/ HPX threads
-###################################
+Build Hazard Pointer with |hpx| threads
+-------------------------------------
 To build and your own lock free container in LibCDS using
-HPX light-weight user-level thread, one might first get familiar with
+|hpx| light-weight user-level thread, one might first get familiar with
 `LibCDS <https://github.com/khizmax/libcds>`_ itself. The simplest way to
-launch Hazard Pointer in HPX threads is to do the following:
+launch Hazard Pointer in |hpx| threads is to do the following:
 
 .. code-block:: c++
 
@@ -76,10 +76,10 @@ launch Hazard Pointer in HPX threads is to do the following:
         return hpx::init(argc, argv);
     }
 
-Use Hazard Pointer supported Container w/ HPX threads or std::threads
-#####################################################################
+Use Hazard Pointer supported Container w/ |hpx| threads or std::threads
+---------------------------------------------------------------------
 
-To note, to use Hazard Pointer in the context of HPX user-level threads,
+To note, to use Hazard Pointer in the context of |hpx| user-level threads,
 one must use construct libcds object with
 :cpp:type:`hpx::cds::libcds_wrapper cds_init_wrapper
 (hpx::cds::smr_t::hazard_pointer_hpxthread)`. This ensures
@@ -108,7 +108,7 @@ use :cpp:type:`cds::gc::hp::details::HPXDataHolder` to template the Garbage Coll
 type.
 
 API
-#####################################################
+-----------------------------------------------------
 
 The following API functions are exposed:
 
@@ -137,7 +137,7 @@ To understand max_retired_pointer_count and the above mentioned variables
 - :cpp:func:`hpx::cds::hpxthread_manager_wrapper`: This is a wrapper of
 :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::attach_thread()`
 and :cpp:func:`cds::gc::hp::custom_smr<cds::gc::hp::details::HPXDataHolder>::detach_thread()`
-This allows the calling hpx thread attach to Hazard Pointer threading infrastructure.
+This allows the calling |hpx| thread attach to Hazard Pointer threading infrastructure.
 
 
 See the :ref:`API reference <libs_libcds_api>` of this module for more
