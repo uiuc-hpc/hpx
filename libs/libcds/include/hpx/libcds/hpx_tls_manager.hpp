@@ -31,10 +31,11 @@ namespace cds { namespace gc { namespace hp { namespace details {
     class HPXDataHolder
     {
     public:
-        static CDS_EXPORT_API thread_data* getTLS();
-        static CDS_EXPORT_API void setTLS(thread_data*);
-        static CDS_EXPORT_API generic_smr<HPXDataHolder>* getInstance();
-        static CDS_EXPORT_API void setInstance(
+        CDS_EXPORT_API static CDS_EXPORT_API thread_data* getTLS();
+        CDS_EXPORT_API static CDS_EXPORT_API void setTLS(thread_data*);
+        CDS_EXPORT_API static CDS_EXPORT_API generic_smr<HPXDataHolder>*
+        getInstance();
+        CDS_EXPORT_API static CDS_EXPORT_API void setInstance(
             generic_smr<HPXDataHolder>* new_instance);
     };
 

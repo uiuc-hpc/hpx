@@ -16,7 +16,7 @@
 
 namespace cds { namespace gc { namespace hp { namespace details {
 
-    CDS_EXPORT_API thread_data* HPXDataHolder::getTLS()
+    thread_data* HPXDataHolder::getTLS()
     {
         auto thread_id = hpx::threads::get_self_id();
         std::size_t hpx_tls_data =
@@ -24,7 +24,7 @@ namespace cds { namespace gc { namespace hp { namespace details {
         return reinterpret_cast<thread_data*>(hpx_tls_data);
     }
 
-    CDS_EXPORT_API void HPXDataHolder::setTLS(thread_data* new_tls)
+    void HPXDataHolder::setTLS(thread_data* new_tls)
     {
         auto thread_id = hpx::threads::get_self_id();
         size_t hp_tls_data = reinterpret_cast<std::size_t>(new_tls);
@@ -33,13 +33,12 @@ namespace cds { namespace gc { namespace hp { namespace details {
 
     generic_smr<HPXDataHolder>* hpx_data_holder_instance_ = nullptr;
 
-    CDS_EXPORT_API generic_smr<HPXDataHolder>* HPXDataHolder::getInstance()
+    generic_smr<HPXDataHolder>* HPXDataHolder::getInstance()
     {
         return hpx_data_holder_instance_;
     }
 
-    CDS_EXPORT_API void HPXDataHolder::setInstance(
-        generic_smr<HPXDataHolder>* new_instance)
+    void HPXDataHolder::setInstance(generic_smr<HPXDataHolder>* new_instance)
     {
         hpx_data_holder_instance_ = new_instance;
     }
