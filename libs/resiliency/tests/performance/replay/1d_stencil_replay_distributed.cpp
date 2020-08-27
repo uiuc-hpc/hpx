@@ -138,12 +138,12 @@ private:
     friend class hpx::serialization::access;
 
     template <typename Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive& ar, const unsigned int version)
     {
-        ar & data_;
-        ar & size_;
-        ar & checksum_;
-        ar & test_value_;
+        ar& data_;
+        ar& size_;
+        ar& checksum_;
+        ar& test_value_;
     }
 };
 
@@ -177,19 +177,16 @@ partition_data stencil_update(std::size_t sti, partition_data const& center,
     const std::size_t size = center.size() - 1;
     partition_data workspace(size + 2 * sti + 1);
 
-    std::copy(
-        end(left) - sti - 1, end(left) - 1, &workspace[0]);
+    std::copy(end(left) - sti - 1, end(left) - 1, &workspace[0]);
     std::copy(begin(center), end(center) - 1, &workspace[sti]);
-    std::copy(begin(right), begin(right) + sti + 1,
-        &workspace[size + sti]);
+    std::copy(begin(right), begin(right) + sti + 1, &workspace[size + sti]);
 
-    double left_checksum =
-        std::accumulate(end(left) - sti - 1, end(left), 0.0);
-    double right_checksum = std::accumulate(
-        begin(right), begin(right) + sti + 1, 0.0);
+    double left_checksum = std::accumulate(end(left) - sti - 1, end(left), 0.0);
+    double right_checksum =
+        std::accumulate(begin(right), begin(right) + sti + 1, 0.0);
 
-    double checksum = left_checksum - center[0] +
-        center.checksum() - right[0] + right_checksum;
+    double checksum = left_checksum - center[0] + center.checksum() - right[0] +
+        right_checksum;
 
     for (std::size_t t = 0; t != sti; ++t)
     {
@@ -197,8 +194,8 @@ partition_data stencil_update(std::size_t sti, partition_data const& center,
         checksum -= right_flux(workspace[size + 2 * sti - 1 - 2 * t],
             workspace[size + 2 * sti - 2 * t]);
         for (std::size_t k = 0; k != size + 2 * sti - 1 - 2 * t; ++k)
-            workspace[k] =
-                stencil_operation(workspace[k], workspace[k + 1], workspace[k + 2]);
+            workspace[k] = stencil_operation(
+                workspace[k], workspace[k + 1], workspace[k + 2]);
     }
 
     workspace.resize(size + 1);
@@ -227,12 +224,13 @@ bool validate_result(partition_data const& f)
     return false;
 }
 
-partition_data stencil_update_distributed(std::size_t sti, partition_data center,
-    partition_data left, partition_data right, std::size_t error,
-    bool is_faulty_node)
+partition_data stencil_update_distributed(std::size_t sti,
+    partition_data center, partition_data left, partition_data right,
+    std::size_t error, bool is_faulty_node)
 {
     return hpx::resiliency::experimental::async_replay(
-        100, stencil_update, sti, center, left, right, error, is_faulty_node).get();
+        100, stencil_update, sti, center, left, right, error, is_faulty_node)
+        .get();
 }
 HPX_PLAIN_ACTION(stencil_update_distributed, stencil_action);
 
@@ -260,22 +258,22 @@ int hpx_main(boost::program_options::variables_map& vm)
     {
         for (std::size_t i = 0; i < faults; ++i)
         {
-            if (rank == i * (num_localities/faults))
+            if (rank == i * (num_localities / faults))
                 is_faulty_node = true;
         }
     }
 
     std::size_t counter = 0;
-    std::vector<std::vector<hpx::id_type> > locales;
+    std::vector<std::vector<hpx::id_type>> locales;
 
     if (faults != 0)
     {
-        locales.reserve((num_localities/faults));
+        locales.reserve((num_localities / faults));
 
-        for (std::size_t i = 1; i < (num_localities/faults); ++i)
+        for (std::size_t i = 1; i < (num_localities / faults); ++i)
         {
             hpx::id_type id_1 = hpx::naming::get_id_from_locality_id(
-                            (rank + i) % num_localities);
+                (rank + i) % num_localities);
 
             std::vector<hpx::id_type> local{id_1};
             locales.push_back(local);
@@ -286,17 +284,16 @@ int hpx_main(boost::program_options::variables_map& vm)
 
     // Define the two grids
     std::array<stencil, 2> U;
-    for (stencil& s: U)
+    for (stencil& s : U)
         s.resize(num_subdomains);
 
     std::size_t b = 0;
     auto range = boost::irange(b, num_subdomains);
-    hpx::ranges::for_each(
-        hpx::parallel::execution::par,
-        range, [&U, subdomain_width, num_subdomains](std::size_t i) {
-            U[0][i] = std::move(partition_data(subdomain_width, double(i), num_subdomains));
-        }
-    );
+    hpx::ranges::for_each(hpx::parallel::execution::par, range,
+        [&U, subdomain_width, num_subdomains](std::size_t i) {
+            U[0][i] = std::move(
+                partition_data(subdomain_width, double(i), num_subdomains));
+        });
 
     // Setup communicator
     using communicator_type = communicator<partition_data>;
@@ -330,65 +327,66 @@ int hpx_main(boost::program_options::variables_map& vm)
         {
             l = comm.get(communicator_type::left, t)
                     .then(hpx::launch::async,
-                        [sti, &current, &next](hpx::future<partition_data>&& gg) {
+                        [sti, &current, &next, &comm, t](
+                            hpx::future<partition_data>&& gg) {
                             partition_data left = std::move(gg.get());
-                            next[0] = stencil_update(sti, current[0], left, current[1], 0, false);
+                            next[0] = stencil_update(
+                                sti, current[0], left, current[1]);
+                            comm.set(communicator_type::left, next[0], t + 1);
                         });
-
-            comm.set(
-                communicator_type::left, next[0], t + 1
-            );
         }
 
         if (comm.has_neighbor(communicator_type::right))
         {
             r = comm.get(communicator_type::right, t)
                     .then(hpx::launch::async,
-                        [sti, num_subdomains, &current, &next](hpx::future<partition_data>&& gg) {
+                        [sti, num_subdomains, &current, &next, &comm, t](
+                            hpx::future<partition_data>&& gg) {
                             partition_data right = std::move(gg.get());
-                            next[num_subdomains - 1] = stencil_update(sti, current[num_subdomains-1], current[num_subdomains-2], right, 0, false);
+                            next[num_subdomains - 1] =
+                                stencil_update(sti, current[num_subdomains - 1],
+                                    current[num_subdomains - 2], right);
+                            comm.set(communicator_type::right,
+                                next[num_subdomains - 1], t + 1);
                         });
-
-            comm.set(
-                communicator_type::right, next[num_subdomains - 1], t + 1
-            );
         }
 
-        std::vector<hpx::future<partition_data> > futures;
+        std::vector<hpx::future<partition_data>> futures;
         futures.reserve(num_subdomains - 2);
 
         for (std::size_t i = 1; i < num_subdomains - 1; ++i)
         {
             futures.push_back(
-                hpx::resiliency::experimental::async_replay_validate(
-                    n_value, validate_result, stencil_update, sti,
-                    current[i], current[i-1], current[i+1], errors, is_faulty_node)
+                hpx::resiliency::experimental::async_replay_validate(n_value,
+                    validate_result, stencil_update, sti, current[i],
+                    current[i - 1], current[i + 1], errors, is_faulty_node)
                     .then(hpx::launch::async,
-                    [sti, &current, errors, i, is_faulty_node, &locales, &counter, num_localities, faults]
-                    (hpx::future<partition_data>&& gg) {
-                        if (gg.has_exception())
-                        {
-                            if (faults != 0)
-                                counter = (counter + 1) % (num_localities/faults);
-                            stencil_action ac;
-                            return hpx::resiliency::experimental::async_replay_validate(
-                                locales[counter], validate_result, ac, sti, current[i], current[i-1],
-                                current[i+1], errors, false
-                            ).get();
-                        }
-                        else
-                            return gg.get();
-                    }));
+                        [sti, &current, errors, i, is_faulty_node, &locales,
+                            &counter, num_localities,
+                            faults](hpx::future<partition_data>&& gg) {
+                            if (gg.has_exception())
+                            {
+                                if (faults != 0)
+                                    counter = (counter + 1) %
+                                        (num_localities / faults);
+                                stencil_action ac;
+                                return hpx::resiliency::experimental::
+                                    async_replay_validate(locales[counter],
+                                        validate_result, ac, sti, current[i],
+                                        current[i - 1], current[i + 1], errors,
+                                        false)
+                                        .get();
+                            }
+                            else
+                                return gg.get();
+                        }));
         }
 
         b = 1;
         auto range = boost::irange(b, num_subdomains - 1);
-        hpx::ranges::for_each(
-            hpx::parallel::execution::par,
-            range, [&next, &futures](std::size_t i) {
-                next[i] = std::move(futures[i-1].get());
-            }
-        );
+        hpx::ranges::for_each(hpx::parallel::execution::par, range,
+            [&next, &futures](
+                std::size_t i) { next[i] = std::move(futures[i - 1].get()); });
 
         hpx::wait_all(l, r);
     }
@@ -436,7 +434,6 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {
         "hpx.run_hpx_main!=1",
     };
-
 
     return hpx::init(desc_commandline, argc, argv, cfg);
 }

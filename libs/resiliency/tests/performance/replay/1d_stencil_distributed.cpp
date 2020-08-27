@@ -111,10 +111,10 @@ private:
     friend class hpx::serialization::access;
 
     template <typename Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive& ar, const unsigned int version)
     {
-        ar & data_;
-        ar & size_;
+        ar& data_;
+        ar& size_;
     }
 };
 
@@ -137,17 +137,15 @@ partition_data stencil_update(std::size_t sti, partition_data const& center,
     const std::size_t size = center.size() - 1;
     partition_data workspace(size + 2 * sti + 1);
 
-    std::copy(
-        end(left) - sti - 1, end(left) - 1, &workspace[0]);
+    std::copy(end(left) - sti - 1, end(left) - 1, &workspace[0]);
     std::copy(begin(center), end(center) - 1, &workspace[sti]);
-    std::copy(begin(right), begin(right) + sti + 1,
-        &workspace[size + sti]);
+    std::copy(begin(right), begin(right) + sti + 1, &workspace[size + sti]);
 
     for (std::size_t t = 0; t != sti; ++t)
     {
         for (std::size_t k = 0; k != size + 2 * sti - 1 - 2 * t; ++k)
-            workspace[k] =
-                stencil_operation(workspace[k], workspace[k + 1], workspace[k + 2]);
+            workspace[k] = stencil_operation(
+                workspace[k], workspace[k + 1], workspace[k + 2]);
     }
 
     workspace.resize(size + 1);
@@ -174,17 +172,16 @@ int hpx_main(boost::program_options::variables_map& vm)
 
     // Define the two grids
     std::array<stencil, 2> U;
-    for (stencil& s: U)
+    for (stencil& s : U)
         s.resize(num_subdomains);
 
     std::size_t b = 0;
     auto range = boost::irange(b, num_subdomains);
-    hpx::ranges::for_each(
-        hpx::parallel::execution::par,
-        range, [&U, subdomain_width, num_subdomains](std::size_t i) {
-            U[0][i] = std::move(partition_data(subdomain_width, double(i), num_subdomains));
-        }
-    );
+    hpx::ranges::for_each(hpx::parallel::execution::par, range,
+        [&U, subdomain_width, num_subdomains](std::size_t i) {
+            U[0][i] = std::move(
+                partition_data(subdomain_width, double(i), num_subdomains));
+        });
 
     // Setup communicator
     using communicator_type = communicator<partition_data>;
@@ -218,49 +215,44 @@ int hpx_main(boost::program_options::variables_map& vm)
         {
             l = comm.get(communicator_type::left, t)
                     .then(hpx::launch::async,
-                        [sti, &current, &next](hpx::future<partition_data>&& gg) {
+                        [sti, &current, &next, &comm, t](
+                            hpx::future<partition_data>&& gg) {
                             partition_data left = std::move(gg.get());
-                            next[0] = stencil_update(sti, current[0], left, current[1]);
+                            next[0] = stencil_update(
+                                sti, current[0], left, current[1]);
+                            comm.set(communicator_type::left, next[0], t + 1);
                         });
-
-            comm.set(
-                communicator_type::left, next[0], t + 1
-            );
         }
 
         if (comm.has_neighbor(communicator_type::right))
         {
             r = comm.get(communicator_type::right, t)
                     .then(hpx::launch::async,
-                        [sti, num_subdomains, &current, &next](hpx::future<partition_data>&& gg) {
+                        [sti, num_subdomains, &current, &next, &comm, t](
+                            hpx::future<partition_data>&& gg) {
                             partition_data right = std::move(gg.get());
-                            next[num_subdomains - 1] = stencil_update(sti, current[num_subdomains-1], current[num_subdomains-2], right);
+                            next[num_subdomains - 1] =
+                                stencil_update(sti, current[num_subdomains - 1],
+                                    current[num_subdomains - 2], right);
+                            comm.set(communicator_type::right,
+                                next[num_subdomains - 1], t + 1);
                         });
-
-            comm.set(
-                communicator_type::right, next[num_subdomains - 1], t + 1
-            );
         }
 
-        std::vector<hpx::future<partition_data> > futures;
+        std::vector<hpx::future<partition_data>> futures;
         futures.reserve(num_subdomains - 2);
 
         for (std::size_t i = 1; i < num_subdomains - 1; ++i)
         {
-            futures.push_back(
-                hpx::async(
-                    stencil_update, sti,
-                    current[i], current[i-1], current[i+1]));
+            futures.push_back(hpx::async(stencil_update, sti, current[i],
+                current[i - 1], current[i + 1]));
         }
 
         b = 1;
         auto range = boost::irange(b, num_subdomains - 1);
-        hpx::ranges::for_each(
-            hpx::parallel::execution::par,
-            range, [&next, &futures](std::size_t i) {
-                next[i] = std::move(futures[i-1].get());
-            }
-        );
+        hpx::ranges::for_each(hpx::parallel::execution::par, range,
+            [&next, &futures](
+                std::size_t i) { next[i] = std::move(futures[i - 1].get()); });
 
         hpx::wait_all(l, r);
     }
@@ -299,7 +291,6 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {
         "hpx.run_hpx_main!=1",
     };
-
 
     return hpx::init(desc_commandline, argc, argv, cfg);
 }
