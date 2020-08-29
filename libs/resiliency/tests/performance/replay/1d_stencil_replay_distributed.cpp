@@ -42,7 +42,13 @@ std::uniform_int_distribution<std::size_t> dis(1, 100);
 class partition_data
 {
 public:
-    partition_data() = default;
+    partition_data()
+      : data_(0)
+      , size_(0)
+      , checksum_(0.0)
+      , test_value_(0.0)
+    {
+    }
 
     partition_data(std::size_t size)
       : data_(size)
@@ -77,10 +83,25 @@ public:
     {
     }
 
-    partition_data& operator=(partition_data&& other) = default;
+    partition_data& operator=(partition_data&& other)
+    {
+        data_ = std::move(other.data_);
+        size_ = other.size_;
+        checksum_ = other.checksum_;
+        test_value_ = other.test_value_;
+
+        return *this;
+    }
 
     // Copy constructor to send through the wire
-    partition_data(partition_data const& other) = default;
+    // Copy constructor to send through the wire
+    partition_data(partition_data const& other)
+      : data_(other.data_)
+      , size_(other.size_)
+      , checksum_(other.checksum_)
+      , test_value_(other.test_value_)
+    {
+    }
 
     double& operator[](std::size_t idx)
     {
@@ -331,7 +352,7 @@ int hpx_main(boost::program_options::variables_map& vm)
                             hpx::future<partition_data>&& gg) {
                             partition_data left = std::move(gg.get());
                             next[0] = stencil_update(
-                                sti, current[0], left, current[1]);
+                                sti, current[0], left, current[1], 0, false);
                             comm.set(communicator_type::left, next[0], t + 1);
                         });
         }
@@ -343,20 +364,20 @@ int hpx_main(boost::program_options::variables_map& vm)
                         [sti, num_subdomains, &current, &next, &comm, t](
                             hpx::future<partition_data>&& gg) {
                             partition_data right = std::move(gg.get());
-                            next[num_subdomains - 1] =
-                                stencil_update(sti, current[num_subdomains - 1],
-                                    current[num_subdomains - 2], right);
+                            next[num_subdomains - 1] = stencil_update(sti,
+                                current[num_subdomains - 1],
+                                current[num_subdomains - 2], right, 0, false);
                             comm.set(communicator_type::right,
                                 next[num_subdomains - 1], t + 1);
                         });
         }
 
         std::vector<hpx::future<partition_data>> futures;
-        futures.reserve(num_subdomains - 2);
+        futures.resize(num_subdomains - 2);
 
         for (std::size_t i = 1; i < num_subdomains - 1; ++i)
         {
-            futures.push_back(
+            futures[i - 1] =
                 hpx::resiliency::experimental::async_replay_validate(n_value,
                     validate_result, stencil_update, sti, current[i],
                     current[i - 1], current[i + 1], errors, is_faulty_node)
@@ -379,7 +400,7 @@ int hpx_main(boost::program_options::variables_map& vm)
                             }
                             else
                                 return gg.get();
-                        }));
+                        });
         }
 
         b = 1;

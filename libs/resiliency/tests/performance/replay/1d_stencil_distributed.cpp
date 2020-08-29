@@ -31,18 +31,17 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 double const pi = std::acos(-1.0);
-double const checksum_tol = 1.0e-10;
 
-// Random number generator
-std::random_device randomizer;
-std::mt19937 gen(randomizer());
-std::uniform_int_distribution<std::size_t> dis(1, 100);
 ///////////////////////////////////////////////////////////////////////////////
 // Our partition data type
 class partition_data
 {
 public:
-    partition_data() = default;
+    partition_data()
+      : data_(0)
+      , size_(0)
+    {
+    }
 
     partition_data(std::size_t size)
       : data_(size)
@@ -53,6 +52,7 @@ public:
     partition_data(std::size_t subdomain_width, double subdomain_index,
         std::size_t subdomains)
       : data_(subdomain_width + 1)
+      , size_(subdomain_width + 1)
     {
         for (std::size_t k = 0; k != subdomain_width + 1; ++k)
         {
@@ -69,10 +69,20 @@ public:
     {
     }
 
-    partition_data& operator=(partition_data&& other) = default;
+    partition_data& operator=(partition_data&& other)
+    {
+        data_ = std::move(other.data_);
+        size_ = other.size_;
+
+        return *this;
+    }
 
     // Copy constructor to send through the wire
-    partition_data(partition_data const& other) = default;
+    partition_data(partition_data const& other)
+      : data_(other.data_)
+      , size_(other.size_)
+    {
+    }
 
     double& operator[](std::size_t idx)
     {
@@ -240,12 +250,13 @@ int hpx_main(boost::program_options::variables_map& vm)
         }
 
         std::vector<hpx::future<partition_data>> futures;
-        futures.reserve(num_subdomains - 2);
+        futures.resize(num_subdomains - 2);
 
         for (std::size_t i = 1; i < num_subdomains - 1; ++i)
         {
-            futures.push_back(hpx::async(stencil_update, sti, current[i],
-                current[i - 1], current[i + 1]));
+            futures[i - 1] =
+                hpx::async(stencil_update, sti, std::ref(current[i]),
+                    std::ref(current[i - 1]), std::ref(current[i + 1]));
         }
 
         b = 1;

@@ -7,7 +7,7 @@
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 set(benchmarks
-    1d_stencil
+    # 1d_stencil
     1d_stencil_distributed
     1d_stencil_replay_distributed
     1d_stencil_replay
