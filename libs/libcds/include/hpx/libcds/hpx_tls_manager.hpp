@@ -7,9 +7,6 @@
 
 #pragma once
 
-#ifndef LIBCDS_HPX_TLS_MANAGER
-#define LIBCDS_HPX_TLS_MANAGER
-
 #include <hpx/config.hpp>
 #include <hpx/errors/exception.hpp>
 #include <hpx/runtime_local/config_entry.hpp>
@@ -246,5 +243,3 @@ namespace hpx { namespace cds {
     };
 
 }}    // namespace hpx::cds
-
-#endif    // #ifndef LIBCDS_HPX_TLS_MANAGER
