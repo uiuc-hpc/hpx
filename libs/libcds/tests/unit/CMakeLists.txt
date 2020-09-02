@@ -16,14 +16,17 @@ if(NOT TARGET Boost::thread)
     QUIET
   )
 endif()
+
 if(Boost_THREAD_FOUND)
   set(tests ${tests} libcds_flat_combining_priority_queue_stdthread)
   set(libcds_flat_combining_priority_queue_stdthread THREADS_PER_LOCALITY 4)
 endif()
 
-set(libcds_michael_map_hazard_pointer THREADS_PER_LOCALITY 4)
-set(libcds_feldman_map_hazard_pointer THREADS_PER_LOCALITY 4)
-set(libcds_split_list_map_hazard_pointer THREADS_PER_LOCALITY 4)
+# make sure we set the concurrent thread limit high enough
+set(libcds_map_hazard_pointer_hpxthread_PARAMETERS
+    THREADS_PER_LOCALITY 4
+    "-Ihpx.cds.num_concurrent_hazard_pointer_threads=256"
+)
 
 foreach(test ${tests})
 
