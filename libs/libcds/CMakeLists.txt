@@ -20,21 +20,15 @@ endif()
 # Default location is $HPX_ROOT/libs/libcds/include
 set(libcds_headers hpx/libcds/hpx_tls_manager.hpp)
 
-# Default location is $HPX_ROOT/libs/libcds/include_compatibility
-set(libcds_compat_headers)
-
 # Default location is $HPX_ROOT/libs/libcds/src
 set(libcds_sources hpx_tls_manager.cpp)
 
 include(HPX_AddModule)
 add_hpx_module(
   libcds
-  COMPATIBILITY_HEADERS OFF
-  DEPRECATION_WARNINGS
-  GLOBAL_HEADER_GEN OFF
+  GLOBAL_HEADER_GEN ON
   SOURCES ${libcds_sources}
   HEADERS ${libcds_headers}
-  COMPAT_HEADERS ${libcds_compat_headers}
   DEPENDENCIES
     hpx_assertion
     hpx_execution_base
@@ -44,7 +38,6 @@ add_hpx_module(
     hpx_execution
     hpx_lcos_local
     hpx_memory
-    hpx_runtime_local
     hpx_threading_base
     hpx_threading
     libcds::cds

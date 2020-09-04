@@ -160,11 +160,9 @@ int hpx_main(int, char**)
             splitlist_map_type::c_nHazardPtrCount + 1});
 
     // Initialize libcds and hazard pointer
-    const std::size_t n_threads = std::stoul(hpx::get_config_entry(
-        "hpx.cds.num_concurrent_hazard_pointer_threads", "128"));
+    const std::size_t n_threads = 128;
     hpx::cds::libcds_wrapper cds_init_wrapper(
-        hpx::cds::smr_t::hazard_pointer_hpxthread, max_hazard_pointer,
-        n_threads, 16);
+        hpx::cds::smr_t::hazard_pointer_hpxthread, max_hazard_pointer, n_threads, 16);
 
     {
         // enable this thread/task to run using libcds support

@@ -35,8 +35,14 @@ add_hpx_module(
   CMAKE_SUBDIRS examples tests
 )
 
+set(_hpx_init_runtime_extra_dependencies)
 if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
-  set(MPI_DEPS hpx_mpi_base)
+  list(APPEND _hpx_init_runtime_extra_dependencies hpx_mpi_base)
+endif()
+
+if(HPX_WITH_LIBCDS)
+    hpx_warn("Adding hpx_libcds as a dependency to hpx_init_runtime")
+  list(APPEND _hpx_init_runtime_extra_dependencies hpx_libcds)
 endif()
 
 if(HPX_WITH_DISTRIBUTED_RUNTIME)
@@ -47,10 +53,10 @@ if(HPX_WITH_DISTRIBUTED_RUNTIME)
            hpx_filesystem
            hpx_format
            hpx_logging
-           ${MPI_DEPS}
            hpx_performance_counters
            hpx_program_options
            hpx_schedulers
            hpx_timing
+           ${_hpx_init_runtime_extra_dependencies}
   )
 endif()

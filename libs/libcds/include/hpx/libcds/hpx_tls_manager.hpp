@@ -8,8 +8,8 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#include <hpx/errors/exception.hpp>
-#include <hpx/runtime_local/config_entry.hpp>
+#include <hpx/modules/errors.hpp>
+#include <hpx/modules/functional.hpp>
 //
 #include <cds/gc/details/hp_common.h>
 #include <cds/gc/hp.h>
@@ -40,6 +40,16 @@ namespace cds { namespace gc { namespace hp { namespace details {
 
 namespace hpx { namespace cds {
 
+    namespace detail {
+        /// \cond NOINTERNAL
+        using get_num_concurrent_hazard_pointer_threads_type =
+            hpx::util::function_nonser<std::size_t()>;
+        HPX_EXPORT void set_get_num_concurrent_hazard_pointer_threads(
+            get_num_concurrent_hazard_pointer_threads_type f);
+        HPX_EXPORT std::size_t get_num_concurrent_hazard_pointer_threads();
+        /// \endcond
+    }    // namespace detail
+
     enum class smr_t
     {
         hazard_pointer_hpxthread,
@@ -55,8 +65,8 @@ namespace hpx { namespace cds {
 
         libcds_wrapper(smr_t smr_type = smr_t::hazard_pointer_hpxthread,
             std::size_t hazard_pointer_count = 1,
-            std::size_t max_thread_count = std::stoul(hpx::get_config_entry(
-                "hpx.cds.num_concurrent_hazard_pointer_threads", "128")),
+            std::size_t max_thread_count =
+                detail::get_num_concurrent_hazard_pointer_threads(),
             std::size_t max_retired_pointer_count = 16)
           : smr_(smr_type)
         {
@@ -141,9 +151,7 @@ namespace hpx { namespace cds {
             if (uselibcds_)
             {
                 if (++thread_counter_ >
-                    std::stoul(hpx::get_config_entry(
-                        "hpx.cds.num_concurrent_hazard_pointer_threads",
-                        "128")))
+                    detail::get_num_concurrent_hazard_pointer_threads())
                 {
                     HPX_THROW_EXCEPTION(invalid_status,
                         "hpx::cds::hpxthread_manager_wrapper ",
@@ -202,8 +210,7 @@ namespace hpx { namespace cds {
         explicit stdthread_manager_wrapper()
         {
             if (++hpxthread_manager_wrapper::thread_counter_ >
-                std::stoul(hpx::get_config_entry(
-                    "hpx.cds.num_concurrent_hazard_pointer_threads", "128")))
+                detail::get_num_concurrent_hazard_pointer_threads())
             {
                 HPX_THROW_EXCEPTION(invalid_status,
                     "hpx::cds::stdthread_manager_wrapper ",

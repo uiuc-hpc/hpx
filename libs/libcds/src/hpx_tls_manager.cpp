@@ -7,7 +7,7 @@
 
 #include <hpx/libcds/hpx_tls_manager.hpp>
 #include <hpx/modules/threading.hpp>
-#include <hpx/threading_base/thread_data.hpp>
+#include <hpx/modules/threading_base.hpp>
 
 #include <cds/gc/details/hp_common.h>
 
@@ -45,6 +45,32 @@ namespace cds { namespace gc { namespace hp { namespace details {
 }}}}    // namespace cds::gc::hp::details
 
 namespace hpx { namespace cds {
+    namespace detail {
+        get_num_concurrent_hazard_pointer_threads_type&
+        get_get_num_concurrent_hazard_pointer_threads()
+        {
+            static get_num_concurrent_hazard_pointer_threads_type f;
+            return f;
+        }
+
+        void set_get_num_concurrent_hazard_pointer_threads(
+            get_num_concurrent_hazard_pointer_threads_type f)
+        {
+            get_get_num_concurrent_hazard_pointer_threads() = f;
+        }
+
+        std::size_t get_num_concurrent_hazard_pointer_threads()
+        {
+            if (get_get_num_concurrent_hazard_pointer_threads())
+            {
+                return get_get_num_concurrent_hazard_pointer_threads()();
+            }
+            else
+            {
+                return 128;
+            }
+        }
+    }    // namespace detail
 
     std::atomic<std::size_t> hpxthread_manager_wrapper::thread_counter_{0};
 
