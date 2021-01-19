@@ -29,6 +29,7 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
+#include "lci.h" // LCI should be included before MPI
 // Intel MPI does not like to be included after stdio.h. As such, we include mpi.h
 // as soon as possible.
 #include <mpi.h>

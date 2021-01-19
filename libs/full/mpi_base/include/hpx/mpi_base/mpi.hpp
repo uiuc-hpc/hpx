@@ -18,6 +18,7 @@
 #endif
 
 #include <mpi.h>
+#include "lci.h"
 
 #if defined(__clang__)
 #pragma clang diagnostic pop

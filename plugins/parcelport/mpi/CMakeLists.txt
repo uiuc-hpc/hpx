@@ -13,6 +13,7 @@ include(HPX_AddLibrary)
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI)
   hpx_debug("add_parcelport_mpi_module")
   include(HPX_AddParcelport)
+  find_package(LCI)
   add_parcelport(
     mpi STATIC
     SOURCES "${PROJECT_SOURCE_DIR}/plugins/parcelport/mpi/parcelport_mpi.cpp"
@@ -37,6 +38,7 @@ if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI)
       hpx_core
       hpx_dependencies_boost
       Mpi::mpi
+      LCI::Shared
     INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
     FOLDER "Core/Plugins/Parcelport/MPI"
   )

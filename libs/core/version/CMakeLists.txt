@@ -14,7 +14,11 @@ set(version_sources version.cpp)
 
 if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
   include(HPX_SetupMPI)
-  set(mpi_dependencies Mpi::mpi)
+  #set(mpi_dependencies Mpi::mpi)
+  include(HPX_SetupLCI)
+  setup_lci()
+  set(mpi_dependencies Mpi::mpi LCI::Shared)
+  #set(lci_dependencies LCI::Shared) #TODO: maybe fix this
 endif()
 
 include(HPX_AddModule)
