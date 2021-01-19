@@ -2320,6 +2320,7 @@ add_hpx_library_headers_noglob(hpx_external)
 # Setup plugins (set here cause if we include it inside plugins, it will not be
 # defined in src/CMakeLists.txt where we call add_static_parcelports)
 include(HPX_SetupMPI) # must come before APEX
+include(HPX_SetupLCI)
 
 # Setup packages and subprojects
 include(HPX_SetupHIP)

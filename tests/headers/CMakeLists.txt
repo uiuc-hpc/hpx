@@ -12,7 +12,8 @@ set(exclude_from_all_headers)
 set(exclude_from_headers)
 
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI)
-  set(test_deps Mpi::mpi)
+  set(test_deps Mpi::mpi LCI::Shared)
+  #set(test_deps Mpi::mpi)
 endif()
 
 add_hpx_header_tests(

@@ -99,12 +99,14 @@ namespace hpx { namespace util {
         // Check if MPI_Init has been called previously
         int is_initialized = 0;
         int retval = MPI_Initialized(&is_initialized);
+	int lci_retval;
         if (MPI_SUCCESS != retval)
         {
             return retval;
         }
         if (!is_initialized)
         {
+            lci_retval = LCI_initialize(nullptr, nullptr);
             retval = MPI_Init_thread(nullptr, nullptr, required, &provided);
             if (MPI_SUCCESS != retval)
             {
@@ -231,6 +233,7 @@ namespace hpx { namespace util {
         if (enabled() && has_called_init())
         {
             int is_finalized = 0;
+	    LCI_finalize();
             MPI_Finalized(&is_finalized);
             if (!is_finalized)
             {
