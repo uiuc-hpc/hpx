@@ -57,6 +57,10 @@
 #include <utility>
 #include <vector>
 
+#include <mpi.h>
+
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+
 namespace hpx { namespace detail
 {
     std::string get_locality_base_name();
@@ -667,10 +671,30 @@ void big_boot_barrier::add_locality_endpoints(std::uint32_t locality_id,
 ///////////////////////////////////////////////////////////////////////////////
 void big_boot_barrier::spin()
 {
-    std::unique_lock<std::mutex> lock(mtx);
-    while (connected)
-        cond.wait(lock);
+    DEBUG("Spin: Attempting MPI broadcast and gather");
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int number = world_rank * -10 + 20;
+    MPI_Bcast(&number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf( "Spin: Process %d received %d from process 0\n", world_rank, number );
+    int my_result = world_rank + 1;
+    int *results = world_rank == 0 ? (int*)malloc( world_size * sizeof( int ) ) : NULL;
+    MPI_Gather(&my_result, 1, MPI_INT, results, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if(world_rank == 0) {
+        for (int i = 0; i < world_size; i++) {
+            printf( "Spin: Process 0 received result %d from process %d\n", results[i], i );
+        }
+        free(results);
+    }
+    DEBUG("spin: end of all to all comm test");
 
+    DEBUG("spin 1");
+    std::unique_lock<std::mutex> lock(mtx);
+    while (connected) // This is the wait where it gets stuck if using 2 localities
+        cond.wait(lock);
+    DEBUG("spin 2");
     // pre-cache all known locality endpoints in local AGAS on locality 0 as well
     if (service_mode_bootstrap == service_type)
     {
@@ -721,10 +745,13 @@ big_boot_barrier::big_boot_barrier(
 
 void big_boot_barrier::wait_bootstrap()
 { // {{{
+    DEBUG("big_boot_barrier::wait_bootstrap() 1");
     HPX_ASSERT(service_mode_bootstrap == service_type);
+    DEBUG("big_boot_barrier::wait_bootstrap() 2");
 
     // the root just waits until all localities have connected
-    spin();
+    spin(); // this is where it gets stuck...
+    DEBUG("big_boot_barrier::wait_bootstrap() 3");
 } // }}}
 
 namespace detail
@@ -889,13 +916,16 @@ void destroy_big_boot_barrier()
 
 big_boot_barrier& get_big_boot_barrier()
 {
+    DEBUG("get_big_boot_barrier() 1");
     util::reinitializable_static<std::shared_ptr<big_boot_barrier>, bbb_tag> bbb;
+    DEBUG("get_big_boot_barrier() 2");
     if (!bbb.get())
     {
         HPX_THROW_EXCEPTION(internal_server_error,
             "get_big_boot_barrier",
             "big_boot_barrier has not been created yet");
     }
+    DEBUG("get_big_boot_barrier() 3");
     return *(bbb.get());
 }
 

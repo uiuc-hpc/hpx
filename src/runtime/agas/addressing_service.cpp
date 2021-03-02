@@ -71,6 +71,9 @@
 #include <utility>
 #include <vector>
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do {} while(0)
+
 namespace hpx { namespace agas
 {
     struct addressing_service::gva_cache_key
@@ -179,6 +182,7 @@ void addressing_service::bootstrap(
 void addressing_service::initialize(parcelset::parcelhandler& ph,
     std::uint64_t rts_lva)
 { // {{{
+    DEBUG("addressing_serivce::initialize 1");
     rts_lva_ = rts_lva;
 
     // now, boot the parcel port
@@ -186,19 +190,27 @@ void addressing_service::initialize(parcelset::parcelhandler& ph,
     if(pp)
         pp->run(false);
 
+    DEBUG("addressing_serivce::initialize 1.1");
     if (service_type == service_mode_bootstrap)
     {
-        get_big_boot_barrier().wait_bootstrap();
+        DEBUG("addressing_serivce::initialize if 1");
+        get_big_boot_barrier().wait_bootstrap(); // this is where it gets stuck -- is it for the big boot barrier or the wait bootstrap?
+        DEBUG("addressing_serivce::initialize if 2");
     }
     else
     {
+        DEBUG("addressing_serivce::initialize else 1");
         launch_hosted();
+        DEBUG("addressing_serivce::initialize else 2");
         get_big_boot_barrier().wait_hosted(
             pp ? pp->get_locality_name() : "<console>",
             primary_ns_.ptr(), symbol_ns_.ptr());
+        DEBUG("addressing_serivce::initialize else 3");
     }
+    DEBUG("addressing_serivce::initialize 2");
 
     set_status(state_running);
+    DEBUG("addressing_serivce::initialize 3");
 } // }}}
 
 #else
@@ -216,10 +228,14 @@ void addressing_service::bootstrap(util::runtime_configuration const& ini)
 
 void addressing_service::initialize(std::uint64_t rts_lva)
 { // {{{
+    DEBUG("addressing_service::initialize 1");
     rts_lva_ = rts_lva;
+    DEBUG("addressing_service::initialize 2");
 
+    DEBUG("addressing_service::initialize 3");
     HPX_ASSERT(service_type == service_mode_bootstrap);
     set_status(state_running);
+    DEBUG("addressing_service::initialize 4");
 } // }}}
 
 #endif

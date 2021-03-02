@@ -8,6 +8,9 @@
 
 #pragma once
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do {} while(0) 
+
 #include <hpx/assert.hpp>
 #include <hpx/functional/bind_back.hpp>
 #include <hpx/functional/function.hpp>
@@ -55,6 +58,7 @@ namespace hpx {
             f,
         int argc, char** argv, init_params const& params)
     {
+        DEBUG("init A 1");
 #if defined(HPX_WINDOWS)
         detail::init_winsocket();
 #if defined(HPX_HAVE_APEX)
@@ -63,6 +67,7 @@ namespace hpx {
         apex::version();
 #endif
 #endif
+        DEBUG("init A 2");
         util::set_hpx_prefix(HPX_PREFIX);
 #if defined(__FreeBSD__)
         freebsd_environ = environ;
@@ -70,9 +75,11 @@ namespace hpx {
         // set a handler for std::abort
         std::signal(SIGABRT, detail::on_abort);
         std::atexit(detail::on_exit);
+        DEBUG("init A 3");
 #if defined(HPX_HAVE_CXX11_STD_QUICK_EXIT)
         std::at_quick_exit(detail::on_exit);
 #endif
+        DEBUG("init A 4");
         return detail::run_or_start(f, argc, argv, params, true);
     }
 
@@ -85,6 +92,7 @@ namespace hpx {
     inline int init(util::function_nonser<int(int, char**)> const& f, int argc,
         char** argv, init_params const& params)
     {
+        DEBUG("init B");
         util::function_nonser<int(hpx::program_options::variables_map&)>
             main_f = util::bind_back(detail::init_helper, f);
         if (argc == 0 || argv == nullptr)
@@ -102,6 +110,7 @@ namespace hpx {
     /// function given by \p f as a HPX thread.
     inline int init(int argc, char** argv, init_params const& params)
     {
+        DEBUG("init C");
         util::function_nonser<int(hpx::program_options::variables_map&)>
             main_f = static_cast<hpx_main_type>(::hpx_main);
         if (argc == 0 || argv == nullptr)
@@ -120,6 +129,7 @@ namespace hpx {
     inline int init(
         std::nullptr_t, int argc, char** argv, init_params const& params)
     {
+        DEBUG("init D");
         util::function_nonser<int(hpx::program_options::variables_map&)> main_f;
         if (argc == 0 || argv == nullptr)
         {
@@ -135,6 +145,7 @@ namespace hpx {
     /// console mode or worker mode depending on the command line settings).
     inline int init(init_params const& params)
     {
+        DEBUG("init E");
         util::function_nonser<int(hpx::program_options::variables_map&)>
             main_f = static_cast<hpx_main_type>(::hpx_main);
         return init(main_f, detail::dummy_argc, detail::dummy_argv, params);
@@ -154,6 +165,7 @@ namespace hpx {
         startup_function_type startup, shutdown_function_type shutdown,
         hpx::runtime_mode mode)
     {
+        DEBUG("init F");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.cfg = cfg;
@@ -174,6 +186,7 @@ namespace hpx {
         char** argv, startup_function_type startup,
         shutdown_function_type shutdown, hpx::runtime_mode mode)
     {
+        DEBUG("init G");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.startup = std::move(startup);
@@ -195,6 +208,7 @@ namespace hpx {
         char** argv, startup_function_type startup,
         shutdown_function_type shutdown, hpx::runtime_mode mode)
     {
+        DEBUG("init H");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.startup = std::move(startup);
@@ -217,6 +231,7 @@ namespace hpx {
         startup_function_type startup, shutdown_function_type shutdown,
         hpx::runtime_mode mode)
     {
+        DEBUG("init I");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.cfg = cfg;
@@ -237,6 +252,7 @@ namespace hpx {
     inline int init(int argc, char** argv, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {
+        DEBUG("init J");
         hpx::init_params iparams;
         iparams.cfg = cfg;
         iparams.mode = mode;
@@ -255,6 +271,7 @@ namespace hpx {
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, hpx::runtime_mode mode)
     {
+        DEBUG("init K");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.mode = mode;
@@ -274,6 +291,7 @@ namespace hpx {
         char** argv, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {
+        DEBUG("init L");
         hpx::init_params iparams;
         iparams.desc_cmdline = desc_cmdline;
         iparams.cfg = cfg;
@@ -291,6 +309,7 @@ namespace hpx {
     inline int init(std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
     {
+        DEBUG("init M");
         using hpx::program_options::options_description;
         options_description desc =
             options_description("Usage: " + app_name + " [options]");
@@ -307,6 +326,7 @@ namespace hpx {
     /// console mode or worker mode depending on the command line settings).
     inline int init(std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
+        DEBUG("init N");
         hpx::init_params iparams;
         iparams.cfg = cfg;
         iparams.mode = mode;
@@ -322,6 +342,7 @@ namespace hpx {
         std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
     {
+        DEBUG("init O");
         using hpx::program_options::options_description;
 
         options_description desc_cmdline("Usage: " + app_name + " [options]");
@@ -342,6 +363,7 @@ namespace hpx {
     inline int init(int (*f)(hpx::program_options::variables_map&), int argc,
         char** argv, hpx::runtime_mode mode)
     {
+        DEBUG("init P");
         hpx::init_params iparams;
 
         if (argc == 0 || argv == nullptr)
@@ -362,6 +384,7 @@ namespace hpx {
         std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
     {
+        DEBUG("init Q");
         using hpx::program_options::options_description;
         options_description desc_cmdline("Usage: " + app_name + " [options]");
 
@@ -377,6 +400,7 @@ namespace hpx {
         char** argv, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {
+        DEBUG("init R");
         HPX_ASSERT(argc != 0 && argv != nullptr);
 
         hpx::init_params iparams;
@@ -388,6 +412,7 @@ namespace hpx {
     inline int init(util::function_nonser<int(int, char**)> const& f,
         std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
+        DEBUG("init S");
         hpx::init_params iparams;
         iparams.cfg = cfg;
         iparams.mode = mode;
@@ -397,6 +422,7 @@ namespace hpx {
     inline int init(std::nullptr_t, std::string const& app_name, int argc,
         char** argv, hpx::runtime_mode mode)
     {
+        DEBUG("init T");
         using hpx::program_options::options_description;
         options_description desc_cmdline("Usage: " + app_name + " [options]");
 
@@ -413,6 +439,7 @@ namespace hpx {
     inline int init(
         std::nullptr_t, int argc, char** argv, hpx::runtime_mode mode)
     {
+        DEBUG("init U");
         HPX_ASSERT(argc != 0 && argv != nullptr);
 
         util::function_nonser<int(hpx::program_options::variables_map&)> main_f;
@@ -425,6 +452,7 @@ namespace hpx {
     inline int init(std::nullptr_t, int argc, char** argv,
         std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
+        DEBUG("init V");
         HPX_ASSERT(argc != 0 && argv != nullptr);
 
         util::function_nonser<int(hpx::program_options::variables_map&)> main_f;
@@ -438,6 +466,7 @@ namespace hpx {
     inline int init(std::nullptr_t, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {
+        DEBUG("init W");
         util::function_nonser<int(hpx::program_options::variables_map&)> main_f;
         hpx::init_params iparams;
         iparams.cfg = cfg;

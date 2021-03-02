@@ -68,29 +68,35 @@ HPX_REGISTER_ACTION(call_action);
 ///////////////////////////////////////////////////////////////////////////////
 void on_shutdown()
 {
+    DEBUG("apply_colocated::on_shutdown() 1");
     std::lock_guard<hpx::util::spinlock> l(result_mutex);
     HPX_TEST_EQ(final_result, 3);
 
     on_shutdown_executed = true;
+    DEBUG("apply_colocated::on_shutdown() 2");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int hpx_main()
 {
+    DEBUG("apply_colocated 1");
     locality_id = hpx::get_locality_id();
 
     hpx::id_type here = hpx::find_here();
     hpx::id_type there = here;
+    DEBUG("apply_colocated 2");
     if (hpx::get_num_localities(hpx::launch::sync) > 1)
     {
         std::vector<hpx::id_type> localities = hpx::find_remote_localities();
         there = localities[0];
     }
+    DEBUG("apply_colocated 3");
 
     {
         increment_action inc;
         hpx::apply(inc, hpx::colocated(there), here, 1);
     }
+    DEBUG("apply_colocated 4");
 
     {
         hpx::future<hpx::id_type> inc_f =
@@ -100,6 +106,7 @@ int hpx_main()
         increment_action inc;
         hpx::apply(inc, hpx::colocated(where), here, 1);
     }
+    DEBUG("apply_colocated 5");
 
     {
         hpx::future<hpx::id_type> inc_f =
@@ -108,11 +115,14 @@ int hpx_main()
 
         hpx::apply<increment_action>(hpx::colocated(where), here, 1);
     }
+    DEBUG("apply_colocated 6");
 
     // register function which will verify final result
     hpx::register_shutdown_function(on_shutdown);
+    DEBUG("apply_colocated 7");
 
     HPX_TEST_EQ(hpx::finalize(), 0);
+    DEBUG("apply_colocated 8");
 
     return 0;
 }

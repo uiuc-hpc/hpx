@@ -36,6 +36,9 @@
 #include <utility>
 #include <vector>
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do{} while(0) 
+
 namespace hpx { namespace applier {
 #if defined(HPX_HAVE_NETWORKING)
     applier::applier(parcelset::parcelhandler& ph, threads::threadmanager& tm)
@@ -52,10 +55,13 @@ namespace hpx { namespace applier {
 
     void applier::initialize(std::uint64_t rts)
     {
+        DEBUG("applier initialize 1");
         naming::resolver_client& agas_client = naming::get_agas_client();
+        DEBUG("applier initialize 2");
         runtime_support_id_ =
             naming::id_type(agas_client.get_local_locality().get_msb(), rts,
                 naming::id_type::unmanaged);
+        DEBUG("applier initialize 3");
     }
 
 #if defined(HPX_HAVE_NETWORKING)

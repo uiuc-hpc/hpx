@@ -18,6 +18,14 @@
 #include <cstdint>
 #include <iostream>
 
+// Recommended call in order to use MPI:
+// ./fib_actions --hpx:ini=hpx.parcel.mpi.priority=1000 --hpx:ini=hpx.parcel.mpi.enable=1 --hpx:ini=hpx.parcel.bootstrap=mpi --hpx:threads=1 --hpx:localities=1
+// optionally increase --n-value to 20
+// TODO: add the DEBUG macro and insert throughout
+
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do {} while(0) 
+
 ///////////////////////////////////////////////////////////////////////////////
 //[fib_action
 // forward declaration of the Fibonacci function
@@ -56,13 +64,16 @@ std::uint64_t fibonacci(std::uint64_t n)
 //[fib_hpx_main
 int hpx_main(hpx::program_options::variables_map& vm)
 {
+    DEBUG("4");
     // extract command line argument, i.e. fib(N)
     std::uint64_t n = vm["n-value"].as<std::uint64_t>();
 
+    DEBUG("5");
     {
         // Keep track of the time required to execute.
         hpx::chrono::high_resolution_timer t;
 
+    DEBUG("6");
         // Wait for fib() to return the value
         fibonacci_action fib;
         std::uint64_t r = fib(hpx::find_here(), n);
@@ -79,16 +90,19 @@ int hpx_main(hpx::program_options::variables_map& vm)
 //[fib_main
 int main(int argc, char* argv[])
 {
+    DEBUG("1");
     // Configure application-specific options
     hpx::program_options::options_description
        desc_commandline("Usage: " HPX_APPLICATION_STRING " [options]");
 
+    DEBUG("2");
     desc_commandline.add_options()
         ( "n-value",
           hpx::program_options::value<std::uint64_t>()->default_value(10),
           "n value for the Fibonacci function")
         ;
 
+    DEBUG("3");
     // Initialize and run HPX
     return hpx::init(desc_commandline, argc, argv);
 }

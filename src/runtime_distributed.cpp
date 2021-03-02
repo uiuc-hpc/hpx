@@ -87,6 +87,9 @@
 #include <io.h>
 #endif
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do {} while(0) 
+
 ///////////////////////////////////////////////////////////////////////////////
 static void garbage_collect_non_blocking()
 {
@@ -400,8 +403,10 @@ namespace hpx {
 #endif
       , runtime_support_(new components::server::runtime_support(ini_))
     {
+        DEBUG("runtime_distributed constructor 1");
         // This needs to happen first
         runtime::init();
+        DEBUG("runtime_distributed constructor 2");
 
         runtime_distributed*& runtime_distributed_ =
             get_runtime_distributed_ptr();
@@ -411,27 +416,38 @@ namespace hpx {
 
             runtime_distributed_ = this;
         }
+        DEBUG("runtime_distributed constructor 3");
 
         LPROGRESS_;
 
 #if defined(HPX_HAVE_NETWORKING)
+        DEBUG("runtime_distributed constructor networking");
         agas_client_.bootstrap(parcel_handler_, ini_);
 #else
+        DEBUG("runtime_distributed constructor no networking");
         agas_client_.bootstrap(ini_);
 #endif
+        DEBUG("runtime_distributed constructor 4");
 
         components::server::get_error_dispatcher().set_error_sink(
             &runtime_distributed::default_errorsink);
+        DEBUG("runtime_distributed constructor 5");
 
         // now, launch AGAS and register all nodes, launch all other components
 #if defined(HPX_HAVE_NETWORKING)
+        DEBUG("runtime_distributed constructor 5.1");
+	//std::uint64_t(runtime_support_.get());
+        DEBUG("runtime_distributed constructor 5.1.1");
         agas_client_.initialize(
-            parcel_handler_, std::uint64_t(runtime_support_.get()));
+            parcel_handler_, std::uint64_t(runtime_support_.get())); // this line is where it hangs
+        DEBUG("runtime_distributed constructor 5.2");
         parcel_handler_.initialize(agas_client_, &applier_);
+        DEBUG("runtime_distributed constructor 5.3");
 #else
         agas_client_.initialize(std::uint64_t(runtime_support_.get()));
 #endif
         applier_.initialize(std::uint64_t(runtime_support_.get()));
+        DEBUG("runtime_distributed constructor 6");
     }
 
     ///////////////////////////////////////////////////////////////////////////

@@ -66,6 +66,9 @@
 #include <chrono>
 #endif
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+//#define DEBUG(...) do{} while(0)
+
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx
 {
@@ -154,6 +157,7 @@ namespace hpx { namespace parcelset
     void parcelhandler::initialize(naming::resolver_client &resolver,
         applier::applier *applier)
     {
+        DEBUG("parcelhandler initialize 1");
         resolver_ = &resolver;
 
         for (pports_type::value_type& pp : pports_)

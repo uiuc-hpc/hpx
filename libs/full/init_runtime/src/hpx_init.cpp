@@ -799,7 +799,9 @@ namespace hpx {
                              hpx::program_options::variables_map& vm)> const& f,
             int argc, char** argv, init_params const& params, bool blocking)
         {
+            DEBUG("detail::run_or_start() 1");
             init_environment();
+            DEBUG("detail::run_or_start() 2");
 
             int result = 0;
             try
@@ -809,6 +811,7 @@ namespace hpx {
                 {
                     return result;
                 }
+                DEBUG("detail::run_or_start() 3");
 
                 // scope exception handling to resource partitioner initialization
                 // any exception thrown during run_or_start below are handled
@@ -834,6 +837,7 @@ namespace hpx {
                             registry->register_component_type();
                         });
                     }
+                    DEBUG("detail::run_or_start() 4");
 
                     activate_global_options(
                         rp.get_command_line_switches(), argc, argv);
@@ -853,12 +857,14 @@ namespace hpx {
                     {
                         params.rp_callback(rp);
                     }
+                    DEBUG("detail::run_or_start() 5");
 
                     // Setup all internal parameters of the resource_partitioner
                     rp.configure_pools();
                 }
                 catch (hpx::exception const& e)
                 {
+                    DEBUG("detail::run_or_start() catch 1");
                     std::cerr << "hpx::init: hpx::exception caught: "
                               << hpx::get_error_what(e) << "\n";
                     return -1;
@@ -869,27 +875,35 @@ namespace hpx {
 
                 util::command_line_handling& cms =
                     resource::get_partitioner().get_command_line_switches();
+                DEBUG("detail::run_or_start() 6");
 
                 // Build and configure this runtime instance.
                 std::unique_ptr<hpx::runtime> rt;
 
                 // Command line handling should have updated this by now.
                 HPX_ASSERT(cms.rtcfg_.mode_ != runtime_mode::default_);
+                DEBUG("detail::run_or_start() 7");
                 switch (cms.rtcfg_.mode_)
                 {
                 case runtime_mode::local:
                 {
+                    DEBUG("detail::run_or_start() case: runtime_mode::local");
                     LPROGRESS_ << "creating local runtime";
                     rt.reset(new hpx::runtime(cms.rtcfg_));
                     break;
                 }
                 default:
                 {
+                    DEBUG("detail::run_or_start() case: default");
 #if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
+                    DEBUG("detail::run_or_start() case: default if distributed runtime 1");
                     LPROGRESS_ << "creating distributed runtime";
-                    rt.reset(new hpx::runtime_distributed(cms.rtcfg_));
+                    DEBUG("detail::run_or_start() case: default if distributed runtime 2");
+                    rt.reset(new hpx::runtime_distributed(cms.rtcfg_)); // this is where it gets stuck with 2 localities. Is it in the creation of hpx::runtime_distributed?
+                    DEBUG("detail::run_or_start() case: default if distributed runtime 3");
                     break;
 #else
+                    DEBUG("detail::run_or_start() case: default not if distributed runtime");
                     char const* mode_name =
                         get_runtime_mode_name(cms.rtcfg_.mode_);
                     std::ostringstream s;
@@ -907,6 +921,7 @@ namespace hpx {
 #endif
                 }
                 }
+                DEBUG("detail::run_or_start() 8");
 
                 result = run_or_start(blocking, std::move(rt), cms,
                     std::move(params.startup), std::move(params.shutdown));
@@ -917,6 +932,7 @@ namespace hpx {
                           << "\n";
                 return -1;
             }
+            DEBUG("detail::run_or_start() 9");
             return result;
         }
 
