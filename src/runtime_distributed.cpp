@@ -419,6 +419,7 @@ namespace hpx {
 
         LPROGRESS_;
 
+#if defined(HPX_HAVE_NETWORKING)
         DEBUG("runtime_distributed constructor networking");
         agas_client_.bootstrap(parcel_handler_, rtcfg_);
 #else
