@@ -65,7 +65,7 @@ void test_then()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void bulk_test(int value, hpx::thread::id tid, int passed_through)    //-V813
+void bulk_test(int, hpx::thread::id tid, int passed_through)    //-V813
 {
     HPX_TEST_NEQ(tid, hpx::this_thread::get_id());
     HPX_TEST_EQ(passed_through, 42);
@@ -111,7 +111,7 @@ void test_bulk_async()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void bulk_test_f(int value, hpx::shared_future<void> f, hpx::thread::id tid,
+void bulk_test_f(int, hpx::shared_future<void> f, hpx::thread::id tid,
     int passed_through)    //-V813
 {
     HPX_TEST(f.is_ready());    // make sure, future is ready
@@ -168,7 +168,7 @@ void static_check_executor()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     static_check_executor();
 
@@ -189,8 +189,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(
-        hpx::init(argc, argv, cfg), 0, "HPX main exited with non-zero status");
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
+        "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();
 }

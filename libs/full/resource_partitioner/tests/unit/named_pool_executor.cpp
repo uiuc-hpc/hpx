@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-const int max_threads = 4;
+int const max_threads = 4;
 
 // dummy function we will call using async
 void dummy_task(std::size_t n, std::string const& text)
@@ -34,7 +34,7 @@ void dummy_task(std::size_t n, std::string const& text)
     }
 }
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     HPX_TEST_EQ(std::size_t(4), hpx::resource::get_num_threads());
     HPX_TEST_EQ(std::size_t(4), hpx::resource::get_num_thread_pools());
@@ -65,11 +65,11 @@ int hpx_main(int argc, char* argv[])
     // the test to fail
     hpx::execution::parallel_executor exec_0_hp(
         &hpx::resource::get_thread_pool("default"),
-        hpx::threads::thread_priority_high);
+        hpx::threads::thread_priority::high);
 
     hpx::execution::parallel_executor exec_0(
         &hpx::resource::get_thread_pool("default"),
-        hpx::threads::thread_priority_default);
+        hpx::threads::thread_priority::default_);
 
     std::vector<hpx::future<void>> lotsa_futures;
 
@@ -88,10 +88,10 @@ int hpx_main(int argc, char* argv[])
         std::string pool_name = "pool-" + std::to_string(i);
         execs.push_back(hpx::execution::parallel_executor(
             &hpx::resource::get_thread_pool(pool_name),
-            hpx::threads::thread_priority_default));
+            hpx::threads::thread_priority::default_));
         execs_hp.push_back(hpx::execution::parallel_executor(
             &hpx::resource::get_thread_pool(pool_name),
-            hpx::threads::thread_priority_high));
+            hpx::threads::thread_priority::high));
     }
 
     for (int i = 0; i < max_threads; ++i)
@@ -105,7 +105,7 @@ int hpx_main(int argc, char* argv[])
 
     // check that the default executor still works
     hpx::parallel::execution::default_executor large_stack_executor(
-        hpx::threads::thread_stacksize_large);
+        hpx::threads::thread_stacksize::large);
 
     lotsa_futures.push_back(hpx::async(
         large_stack_executor, &dummy_task, 3, "true default + large stack"));
@@ -116,7 +116,8 @@ int hpx_main(int argc, char* argv[])
     return hpx::finalize();
 }
 
-void init_resource_partitioner_handler(hpx::resource::partitioner& rp)
+void init_resource_partitioner_handler(
+    hpx::resource::partitioner& rp, hpx::program_options::variables_map const&)
 {
     // before adding pools - set the default pool name to "pool-0"
     rp.set_default_pool_name("pool-0");
@@ -131,11 +132,11 @@ void init_resource_partitioner_handler(hpx::resource::partitioner& rp)
 
     // add one PU to each pool
     int thread_count = 0;
-    for (const hpx::resource::numa_domain& d : rp.numa_domains())
+    for (hpx::resource::numa_domain const& d : rp.numa_domains())
     {
-        for (const hpx::resource::core& c : d.cores())
+        for (hpx::resource::core const& c : d.cores())
         {
-            for (const hpx::resource::pu& p : c.pus())
+            for (hpx::resource::pu const& p : c.pus())
             {
                 if (thread_count < max_threads)
                 {

@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #include <hpx/assert.hpp>
 #include <hpx/async_base/launch_policy.hpp>
@@ -15,7 +14,6 @@
 #include <hpx/collectives/barrier.hpp>
 #include <hpx/collectives/detail/barrier_node.hpp>
 #include <hpx/collectives/latch.hpp>
-#include <hpx/command_line_handling/command_line_handling.hpp>
 #include <hpx/coroutines/coroutine.hpp>
 #include <hpx/datastructures/tuple.hpp>
 #include <hpx/execution_base/this_thread.hpp>
@@ -61,6 +59,7 @@
 #include <hpx/threading_base/external_timer.hpp>
 #include <hpx/threading_base/scheduler_mode.hpp>
 #include <hpx/timing/high_resolution_clock.hpp>
+#include <hpx/type_support/unused.hpp>
 #include <hpx/util/from_string.hpp>
 #include <hpx/util/query_counters.hpp>
 #include <hpx/version.hpp>
@@ -387,18 +386,18 @@ namespace hpx {
             &detail::network_background_callback,
 #endif
             false)
-      , mode_(rtcfg.mode_)
+      , mode_(rtcfg_.mode_)
 #if defined(HPX_HAVE_NETWORKING)
       , parcel_handler_notifier_(runtime_distributed::get_notification_policy(
             "parcel-thread", runtime_local::os_thread_type::parcel_thread))
-      , parcel_handler_(rtcfg, thread_manager_.get(), parcel_handler_notifier_)
-      , agas_client_(ini_, rtcfg.mode_)
+      , parcel_handler_(rtcfg_, thread_manager_.get(), parcel_handler_notifier_)
+      , agas_client_(rtcfg_)
       , applier_(parcel_handler_, *thread_manager_)
 #else
-      , agas_client_(ini_, rtcfg.mode_)
+      , agas_client_(rtcfg_)
       , applier_(*thread_manager_)
 #endif
-      , runtime_support_(new components::server::runtime_support(ini_))
+      , runtime_support_(new components::server::runtime_support(rtcfg_))
     {
         // This needs to happen first
         runtime::init();
@@ -415,9 +414,9 @@ namespace hpx {
         LPROGRESS_;
 
 #if defined(HPX_HAVE_NETWORKING)
-        agas_client_.bootstrap(parcel_handler_, ini_);
+        agas_client_.bootstrap(parcel_handler_, rtcfg_);
 #else
-        agas_client_.bootstrap(ini_);
+        agas_client_.bootstrap(rtcfg_);
 #endif
 
         components::server::get_error_dispatcher().set_error_sink(
@@ -476,7 +475,8 @@ namespace hpx {
                 lbt_ << "runtime_distributed::run_helper: bootstrap "
                         "aborted, bailing out";
                 return threads::thread_result_type(
-                    threads::terminated, threads::invalid_thread_id);
+                    threads::thread_schedule_state::terminated,
+                    threads::invalid_thread_id);
             }
 
             lbt_ << "(4th stage) runtime_distributed::run_helper: bootstrap "
@@ -598,8 +598,8 @@ namespace hpx {
         threads::thread_init_data data(
             util::bind(&runtime_distributed::run_helper, this, func,
                 std::ref(result_)),
-            "run_helper", threads::thread_priority_normal,
-            threads::thread_schedule_hint(0), threads::thread_stacksize_large);
+            "run_helper", threads::thread_priority::normal,
+            threads::thread_schedule_hint(0), threads::thread_stacksize::large);
 
         this->runtime::starting();
         threads::thread_id_type id = threads::invalid_thread_id;
@@ -758,11 +758,11 @@ namespace hpx {
 
         // stop the rest of the system
 #if defined(HPX_HAVE_NETWORKING)
-        parcel_handler_.stop(blocking);    // stops parcel pools as well
+        parcel_handler_.stop(blocking);
 #endif
 #ifdef HPX_HAVE_TIMER_POOL
         LTM_(info) << "stop: stopping timer pool";
-        timer_pool_.stop();    // stop timer pool as well
+        timer_pool_.stop();
         if (blocking)
         {
             timer_pool_.join();
@@ -770,9 +770,14 @@ namespace hpx {
         }
 #endif
 #ifdef HPX_HAVE_IO_POOL
-        io_pool_.stop();    // stops io_pool_ as well
+        LTM_(info) << "stop: stopping io pool";
+        io_pool_.stop();
+        if (blocking)
+        {
+            io_pool_.join();
+            io_pool_.clear();
+        }
 #endif
-        // deinit_tss();
     }
 
     int runtime_distributed::finalize(double shutdown_timeout)
@@ -782,8 +787,10 @@ namespace hpx {
         // will be ignored
         apply<components::server::runtime_support::shutdown_all_action>(
             hpx::find_root_locality(), shutdown_timeout);
+#else
+        HPX_ASSERT(false);
+        HPX_UNUSED(shutdown_timeout);
 #endif
-
         return 0;
     }
 
@@ -1974,5 +1981,4 @@ namespace hpx { namespace parcelset {
             .do_background_work(num_thread, mode);
     }
 }}    // namespace hpx::parcelset
-#endif
 #endif

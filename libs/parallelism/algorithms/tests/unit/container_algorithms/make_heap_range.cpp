@@ -418,7 +418,7 @@ void make_heap_bad_alloc_test()
     test_make_heap_bad_alloc<std::random_access_iterator_tag>();
 }
 
-int hpx_main(boost::program_options::variables_map& vm)
+int hpx_main(hpx::program_options::variables_map& vm)
 {
     if (vm.count("seed"))
         seed = vm["seed"].as<unsigned int>();
@@ -443,7 +443,10 @@ int main(int argc, char* argv[])
     desc_commandline.add_options()("seed,s", value<unsigned int>(),
         "the random number generator seed to use for this run");
 
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with a non-zero status");
 
     return hpx::util::report_errors();

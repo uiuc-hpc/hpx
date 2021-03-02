@@ -26,13 +26,6 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 )
 
 # ##############################################################################
-# Fortran overrides
-# ##############################################################################
-set(CMAKE_USER_MAKE_RULES_OVERRIDE_Fortran
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HPX_FortranOverrides.cmake"
-)
-
-# ##############################################################################
 # Build type (needs to be handled before project command below)
 # ##############################################################################
 if(NOT CMAKE_BUILD_TYPE)
@@ -48,7 +41,7 @@ endif()
 # ##############################################################################
 # project metadata
 # ##############################################################################
-project(HPX CXX C)
+project(HPX CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -67,8 +60,8 @@ endif()
 set(HPX_VERSION_MAJOR 1)
 set(HPX_VERSION_MINOR 6)
 set(HPX_VERSION_SUBMINOR 0)
-set(HPX_VERSION_DATE 20200902)
-set(HPX_VERSION_TAG "-trunk")
+set(HPX_VERSION_DATE 20210217)
+set(HPX_VERSION_TAG "")
 
 set(HPX_VERSION
     "${HPX_VERSION_MAJOR}.${HPX_VERSION_MINOR}.${HPX_VERSION_SUBMINOR}"
@@ -133,21 +126,6 @@ unset(HPX_STATIC_PARCELPORT_PLUGINS CACHE)
 # Set up dummy compiler flags targets
 # ##############################################################################
 include(HPX_CompilerFlagsTargets)
-
-# ##############################################################################
-# Fortran compiler detection
-#
-hpx_option(
-  HPX_WITH_FORTRAN BOOL
-  "Enable or disable the compilation of Fortran examples using HPX" OFF
-  ADVANCED
-)
-
-if(HPX_WITH_FORTRAN)
-  include(HPX_FortranCompiler)
-endif()
-
-# ##############################################################################
 
 # ##############################################################################
 # Setup platform for which HPX should be compiled for.
@@ -544,19 +522,31 @@ hpx_option(
 set(CUDA_OPTION_STRING "Enable HPX_WITH_ASYNC_CUDA (CUDA or HIP futures) and\
  HPX_WITH_CUDA_COMPUTE (CUDA/HIP enabled parallel algorithms) (default: OFF)"
 )
-set(CUDA_COMPUTE_STRING
-    "Enable HPX CUDA/HIP compute capability (parallel algorithms) module (default: OFF) -\
- note: enabling this also enables CUDA/HIP futures via HPX_WITH_ASYNC_CUDA"
-)
 set(ASYNC_CUDA_STRING
-    "Enable HPX CUDA/HIP compute capability (parallel algorithms) module (default: OFF) -\
+    "Enable HPX CUDA/HIP compute capability (parallel algorithms) module\
+ (default: ON, dependent on HPX_WITH_CUDA or HPX_WITH_HIP) -\
  note: CUDA/HIP futures may be used without CUDA/HIP Compute"
+)
+set(CUDA_COMPUTE_STRING
+    "Enable HPX CUDA/HIP compute capability (parallel algorithms) module\
+ (default: ON, dependent on HPX_WITH_CUDA or HPX_WITH_HIP, and HPX_WITH_ASYNC_CUDA) -\
+ note: enabling this also enables CUDA/HIP futures via HPX_WITH_ASYNC_CUDA"
 )
 set(HIP_OPTION_STRING "Enable compilation with HIPCC (default: OFF)")
 hpx_option(HPX_WITH_CUDA BOOL "${CUDA_OPTION_STRING}" OFF ADVANCED)
+
 # Those two will be renamed replacing CUDA with GPU
-hpx_option(HPX_WITH_CUDA_COMPUTE BOOL "${CUDA_COMPUTE_STRING}" OFF ADVANCED)
-hpx_option(HPX_WITH_ASYNC_CUDA BOOL "${ASYNC_CUDA_STRING}" OFF ADVANCED)
+hpx_option(HPX_WITH_CUDA_COMPUTE BOOL "${CUDA_COMPUTE_STRING}" ON ADVANCED)
+hpx_option(HPX_WITH_ASYNC_CUDA BOOL "${ASYNC_CUDA_STRING}" ON ADVANCED)
+
+# HPX_WITH_CUDA_COMPUTE requires HPX_WITH_ASYNC_CUDA
+if(HPX_WITH_CUDA_COMPUTE)
+  set(HPX_WITH_ASYNC_CUDA
+      ON
+      CACHE BOOL "${HPX_WITH_ASYNC_CUDA}" FORCE
+  )
+endif()
+
 # No need for the user to specify the option explicitly
 hpx_option(HPX_WITH_HIP BOOL "${HIP_OPTION_STRING}" OFF ADVANCED)
 if("${CMAKE_CXX_COMPILER}" MATCHES "hipcc$")
@@ -565,15 +555,11 @@ if("${CMAKE_CXX_COMPILER}" MATCHES "hipcc$")
       CACHE BOOL "${HIP_OPTION_STRING}" FORCE
   )
 endif()
-# if HPX_WITH_CUDA is ON, then enable both (sub) options
-if(HPX_WITH_CUDA OR HPX_WITH_HIP)
-  set(HPX_WITH_CUDA_COMPUTE
-      ON
-      CACHE BOOL "${CUDA_COMPUTE_STRING}" FORCE
-  )
-  set(HPX_WITH_ASYNC_CUDA
-      ON
-      CACHE BOOL "${ASYNC_CUDA_STRING}" FORCE
+
+if(HPX_WITH_CUDA AND HPX_WITH_HIP)
+  hpx_error(
+    "HPX_WITH_CUDA=ON and HPX_WITH_HIP=ON. Only one of them can be on at the same time.\
+ Note: HPX_WITH_HIP is automatically enabled when compiling with hipcc."
   )
 endif()
 
@@ -1010,7 +996,7 @@ if(HPX_WITH_APEX)
     "Do not update code from remote APEX repository." OFF CATEGORY "Profiling"
   )
   hpx_option(
-    HPX_WITH_APEX_TAG STRING "APEX repository tag or branch" "v2.2.0"
+    HPX_WITH_APEX_TAG STRING "APEX repository tag or branch" "v2.3.1"
     CATEGORY "Profiling"
   )
 endif()
@@ -1070,33 +1056,6 @@ hpx_option(
   HPX_WITH_ITTNOTIFY BOOL "Enable Amplifier (ITT) instrumentation support." OFF
   CATEGORY "Profiling"
 )
-# ##############################################################################
-# enable OpenMP emulation
-# ##############################################################################
-# Deprecated in 1.5.0
-hpx_option(
-  HPX_WITH_HPXMP BOOL "Enable hpxMP OpenMP emulation." OFF CATEGORY "OpenMP"
-)
-if(HPX_WITH_HPXMP)
-  hpx_warn(
-    "HPXMP support is deprecated. This option will be removed in a future release."
-  )
-  if(NOT MSVC AND (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-                   OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"))
-  )
-    hpx_option(
-      HPX_WITH_HPXMP_NO_UPDATE BOOL
-      "Do not update code from remote hpxMP repository." OFF CATEGORY "OpenMP"
-    )
-    hpx_option(
-      HPX_WITH_HPXMP_TAG STRING "hpxMP repository tag or branch" "v0.3.0"
-      CATEGORY "OpenMP"
-    )
-  else()
-    hpx_warn("hpxMP can be used only when compiling with clang or gcc")
-    set(HPX_WITH_HPXMP OFF)
-  endif()
-endif()
 
 # ##############################################################################
 # Scheduler configuration
@@ -1246,21 +1205,6 @@ if(HPX_WITH_NETWORKING)
   endif()
 
   hpx_option(
-    HPX_WITH_PARCELPORT_VERBS
-    BOOL
-    "Enable the ibverbs based parcelport. This is currently an experimental feature"
-    OFF
-    CATEGORY "Parcelport"
-    ADVANCED
-  )
-  if(HPX_WITH_PARCELPORT_VERBS)
-    hpx_warn(
-      "The verbs parcelport is deprecated. Please use the MPI or libfabric parcelports instead."
-    )
-    hpx_add_config_define(HPX_HAVE_PARCELPORT_VERBS)
-  endif()
-
-  hpx_option(
     HPX_WITH_PARCELPORT_MPI BOOL "Enable the MPI based parcelport." OFF
     CATEGORY "Parcelport"
   )
@@ -1392,8 +1336,7 @@ hpx_option(
   ADVANCED
 )
 if(HPX_WITH_EXAMPLES_HDF5)
-  enable_language(Fortran)
-  find_package(HDF5 COMPONENTS CXX Fortran)
+  find_package(HDF5 COMPONENTS CXX)
   if(NOT HDF5_FOUND)
     set(HPX_WITH_EXAMPLES_HDF5 OFF)
   endif()
@@ -1634,7 +1577,7 @@ endif()
 # HPX_WITH_ACTION_BASE_COMPATIBILITY: introduced in V1.4.0
 hpx_option(
   HPX_WITH_ACTION_BASE_COMPATIBILITY BOOL
-  "Enable deprecated action bases (default: ON)" ON ADVANCED
+  "Enable deprecated action bases (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_ACTION_BASE_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_ACTION_BASE_COMPATIBILITY)
@@ -1644,8 +1587,8 @@ endif()
 hpx_option(
   HPX_WITH_REGISTER_THREAD_COMPATIBILITY
   BOOL
-  "Enable deprecated register_thread/work functions in the hpx::applier namespace (default: ON)"
-  ON
+  "Enable deprecated register_thread/work functions in the hpx::applier namespace (default: OFF)"
+  OFF
   ADVANCED
 )
 if(HPX_WITH_REGISTER_THREAD_COMPATIBILITY)
@@ -1674,8 +1617,8 @@ endif()
 # HPX_WITH_PROMISE_ALIAS_COMPATIBILITY : introduced in V1.5.0?
 hpx_option(
   HPX_WITH_PROMISE_ALIAS_COMPATIBILITY BOOL
-  "Enable deprecated alias of hpx::promise to hpx::lcos::promise (default: ON)"
-  ON ADVANCED
+  "Enable deprecated alias of hpx::promise to hpx::lcos::promise (default: OFF)"
+  OFF ADVANCED
 )
 if(HPX_WITH_PROMISE_ALIAS_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_PROMISE_ALIAS_COMPATIBILITY)
@@ -1684,13 +1627,23 @@ endif()
 # HPX_WITH_UNSCOPED_ENUM_COMPATIBILITY : introduced in V1.5.0
 hpx_option(
   HPX_WITH_UNSCOPED_ENUM_COMPATIBILITY BOOL
-  "Enable deprecated unscoped enums (default: ON)" ON ADVANCED
+  "Enable deprecated unscoped enums (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_UNSCOPED_ENUM_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_UNSCOPED_ENUM_COMPATIBILITY)
 endif()
 
 # ##############################################################################
+# Special diagnostic flags, do not enable by default, only if needed
+hpx_option(
+  HPX_WITH_CHECK_MODULE_DEPENDENCIES
+  BOOL
+  "Verify that no modules are cross-referenced from a different module category \
+  (default: OFF)"
+  OFF
+  ADVANCED
+)
+
 # Check for compiler compatibility
 #
 
@@ -1849,8 +1802,10 @@ if(NOT WIN32)
   # ############################################################################
   if(NOT MSVC)
     hpx_add_compile_flag_if_available(-pthread)
-    if(HPX_HAVE_LIBATOMIC)
-      target_link_libraries(hpx_base_libraries INTERFACE atomic)
+    if(HPX_CXX11_STD_ATOMIC_LIBRARIES)
+      target_link_libraries(
+        hpx_base_libraries INTERFACE ${HPX_CXX11_STD_ATOMIC_LIBRARIES}
+      )
     endif()
   endif()
 
@@ -1871,7 +1826,7 @@ if(NOT WIN32)
   endif()
 
   if(APPLE)
-    hpx_add_compile_flag_if_available(-ftemplate-depth=256 LANGUAGES CXX)
+    hpx_add_compile_flag_if_available(-ftemplate-depth=256)
   endif()
 endif()
 
@@ -1934,6 +1889,13 @@ if(WIN32)
 
       # Silence C++17 deprecation warnings
       hpx_add_config_cond_define(_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+
+      # ASan is available in Visual Studion starting V16.8
+      if((MSVC_VERSION GREATER_EQUAL 1928) AND HPX_WITH_SANITIZERS)
+        hpx_add_target_compile_option(
+          -fsanitize=address PUBLIC CONFIGURATIONS RelWithDebInfo Debug
+        )
+      endif()
     endif()
 
     # Runtime type information
@@ -1978,9 +1940,7 @@ endif()
 # Configure Warnings
 if(HPX_WITH_COMPILER_WARNINGS)
   if(MSVC) # Adding special warning settings for the MSVC compiler ...
-    hpx_add_compile_flag(-W3 LANGUAGES C CXX)
-    # According to the ifort Windows manual, W3 isn't supported
-    hpx_add_compile_flag(-W1 LANGUAGES Fortran)
+    hpx_add_compile_flag(-W3)
 
     # MSVC2012/2013 are overeager to report 'qualifier applied to function type
     # has no meaning; ignored'
@@ -2020,22 +1980,16 @@ if(HPX_WITH_COMPILER_WARNINGS)
     endif()
 
   else() # Trial and error approach for any other compiler ...
-    hpx_add_compile_flag_if_available(-Wall LANGUAGES CXX C Fortran)
-    hpx_add_compile_flag_if_available(-Wextra LANGUAGES CXX C Fortran)
-    hpx_add_compile_flag_if_available(
-      -Wno-strict-aliasing LANGUAGES CXX C Fortran
-    )
-    hpx_add_compile_flag_if_available(-Wno-sign-promo LANGUAGES CXX)
-    hpx_add_compile_flag_if_available(-Wno-attributes LANGUAGES CXX)
-    hpx_add_compile_flag_if_available(-Wno-cast-align LANGUAGES CXX)
+    hpx_add_compile_flag_if_available(-Wall)
+    hpx_add_compile_flag_if_available(-Wextra)
+    hpx_add_compile_flag_if_available(-Wno-strict-aliasing)
+    hpx_add_compile_flag_if_available(-Wno-sign-promo)
+    hpx_add_compile_flag_if_available(-Wno-attributes)
+    hpx_add_compile_flag_if_available(-Wno-cast-align)
 
     # We do not in general guarantee ABI compatibility between C++ standards, so
     # we ignore this warning
-    hpx_add_compile_flag_if_available(-Wno-noexcept-type LANGUAGES CXX)
-
-    # These are usually benign and can't be suppressed because of interface
-    # requirements
-    hpx_add_compile_flag_if_available(-Wno-unused-parameter)
+    hpx_add_compile_flag_if_available(-Wno-noexcept-type)
 
     # Be extra strict about format checks Boost.Logging is built on fprintf,
     # sadly
@@ -2070,16 +2024,16 @@ endif()
 # Configure compiler warnings as errors
 if(HPX_WITH_COMPILER_WARNINGS_AS_ERRORS)
   if(MSVC)
-    hpx_add_compile_flag(-WX LANGUAGES C CXX Fortran)
+    hpx_add_compile_flag(-WX)
   else()
-    hpx_add_compile_flag_if_available(-Werror LANGUAGES CXX C Fortran)
+    hpx_add_compile_flag_if_available(-Werror)
   endif()
 endif()
 
 # Diagnostics
 if(MSVC)
   # Display full paths in diagnostics
-  hpx_add_compile_flag(-FC LANGUAGES C CXX)
+  hpx_add_compile_flag(-FC)
   if(CMAKE_CL_64)
     set(__target_arch "x86_64")
   else()
@@ -2088,42 +2042,32 @@ if(MSVC)
   hpx_info("Architecture detected: ${__target_arch}")
 else()
   # Show the flags that toggle each warning
-  hpx_add_compile_flag_if_available(
-    -fdiagnostics-show-option LANGUAGES CXX C Fortran
-  )
+  hpx_add_compile_flag_if_available(-fdiagnostics-show-option)
 
   # VLAs are a GNU extensions that we forbid as they are not supported on MSVC
   hpx_add_compile_flag_if_available(-Werror=vla)
   # No return statement in a non-void function can lead to garbage return values
   # in GCC.
-  hpx_add_compile_flag_if_available(-Werror=return-type LANGUAGES CXX C)
+  hpx_add_compile_flag_if_available(-Werror=return-type)
 
   # We get false positives all over the place with this.
   if(CMAKE_COMPILER_IS_GNUCXX)
-    hpx_add_compile_flag_if_available(
-      -Wno-unused-but-set-parameter LANGUAGES CXX C
-    )
-    hpx_add_compile_flag_if_available(
-      -Wno-unused-but-set-variable LANGUAGES CXX C
-    )
+    hpx_add_compile_flag_if_available(-Wno-unused-but-set-parameter)
+    hpx_add_compile_flag_if_available(-Wno-unused-but-set-variable)
     # Uninitialized variables are bad, earlier compilers issue spurious warnings
-    hpx_add_compile_flag_if_available(-Werror=uninitialized LANGUAGES CXX C)
-    hpx_add_compile_flag_if_available(
-      -Wno-unused-local-typedefs LANGUAGES CXX C
-    )
+    hpx_add_compile_flag_if_available(-Werror=uninitialized)
+    hpx_add_compile_flag_if_available(-Wno-unused-local-typedefs)
     # -Werror=maybe-uninitialized leads to false positives.
-    hpx_add_compile_flag_if_available(-Wno-maybe-uninitialized LANGUAGES CXX C)
+    hpx_add_compile_flag_if_available(-Wno-maybe-uninitialized)
   endif()
 
   # Silence warning about __sync_fetch_and_nand changing semantics
-  hpx_add_compile_flag_if_available(-Wno-sync-nand LANGUAGES CXX C)
+  hpx_add_compile_flag_if_available(-Wno-sync-nand)
 
   # Silence warnings about deleting polymorphic objects with non-virtual dtors.
   # These come from within Boost.
   if(CMAKE_COMPILER_IS_GNUCXX)
-    hpx_add_compile_flag_if_available(
-      -Wno-delete-non-virtual-dtor LANGUAGES CXX
-    )
+    hpx_add_compile_flag_if_available(-Wno-delete-non-virtual-dtor)
   endif()
 
   # Check if our libraries have unresolved symbols if(NOT APPLE AND NOT
@@ -2139,13 +2083,11 @@ else()
   endif()
 
   if("${HPX_PLATFORM_UC}" STREQUAL "BLUEGENEQ")
-    hpx_add_compile_flag_if_available(-Wno-deprecated-register LANGUAGES CXX C)
+    hpx_add_compile_flag_if_available(-Wno-deprecated-register)
   endif()
 
   if(HPX_WITH_HIDDEN_VISIBILITY)
-    hpx_add_compile_flag_if_available(
-      -fvisibility=hidden LANGUAGES CXX C Fortran
-    )
+    hpx_add_compile_flag_if_available(-fvisibility=hidden)
     hpx_add_link_flag_if_available(-fvisibility=hidden TARGETS SHARED EXE)
     hpx_add_config_define(HPX_HAVE_ELF_HIDDEN_VISIBILITY)
     hpx_add_config_define(HPX_HAVE_COROUTINE_GCC_HIDDEN_VISIBILITY)
@@ -2236,7 +2178,7 @@ set(HPX_WITH_TARGET_ARCHITECTURE
 # Compatibility with using Boost.ProgramOptions, introduced in V1.4.0
 hpx_option(
   HPX_PROGRAM_OPTIONS_WITH_BOOST_PROGRAM_OPTIONS_COMPATIBILITY BOOL
-  "Enable Boost.ProgramOptions compatibility. (default: ON)" ON ADVANCED
+  "Enable Boost.ProgramOptions compatibility. (default: OFF)" OFF ADVANCED
   CATEGORY "Modules"
 )
 
@@ -2257,7 +2199,7 @@ hpx_option(
 # Compatibility for embedded thread pools, introduced in V1.5.0
 hpx_option(
   HPX_WITH_EMBEDDED_THREAD_POOLS_COMPATIBILITY BOOL
-  "Enable deprecated embedded thread pools (default: ON)" ON ADVANCED
+  "Enable deprecated embedded thread pools (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_EMBEDDED_THREAD_POOLS_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_EMBEDDED_THREAD_POOLS_COMPATIBILITY)
@@ -2266,7 +2208,7 @@ endif()
 # Compatibility for thread pool os executors, introduced in V1.5.0
 hpx_option(
   HPX_WITH_THREAD_POOL_OS_EXECUTOR_COMPATIBILITY BOOL
-  "Enable deprecated thread pool executors (default: ON)" ON ADVANCED
+  "Enable deprecated thread pool executors (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_THREAD_POOL_OS_EXECUTOR_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_THREAD_POOL_OS_EXECUTOR_COMPATIBILITY)
@@ -2275,7 +2217,7 @@ endif()
 # Compatibility for thread executors, introduced in V1.5.0
 hpx_option(
   HPX_WITH_THREAD_EXECUTORS_COMPATIBILITY BOOL
-  "Enable deprecated thread executors (default: ON)" ON ADVANCED
+  "Enable deprecated thread executors (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_THREAD_EXECUTORS_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_THREAD_EXECUTORS_COMPATIBILITY)
@@ -2284,7 +2226,7 @@ endif()
 # Compatibility for thread aware timer, introduced in V1.5.0
 hpx_option(
   HPX_WITH_THREAD_AWARE_TIMER_COMPATIBILITY BOOL
-  "Enable deprecated thread_aware_timer (default: ON)" ON ADVANCED
+  "Enable deprecated thread_aware_timer (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_THREAD_AWARE_TIMER_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_THREAD_AWARE_TIMER_COMPATIBILITY)
@@ -2293,7 +2235,7 @@ endif()
 # Compatibility for pool executor, introduced in V1.5.0
 hpx_option(
   HPX_WITH_POOL_EXECUTOR_COMPATIBILITY BOOL
-  "Enable deprecated pool executor (default: ON)" ON ADVANCED
+  "Enable deprecated pool executor (default: OFF)" OFF ADVANCED
 )
 if(HPX_WITH_POOL_EXECUTOR_COMPATIBILITY)
   hpx_add_config_define(HPX_HAVE_POOL_EXECUTOR_COMPATIBILITY)
@@ -2328,7 +2270,6 @@ include(HPX_SetupCUDA) # CUDA needs to come before Apex, to have
                        # cuda_add_library available
 include(HPX_SetupApex)
 include(HPX_SetupPapi)
-include(HPX_SetupHpxmp)
 include(HPX_SetupGooglePerfTools)
 include(HPX_SetupValgrind)
 if(HPX_WITH_CUDA OR HPX_WITH_HIP)
@@ -2374,7 +2315,7 @@ endif()
 # Note: on windows systems the ':' will be converted to a ';' at runtime
 hpx_add_config_cond_define(
   HPX_DEFAULT_COMPONENT_PATH_SUFFIXES
-  "\"/${CMAKE_INSTALL_BINDIR}/hpx:/lib/hpx:/bin/hpx\""
+  "\"/${CMAKE_INSTALL_LIBDIR}/hpx:/${CMAKE_INSTALL_BINDIR}/hpx:/lib/hpx:/bin/hpx\""
 )
 
 # ##############################################################################

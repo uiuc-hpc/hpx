@@ -9,7 +9,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/actions_base/actions_base_support.hpp>
@@ -250,6 +249,8 @@ namespace hpx { namespace agas
         {
             p.parcel_id() = parcelset::parcel::generate_unique_id(source_locality_id);
         }
+#else
+        HPX_UNUSED(source_locality_id);
 #endif
 
         parcelset::detail::parcel_await_apply(std::move(p),
@@ -261,12 +262,11 @@ namespace hpx { namespace agas
     } // }}}
 
     template <typename Action, typename... Args>
-    void big_boot_barrier::apply_late(
-        std::uint32_t source_locality_id
-      , std::uint32_t target_locality_id
-      , parcelset::locality const & dest
-      , Action act
-      , Args &&... args)
+    void big_boot_barrier::apply_late(std::uint32_t /* source_locality_id */
+        ,
+        std::uint32_t target_locality_id, parcelset::locality const& /* dest */
+        ,
+        Action act, Args&&... args)
     { // {{{
         naming::address addr(naming::get_gid_from_locality_id(target_locality_id));
 
@@ -901,5 +901,4 @@ big_boot_barrier& get_big_boot_barrier()
 
 }}
 
-#endif
 #endif

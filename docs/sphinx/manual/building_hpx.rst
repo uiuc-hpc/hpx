@@ -167,7 +167,7 @@ Software and libraries
 
 In the simplest case, |hpx| depends on |boost|_ and |hwloc|_. So, before you
 read further, please make sure you have a recent version of |boost|_ installed
-on your target machine. |hpx| currently requires at least Boost V1.65.0 to work
+on your target machine. |hpx| currently requires at least Boost V1.66.0 to work
 properly. It may build and run with older versions, but we do not test |hpx|
 with those versions, so please be warned.
 
@@ -204,11 +204,8 @@ favorite compiler with |hpx| visit |hpx_buildbot|_.
    * * |gcc|_
      * 7.0
      *
-   * * |icpc|_
-     * 2014
-     *
    * * |clang|_
-     * 5.0
+     * 7.0
      *
    * * **Build System**
      *
@@ -220,7 +217,7 @@ favorite compiler with |hpx| visit |hpx_buildbot|_.
      *
      *
    * * |boost_libraries|_
-     * 1.65.0
+     * 1.66.0
      *
    * * |hwloc|_
      * 1.5
@@ -252,7 +249,7 @@ favorite compiler with |hpx| visit |hpx_buildbot|_.
      *
      *
    * * |boost|_
-     * 1.65.0
+     * 1.66.0
      *
    * * |hwloc|_
      * 1.5
@@ -657,7 +654,7 @@ How to install |hpx| on Unix variants
 
   .. code-block:: bash
 
-     cmake -DBOOST_ROOT=~/packages/boost -DHWLOC_ROOT=/packages/hwloc -DCMAKE_INSTALL_PREFIX=~/packages/hpx ~/downloads/hpx_1.5.0
+     cmake -DBOOST_ROOT=~/packages/boost -DHWLOC_ROOT=/packages/hwloc -DCMAKE_INSTALL_PREFIX=~/packages/hpx ~/downloads/hpx_1.5.1
 
 * Invoke GNU make. If you are on a machine with multiple cores, add the -jN flag
   to your make invocation, where N is the number of parallel processes |hpx|
@@ -816,10 +813,7 @@ required libraries via MacPorts:
       mkdir hpx-build
       pushd hpx-build
       export HPX_ROOT=$HOME/hpx
-      cmake -DCMAKE_C_COMPILER=gcc \
-          -DCMAKE_CXX_COMPILER=g++ \
-          -DCMAKE_FORTRAN_COMPILER=gfortran \
-          -DCMAKE_C_FLAGS="-Wno-unused-local-typedefs" \
+      cmake -DCMAKE_CXX_COMPILER=g++ \
           -DCMAKE_CXX_FLAGS="-Wno-unused-local-typedefs" \
           -DBOOST_ROOT=$BOOST_ROOT \
           -DHWLOC_ROOT=/opt/local \
@@ -845,13 +839,8 @@ required libraries via MacPorts:
    .. code-block:: bash
 
       cmake -DHPX_WITH_PARCELPORT_MPI=ON \
-           -DCMAKE_C_COMPILER=gcc \
            -DCMAKE_CXX_COMPILER=g++ \
-           -DCMAKE_FORTRAN_COMPILER=gfortran \
-           -DMPI_C_COMPILER=openmpicc \
            -DMPI_CXX_COMPILER=openmpic++ \
-           -DMPI_FORTRAN_COMPILER=openmpif90 \
-           -DCMAKE_C_FLAGS="-Wno-unused-local-typedefs" \
            -DCMAKE_CXX_FLAGS="-Wno-unused-local-typedefs" \
            -DBOOST_ROOT=$BOOST_DIR \
            -DHWLOC_ROOT=/opt/local \
@@ -993,11 +982,12 @@ How to build |hpx| under Windows 10 x64 with Visual Studio 2015
 
   Alternatively, users could provide ``BOOST_LIBRARYDIR`` instead of
   ``BOOST_ROOT``; the difference is that ``BOOST_LIBRARYDIR`` should point to
-  the subdirectory inside Boost root where all the compiled DLLs/LIBs are. For example,
- ``BOOST_LIBRARYDIR`` may point to the ``bin.v2`` subdirectory under the Boost rootdir.
-  It is important to keep the meanings of these two variables separated from each other:
- ``BOOST_DIR`` points to the ROOT folder of the Boost library. ``BOOST_LIBRARYDIR``
-  points to the subdir inside the Boost root folder where the compiled binaries are.
+  the subdirectory inside Boost root where all the compiled DLLs/LIBs are. For
+  example, ``BOOST_LIBRARYDIR`` may point to the ``bin.v2`` subdirectory under
+  the Boost rootdir. It is important to keep the meanings of these two variables
+  separated from each other: ``BOOST_DIR`` points to the ROOT folder of the
+  Boost library. ``BOOST_LIBRARYDIR`` points to the subdir inside the Boost root
+  folder where the compiled binaries are.
 
 * Click the 'Configure' button of CMake-GUI. You will be immediately presented with a
   small window where you can select the C++ compiler to be used within Visual
@@ -1049,7 +1039,7 @@ How to install |hpx| on Fedora distributions
   .. code-block:: bash
 
      sudo dnf install gcc-c++ cmake boost-build boost boost-devel hwloc-devel \
-       hwloc gcc-gfortran papi-devel gperftools-devel docbook-dtds \
+       hwloc papi-devel gperftools-devel docbook-dtds \
        docbook-style-xsl libsodium-devel doxygen boost-doc hdf5-devel \
        fop boost-devel boost-openmpi-devel boost-mpich-devel
 

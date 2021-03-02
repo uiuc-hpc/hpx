@@ -149,8 +149,7 @@ namespace tests {
     }
 
     template <typename Iterator, typename T>
-    void readable_iterator_traversal_test(
-        const Iterator i1, T v, std::false_type)
+    void readable_iterator_traversal_test(const Iterator, T, std::false_type)
     {
     }
 
@@ -174,7 +173,7 @@ namespace tests {
 
         // I think we don't really need this as it checks the same things as
         // the above code.
-        HPX_TEST(!hpx::traits::is_output_iterator<Iterator>::value);
+        HPX_TEST(hpx::traits::is_input_iterator<Iterator>::value);
     }
 
     template <typename Iterator, typename T>
@@ -440,8 +439,7 @@ namespace tests {
     }
 
     template <class Iterator, class T>
-    void writable_iterator_traversal_test(
-        const Iterator i1, T v, std::false_type)
+    void writable_iterator_traversal_test(const Iterator, T, std::false_type)
     {
     }
 

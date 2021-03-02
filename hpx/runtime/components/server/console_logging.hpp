@@ -8,8 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
-#include <hpx/actions/base_action.hpp>
 #include <hpx/actions/transfer_action.hpp>
 #include <hpx/actions/transfer_continuation_action.hpp>
 #include <hpx/actions_base/plain_action.hpp>
@@ -69,9 +67,9 @@ namespace hpx { namespace components { namespace server
 
     public:
         template <typename T>
-        static util::unused_type
-        execute_function(naming::address_type lva,
-            naming::component_type comptype, T&& v)
+        static util::unused_type execute_function(
+            naming::address_type /* lva */,
+            naming::component_type /* comptype */, T&& v)
         {
             try {
                 // call the function, ignoring the return value
@@ -89,4 +87,4 @@ HPX_REGISTER_ACTION_DECLARATION(
     hpx::components::server::console_logging_action<>,
     console_logging_action)
 
-#endif
+

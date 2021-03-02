@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/traits/action_priority.hpp>
 #include <hpx/actions_base/traits/extract_action.hpp>
 #include <hpx/coroutines/thread_enums.hpp>
@@ -24,9 +22,8 @@ namespace hpx { namespace actions {
                 traits::action_priority<action_type_>::value);
         //  The mapping to 'normal' is now done at the last possible moment in
         //  the scheduler.
-        //  if (priority == threads::thread_priority_default)
-        //      priority = threads::thread_priority_normal;
+        //  if (priority == threads::thread_priority::default_)
+        //      priority = threads::thread_priority::normal;
         return priority;
     }
 }}    // namespace hpx::actions
-#endif

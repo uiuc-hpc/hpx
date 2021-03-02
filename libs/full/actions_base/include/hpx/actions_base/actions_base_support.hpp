@@ -11,7 +11,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/actions_base_fwd.hpp>
 #include <hpx/actions_base/actions_base_support.hpp>
 #include <hpx/actions_base/traits/action_remote_result.hpp>
@@ -41,7 +40,7 @@ namespace hpx { namespace actions { namespace detail {
     {
         static threads::thread_priority call(threads::thread_priority priority)
         {
-            if (priority == threads::thread_priority_default)
+            if (priority == threads::thread_priority::default_)
                 return Priority;
             return priority;
         }
@@ -50,14 +49,14 @@ namespace hpx { namespace actions { namespace detail {
     // If the static Priority is default, a dynamically specified default
     // priority results in using the normal priority.
     template <>
-    struct thread_priority<threads::thread_priority_default>
+    struct thread_priority<threads::thread_priority::default_>
     {
         static threads::thread_priority call(threads::thread_priority priority)
         {
             // The mapping to 'normal' is now done at the last possible
             // moment in the scheduler.
-            //    if (priority == threads::thread_priority_default)
-            //        return threads::thread_priority_normal;
+            //    if (priority == threads::thread_priority::default_)
+            //        return threads::thread_priority::normal;
             return priority;
         }
     };
@@ -72,7 +71,7 @@ namespace hpx { namespace actions { namespace detail {
         static threads::thread_stacksize call(
             threads::thread_stacksize stacksize)
         {
-            if (stacksize == threads::thread_stacksize_default)
+            if (stacksize == threads::thread_stacksize::default_)
                 return Stacksize;
             return stacksize;
         }
@@ -81,13 +80,13 @@ namespace hpx { namespace actions { namespace detail {
     // If the static Stacksize is default, a dynamically specified default
     // stacksize results in using the normal stacksize.
     template <>
-    struct thread_stacksize<threads::thread_stacksize_default>
+    struct thread_stacksize<threads::thread_stacksize::default_>
     {
         static threads::thread_stacksize call(
             threads::thread_stacksize stacksize)
         {
-            if (stacksize == threads::thread_stacksize_default)
-                return threads::thread_stacksize_minimal;
+            if (stacksize == threads::thread_stacksize::default_)
+                return threads::thread_stacksize::minimal;
             return stacksize;
         }
     };
@@ -143,4 +142,3 @@ namespace hpx { namespace actions { namespace detail {
 }}}    // namespace hpx::actions::detail
 
 #include <hpx/config/warnings_suffix.hpp>
-#endif

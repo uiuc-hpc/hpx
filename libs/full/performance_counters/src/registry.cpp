@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/functional/bind.hpp>
 #include <hpx/functional/bind_front.hpp>
 #include <hpx/functional/function.hpp>
@@ -400,7 +399,7 @@ namespace hpx { namespace performance_counters {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    std::int64_t wrap_counter(std::int64_t* p, bool reset)
+    std::int64_t wrap_counter(std::int64_t* p, bool /* reset */)
     {
         std::int64_t result = *p;
         *p = 0;
@@ -1173,8 +1172,8 @@ namespace hpx { namespace performance_counters {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    counter_status registry::remove_counter(
-        counter_info const& info, naming::id_type const& id, error_code& ec)
+    counter_status registry::remove_counter(counter_info const& info,
+        naming::id_type const& /* id */, error_code& ec)
     {
         // make sure parent instance name is set properly
         counter_info complemented_info = info;
@@ -1236,4 +1235,3 @@ namespace hpx { namespace performance_counters {
     }
 
 }}    // namespace hpx::performance_counters
-#endif

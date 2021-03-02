@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2016 Hartmut Kaiser
+//  Copyright (c) 2007-2020 Hartmut Kaiser
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/actions/set_lco_value_continuation.hpp>
 #include <hpx/naming_base/id_type.hpp>
 #include <hpx/runtime/actions/continuation2_impl.hpp>
 #include <hpx/runtime/actions/continuation_impl.hpp>
-#include <hpx/runtime/actions/set_lco_value_continuation.hpp>
 #include <hpx/runtime/find_here.hpp>
 #include <hpx/runtime_fwd.hpp>
 
@@ -19,6 +17,7 @@
 #include <utility>
 
 namespace hpx {
+
     inline hpx::actions::set_lco_value_continuation
     make_continuation()
     {
@@ -82,4 +81,4 @@ namespace hpx {
             std::forward<Cont>(cont), target, std::forward<F>(f));
     }
 }
-#endif
+

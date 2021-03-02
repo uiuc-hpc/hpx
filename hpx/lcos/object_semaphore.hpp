@@ -8,7 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/async_distributed/async.hpp>
 #include <hpx/modules/errors.hpp>
@@ -74,7 +73,7 @@ namespace hpx { namespace lcos
             typedef typename server_type::abort_pending_action action_type;
             return hpx::async<action_type>(this->get_id(), ec);
         }
-        void abort_pending(launch::sync_policy, error ec = no_success)
+        void abort_pending(launch::sync_policy, error = no_success)
         {
             abort_pending(launch::async).get();
         }
@@ -93,4 +92,4 @@ namespace hpx { namespace lcos
     };
 }}
 
-#endif
+

@@ -8,9 +8,9 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/config/detail/compat_error_code.hpp>
 #include <hpx/actions_base/traits/action_priority.hpp>
+#include <hpx/actions_base/traits/action_was_object_migrated.hpp>
 #include <hpx/actions_base/traits/extract_action.hpp>
 #include <hpx/allocator_support/internal_allocator.hpp>
 #include <hpx/assert.hpp>
@@ -23,7 +23,6 @@
 #include <hpx/memory/intrusive_ptr.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/memory.hpp>
-#include <hpx/traits/action_was_object_migrated.hpp>
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <boost/asio/error.hpp>
@@ -206,9 +205,8 @@ namespace hpx { namespace lcos {
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", " << id << ") args(" << sizeof...(Ts) << ")";
 
-            using callback_type = typename std::decay<Callback>::type;
-
 #if defined(HPX_HAVE_NETWORKING)
+            using callback_type = typename std::decay<Callback>::type;
             auto&& f = detail::parcel_write_handler_cb<Result, callback_type>{
                 this->shared_state_, std::forward<Callback>(cb)};
 #else
@@ -248,9 +246,9 @@ namespace hpx { namespace lcos {
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", " << id << ") args(" << sizeof...(Ts) << ")";
 
-            using callback_type = typename std::decay<Callback>::type;
 
 #if defined(HPX_HAVE_NETWORKING)
+            using callback_type = typename std::decay<Callback>::type;
             auto&& f = detail::parcel_write_handler_cb<Result, callback_type>{
                 this->shared_state_, std::forward<Callback>(cb)};
 #else
@@ -382,9 +380,8 @@ namespace hpx { namespace lcos {
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", " << id << ") args(" << sizeof...(Ts) << ")";
 
-            using callback_type = typename std::decay<Callback>::type;
-
 #if defined(HPX_HAVE_NETWORKING)
+            using callback_type = typename std::decay<Callback>::type;
             auto&& f = detail::parcel_write_handler_cb<Result, callback_type>{
                 this->shared_state_, std::forward<Callback>(cb)};
 #else
@@ -633,4 +630,4 @@ namespace hpx { namespace lcos {
         }
     };
 }}
-#endif
+

@@ -419,11 +419,11 @@ Parallel algorithms
      * Checks if a predicate is ``true`` for none of the elements in a range.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`all_any_none_of`
-   * * :cpp:func:`hpx::parallel::v1::search`
+   * * :cpp:func:`hpx::search`
      * Searches for a range of elements.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`search`
-   * * :cpp:func:`hpx::parallel::v1::search_n`
+   * * :cpp:func:`hpx::search_n`
      * Searches for a number consecutive copies of an element in a range.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`search_n`
@@ -466,19 +466,19 @@ Parallel algorithms
      * Saves the result of N applications of a function.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`generate_n`
-   * * :cpp:func:`hpx::parallel::v1::remove`
+   * * :cpp:func:`hpx::remove`
      * Removes the elements from a range that are equal to the given value.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`remove`
-   * * :cpp:func:`hpx::parallel::v1::remove_if`
+   * * :cpp:func:`hpx::remove_if`
      * Removes the elements from a range that are equal to the given predicate is ``false``
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`remove`
-   * * :cpp:func:`hpx::parallel::v1::remove_copy`
+   * * :cpp:func:`hpx::remove_copy`
      * Copies the elements from a range to a new location that are not equal to the given value.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`remove_copy`
-   * * :cpp:func:`hpx::parallel::v1::remove_copy_if`
+   * * :cpp:func:`hpx::remove_copy_if`
      * Copies the elements from a range to a new location for which the given predicate is ``false``
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`remove_copy`
@@ -518,7 +518,7 @@ Parallel algorithms
      * Swaps two ranges of elements.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`swap_ranges`
-   * * :cpp:func:`hpx::parallel::v1::transform`
+   * * :cpp:func:`hpx::transform`
      * Applies a function to a range of elements.
      * ``<hpx/algorithm.hpp>``
      * :cppreference-algorithm:`transform`

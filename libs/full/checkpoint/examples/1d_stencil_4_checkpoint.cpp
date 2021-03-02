@@ -21,8 +21,6 @@
 // every n time steps.
 //
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
 
@@ -122,9 +120,11 @@ private:
     // Serialization Definitions
     friend class hpx::serialization::access;
     template <typename Volume>
-    void serialize(Volume& vol, const unsigned int version)
+    void serialize(Volume& vol, const unsigned int)
     {
-        vol& data_& size_;
+        // clang-format off
+        vol & data_ & size_;
+        // clang-format on
     }
 };
 
@@ -352,7 +352,7 @@ struct stepper
             if (t % cp == 0 && t != 0)
             {
                 hpx::future<void> f_print = hpx::when_all(next).then(
-                    [&container, t, cp](hpx::future<space>&& f_s) {
+                    [&container, t, cp](hpx::future<space>&&) {
                         container[(t / cp) - 1].write();
                     });
                 backup_complete.push_back(std::move(f_print));
@@ -477,6 +477,8 @@ int main(int argc, char* argv[])
         "Base name of archive file");
 
     // Initialize and run HPX
-    return hpx::init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }
-#endif

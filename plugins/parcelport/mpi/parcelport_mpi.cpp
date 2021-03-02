@@ -8,7 +8,6 @@
 
 #include <hpx/config.hpp>
 
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/plugin/traits/plugin_config_data.hpp>
 
@@ -147,7 +146,8 @@ namespace hpx { namespace parcelset
                 while(do_background_work(0, parcelport_background_mode_all))
                 {
                     if(threads::get_self_ptr())
-                        hpx::this_thread::suspend(hpx::threads::pending,
+                        hpx::this_thread::suspend(
+                            hpx::threads::thread_schedule_state::pending,
                             "mpi::parcelport::do_stop");
                 }
                 stopped_ = true;
@@ -161,21 +161,17 @@ namespace hpx { namespace parcelset
             }
 
             std::shared_ptr<sender_connection> create_connection(
-                parcelset::locality const& l, error_code& ec)
+                parcelset::locality const& l, error_code&)
             {
                 int dest_rank = l.get<locality>().rank();
                 return sender_.create_connection(dest_rank, this);
             }
 
             parcelset::locality agas_locality(
-                util::runtime_configuration const & ini) const override
+                util::runtime_configuration const&) const override
             {
-                return
-                    parcelset::locality(
-                        locality(
-                            util::mpi_environment::enabled() ? 0 : -1
-                        )
-                    );
+                return parcelset::locality(
+                    locality(util::mpi_environment::enabled() ? 0 : -1));
             }
 
             parcelset::locality create_locality() const override
@@ -184,7 +180,7 @@ namespace hpx { namespace parcelset
             }
 
             bool background_work(
-                std::size_t num_thread, parcelport_background_mode mode)
+                std::size_t /* num_thread */, parcelport_background_mode mode)
             {
                 if (stopped_)
                     return false;
@@ -306,5 +302,4 @@ HPX_REGISTER_PARCELPORT(
     hpx::parcelset::policies::mpi::parcelport,
     mpi);
 
-#endif
 #endif

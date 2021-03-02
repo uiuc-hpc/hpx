@@ -55,11 +55,13 @@ class sierpinski{
     //Serialization is necessary to transmit objects from one locality to another
     friend class hpx::serialization::access;
     template <class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void serialize(Archive& ar, const unsigned int)
     {
+        // clang-format off
         ar & black_triangles;
         ar & white_triangles;
         ar & area;
+        // clang-format on
     }
 };
 
@@ -135,6 +137,9 @@ int main(int argc, char* argv[])
           "side-length of the original triangle")
         ;
 
-    return hpx::init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

@@ -7,10 +7,9 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/actions/continuation.hpp>
 #include <hpx/actions_base/plain_action.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #endif
 #include <hpx/async_combinators/wait_each.hpp>
 #include <hpx/execution_base/this_thread.hpp>
@@ -42,9 +41,6 @@
 using hpx::program_options::options_description;
 using hpx::program_options::value;
 using hpx::program_options::variables_map;
-
-using hpx::finalize;
-using hpx::init;
 
 using hpx::apply;
 using hpx::async;
@@ -86,13 +82,13 @@ void print_stats(const char* title, const char* wait, const char* exec,
     //hpx::util::print_cdash_timing(title, duration);
 }
 
-const char* exec_name(hpx::execution::parallel_executor const& exec)
+const char* exec_name(hpx::execution::parallel_executor const&)
 {
     return "parallel_executor";
 }
 
 const char* exec_name(
-    hpx::parallel::execution::parallel_executor_aggregated const& exec)
+    hpx::parallel::execution::parallel_executor_aggregated const&)
 {
     return "parallel_executor_aggregated";
 }
@@ -129,7 +125,7 @@ struct scratcher
     }
 };
 
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
 HPX_PLAIN_ACTION(null_function, null_action)
 
 // Time async action execution using wait each on futures vector
@@ -390,9 +386,9 @@ void measure_function_futures_create_thread(std::uint64_t count, bool csv)
     auto const thread_func =
         hpx::threads::detail::thread_function_nullary<decltype(func)>{func};
     auto const desc = hpx::util::thread_description();
-    auto const prio = hpx::threads::thread_priority_normal;
+    auto const prio = hpx::threads::thread_priority::normal;
     auto const hint = hpx::threads::thread_schedule_hint();
-    auto const stack_size = hpx::threads::thread_stacksize_small;
+    auto const stack_size = hpx::threads::thread_stacksize::small_;
     hpx::error_code ec;
 
     // start the clock
@@ -401,7 +397,8 @@ void measure_function_futures_create_thread(std::uint64_t count, bool csv)
     {
         auto init = hpx::threads::thread_init_data(
             hpx::threads::thread_function_type(thread_func), desc, prio, hint,
-            stack_size, hpx::threads::pending, false, sched);
+            stack_size, hpx::threads::thread_schedule_state::pending, false,
+            sched);
         sched->create_thread(init, nullptr, ec);
     }
     l.wait();
@@ -438,8 +435,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
     auto const thread_func =
         hpx::threads::detail::thread_function_nullary<decltype(func)>{func};
     auto const desc = hpx::util::thread_description();
-    auto prio = hpx::threads::thread_priority_normal;
-    auto const stack_size = hpx::threads::thread_stacksize_small;
+    auto prio = hpx::threads::thread_priority::normal;
+    auto const stack_size = hpx::threads::thread_stacksize::small_;
     auto const num_threads = hpx::get_num_worker_threads();
     hpx::error_code ec;
 
@@ -458,7 +455,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
             {
                 hpx::threads::thread_init_data init(
                     hpx::threads::thread_function_type(thread_func), desc, prio,
-                    hint, stack_size, hpx::threads::pending, false, sched);
+                    hint, stack_size,
+                    hpx::threads::thread_schedule_state::pending, false, sched);
                 sched->create_thread(init, nullptr, ec);
             }
         };
@@ -468,7 +466,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
 
         hpx::threads::thread_init_data init(
             hpx::threads::thread_function_type(thread_spawn_func), desc, prio,
-            hint, stack_size, hpx::threads::pending, false, sched);
+            hint, stack_size, hpx::threads::thread_schedule_state::pending,
+            false, sched);
         sched->create_thread(init, nullptr, ec);
     }
     l.wait();
@@ -548,18 +547,17 @@ int hpx_main(variables_map& vm)
         hpx::execution::parallel_executor par;
         hpx::parallel::execution::parallel_executor_aggregated par_agg;
         hpx::execution::parallel_executor par_nostack(
-            hpx::threads::thread_priority_default,
-            hpx::threads::thread_stacksize_nostack);
+            hpx::threads::thread_priority::default_,
+            hpx::threads::thread_stacksize::nostack);
 
         for (int i = 0; i < repetitions; i++)
         {
-            measure_function_futures_limiting_executor(count, csv, par);
             measure_function_futures_create_thread_hierarchical_placement(
                 count, csv);
             if (test_all)
             {
                 measure_function_futures_limiting_executor(count, csv, par);
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
                 measure_action_futures_wait_each(count, csv);
                 measure_action_futures_wait_all(count, csv);
 #endif
@@ -606,6 +604,8 @@ int main(int argc, char* argv[])
     // clang-format on
 
     // Initialize and run HPX.
-    return init(cmdline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    return hpx::init(argc, argv, init_args);
 }
-#endif

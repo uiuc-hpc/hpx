@@ -233,6 +233,7 @@ function(add_hpx_module libname modulename)
   )
   list(REMOVE_ITEM zombie_generated_headers ${generated_headers}
        ${compat_headers}
+       ${CMAKE_CURRENT_BINARY_DIR}/include/hpx/config/modules_enabled.hpp
   )
   foreach(zombie_header IN LISTS zombie_generated_headers)
     hpx_warn("Removing zombie generated header: ${zombie_header}")
@@ -246,8 +247,8 @@ function(add_hpx_module libname modulename)
 
   # create library modules
   if(${name}_CUDA
-     AND HPX_WITH_CUDA_COMPUTE
-     AND NOT HPX_WITH_HIP
+     AND HPX_WITH_CUDA
+     AND NOT HPX_WITH_CUDA_CLANG
   )
     # cmake-format: off
     cuda_add_library(
@@ -264,6 +265,24 @@ function(add_hpx_module libname modulename)
       ${headers} ${generated_headers} ${compat_headers}
     )
     # cmake-format: on
+  endif()
+
+  if(HPX_WITH_CHECK_MODULE_DEPENDENCIES)
+    # verify that all dependencies are from the same module category
+    foreach(dep ${${modulename}_MODULE_DEPENDENCIES})
+      # consider only module dependencies, not other targets
+      string(FIND ${dep} "hpx_" find_index)
+      if(${find_index} EQUAL 0)
+        string(SUBSTRING ${dep} 4 -1 dep) # cut off leading "hpx_"
+        list(FIND _hpx_${libname}_modules ${dep} dep_index)
+        if(${dep_index} EQUAL -1)
+          hpx_error(
+            "The module ${dep} should not be be listed in MODULE_DEPENDENCIES "
+            "for module hpx_${modulename}"
+          )
+        endif()
+      endif()
+    endforeach()
   endif()
 
   target_link_libraries(

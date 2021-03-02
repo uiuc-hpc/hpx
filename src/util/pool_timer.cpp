@@ -5,7 +5,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/functional/bind_front.hpp>
@@ -106,8 +105,8 @@ namespace hpx { namespace util { namespace detail
         }
     }
 
-    bool pool_timer::start(hpx::chrono::steady_duration const& time_duration,
-        bool evaluate_)
+    bool pool_timer::start(
+        hpx::chrono::steady_duration const& time_duration, bool /* evaluate_ */)
     {
         std::unique_lock<mutex_type> l(mtx_);
         if (is_terminated_)
@@ -229,4 +228,3 @@ namespace hpx { namespace util
         return timer_->is_terminated();
     }
 }}
-#endif

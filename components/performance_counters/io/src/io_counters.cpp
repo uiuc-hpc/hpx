@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/performance_counters/manage_counter_type.hpp>
 #include <hpx/runtime/components/component_factory_base.hpp>
 #include <hpx/runtime/components/component_startup_shutdown.hpp>
@@ -17,7 +16,6 @@
 #include <hpx/components/performance_counters/io/io_counters.hpp>
 
 #include <hpx/modules/errors.hpp>
-#include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -208,4 +206,3 @@ namespace hpx { namespace performance_counters { namespace io
 // register component's startup function
 HPX_REGISTER_STARTUP_MODULE_DYNAMIC(
     hpx::performance_counters::io::get_startup);
-#endif

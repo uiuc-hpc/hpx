@@ -58,8 +58,8 @@ void test_fn(atype& acnt, atype& atot, atype& amax)
 
 void test_limit()
 {
-    auto exec1 =
-        hpx::execution::parallel_executor(hpx::threads::thread_stacksize_small);
+    auto exec1 = hpx::execution::parallel_executor(
+        hpx::threads::thread_stacksize::small_);
     //
     const bool block_on_exit = true;
     std::vector<hpx::future<void>> futures;
@@ -101,7 +101,7 @@ void test_limit()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     test_limit();
 
@@ -114,8 +114,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=cores"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(
-        hpx::init(argc, argv, cfg), 0, "HPX main exited with non-zero status");
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
+        "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();
 }

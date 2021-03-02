@@ -33,11 +33,9 @@ void blocker(
     if (worker != hpx::get_worker_thread_num())
     {
         hpx::threads::thread_init_data data(
-            hpx::threads::make_thread_function_nullary(
-                hpx::util::bind(
-                    &blocker, entered, started, blocked_threads, worker)),
-            "blocker",
-            hpx::threads::thread_priority_normal,
+            hpx::threads::make_thread_function_nullary(hpx::util::bind(
+                &blocker, entered, started, blocked_threads, worker)),
+            "blocker", hpx::threads::thread_priority::normal,
             hpx::threads::thread_schedule_hint(worker));
         hpx::threads::register_work(data);
         return;
@@ -54,7 +52,6 @@ void blocker(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-volatile int i = 0;
 std::uint64_t delay = 100;
 
 int hpx_main()
@@ -81,11 +78,9 @@ int hpx_main()
                 continue;
 
             hpx::threads::thread_init_data data(
-                hpx::threads::make_thread_function_nullary(
-                    hpx::util::bind(
-                        &blocker, &entered, &started, &blocked_threads, i)),
-                "blocker",
-                hpx::threads::thread_priority_normal,
+                hpx::threads::make_thread_function_nullary(hpx::util::bind(
+                    &blocker, &entered, &started, &blocked_threads, i)),
+                "blocker", hpx::threads::thread_priority::normal,
                 hpx::threads::thread_schedule_hint(i));
             hpx::threads::register_work(data);
             ++scheduled;
@@ -104,8 +99,6 @@ int hpx_main()
             {
                 if (td.elapsed() > delay_sec)
                     break;
-                else
-                    ++i;
             }
         }
 
@@ -141,7 +134,11 @@ int main(
     };
 
     // Initialize and run HPX.
-    return hpx::init(cmdline, argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }
 
 

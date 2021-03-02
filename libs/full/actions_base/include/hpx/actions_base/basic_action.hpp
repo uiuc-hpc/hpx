@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2018 Hartmut Kaiser
+//  Copyright (c) 2007-2020 Hartmut Kaiser
 //  Copyright (c)      2011 Bryce Lelbach
 //  Copyright (c)      2011 Thomas Heller
 //
@@ -11,7 +11,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/actions_base_fwd.hpp>
 #include <hpx/actions_base/actions_base_support.hpp>
 #include <hpx/actions_base/basic_action_fwd.hpp>
@@ -19,12 +18,16 @@
 #include <hpx/actions_base/detail/invocation_count_registry.hpp>
 #include <hpx/actions_base/detail/per_action_data_counter_registry.hpp>
 #include <hpx/actions_base/preassigned_action_id.hpp>
+#include <hpx/actions_base/traits/action_continuation_fwd.hpp>
 #include <hpx/actions_base/traits/action_priority.hpp>
 #include <hpx/actions_base/traits/action_remote_result.hpp>
 #include <hpx/actions_base/traits/action_stacksize.hpp>
+#include <hpx/actions_base/traits/action_trigger_continuation_fwd.hpp>
 #include <hpx/async_base/launch_policy.hpp>
 #include <hpx/async_base/sync.hpp>
 #include <hpx/async_local/sync_fwd.hpp>
+#include <hpx/components_base/component_type.hpp>
+#include <hpx/components_base/traits/action_decorate_function.hpp>
 #include <hpx/coroutines/thread_enums.hpp>
 #include <hpx/datastructures/tuple.hpp>
 #include <hpx/functional/invoke_fused.hpp>
@@ -38,9 +41,7 @@
 #include <hpx/preprocessor/expand.hpp>
 #include <hpx/preprocessor/nargs.hpp>
 #include <hpx/preprocessor/stringize.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime_fwd.hpp>
-#include <hpx/traits/action_decorate_function.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
 #include <hpx/type_support/pack.hpp>
 #include <hpx/util/get_and_reset_value.hpp>
@@ -100,7 +101,7 @@ namespace hpx { namespace actions {
             }
 
             threads::thread_result_type operator()(
-                threads::thread_state_ex_enum)
+                threads::thread_restart_state)
             {
                 try
                 {
@@ -139,7 +140,8 @@ namespace hpx { namespace actions {
                 util::force_error_on_lock();
 
                 return threads::thread_result_type(
-                    threads::terminated, threads::invalid_thread_id);
+                    threads::thread_schedule_state::terminated,
+                    threads::invalid_thread_id);
             }
 
         private:
@@ -169,17 +171,19 @@ namespace hpx { namespace actions {
             }
 
             threads::thread_result_type operator()(
-                threads::thread_state_ex_enum)
+                threads::thread_restart_state)
             {
                 LTM_(debug) << "Executing " << Action::get_action_name(lva_)
                             << " with continuation(" << cont_.get_id() << ")";
 
-                actions::trigger(std::move(cont_),
+                traits::action_trigger_continuation<
+                    typename Action::continuation_type>::call(std::move(cont_),
                     util::functional::invoke_fused{},
                     action_invoke<Action>{lva_, comptype_}, std::move(args_));
 
                 return threads::thread_result_type(
-                    threads::terminated, threads::invalid_thread_id);
+                    threads::thread_schedule_state::terminated,
+                    threads::invalid_thread_id);
             }
 
         private:
@@ -245,8 +249,7 @@ namespace hpx { namespace actions {
             typename traits::promise_local_result<remote_result_type>::type;
 
         using continuation_type =
-            hpx::actions::typed_continuation<local_result_type,
-                remote_result_type>;
+            typename traits::action_continuation<basic_action>::type;
 
         static constexpr std::size_t arity = sizeof...(Args);
 
@@ -655,16 +658,16 @@ namespace hpx { namespace actions {
     /**/
 
 #define HPX_ACTION_USES_SMALL_STACK(action)                                    \
-    HPX_ACTION_USES_STACK(action, threads::thread_stacksize_small)             \
+    HPX_ACTION_USES_STACK(action, threads::thread_stacksize::small_)           \
 /**/
 #define HPX_ACTION_USES_MEDIUM_STACK(action)                                   \
-    HPX_ACTION_USES_STACK(action, threads::thread_stacksize_medium)            \
+    HPX_ACTION_USES_STACK(action, threads::thread_stacksize::medium)           \
 /**/
 #define HPX_ACTION_USES_LARGE_STACK(action)                                    \
-    HPX_ACTION_USES_STACK(action, threads::thread_stacksize_large)             \
+    HPX_ACTION_USES_STACK(action, threads::thread_stacksize::large)            \
 /**/
 #define HPX_ACTION_USES_HUGE_STACK(action)                                     \
-    HPX_ACTION_USES_STACK(action, threads::thread_stacksize_huge)              \
+    HPX_ACTION_USES_STACK(action, threads::thread_stacksize::huge)             \
 /**/
 #endif
 
@@ -714,21 +717,21 @@ namespace hpx { namespace actions {
     /**/
 
 #define HPX_ACTION_HAS_LOW_PRIORITY(action)                                    \
-    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority_low)              \
+    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority::low)             \
 /**/
 #define HPX_ACTION_HAS_NORMAL_PRIORITY(action)                                 \
-    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority_normal)           \
+    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority::normal)          \
 /**/
 #define HPX_ACTION_HAS_HIGH_PRIORITY(action)                                   \
-    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority_high)             \
+    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority::high)            \
 /**/
 #define HPX_ACTION_HAS_HIGH_RECURSIVE_PRIORITY(action)                         \
-    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority_high_recursive)   \
+    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority::high_recursive)  \
 /**/
 
 // obsolete, kept for compatibility
 #define HPX_ACTION_HAS_CRITICAL_PRIORITY(action)                               \
-    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority_high_recursive)   \
+    HPX_ACTION_HAS_PRIORITY(action, threads::thread_priority::high_recursive)  \
 /**/
 #endif
 
@@ -871,5 +874,4 @@ namespace hpx { namespace actions {
     HPX_REGISTER_ACTION_2(action, actionname)                                  \
     HPX_REGISTER_ACTION_FACTORY_ID(actionname, actionid)                       \
 /**/
-#endif
 #endif

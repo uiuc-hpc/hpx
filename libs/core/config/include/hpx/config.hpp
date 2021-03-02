@@ -35,9 +35,9 @@
 
 #include <boost/version.hpp>
 
-#if BOOST_VERSION < 106500
+#if BOOST_VERSION < 106600
 // Please update your Boost installation (see www.boost.org for details).
-#error HPX cannot be compiled with a Boost version earlier than 1.65.0
+#error HPX cannot be compiled with a Boost version earlier than 1.66.0
 #endif
 
 #include <hpx/preprocessor/cat.hpp>
@@ -259,10 +259,10 @@
 /// thread got stuck.
 #if defined(HPX_HAVE_THREAD_BACKTRACE_ON_SUSPENSION) && \
   !defined(HPX_HAVE_STACKTRACES)
-#  error HPX_HAVE_THREAD_BACKTRACE_ON_SUSPENSION reqires HPX_HAVE_STACKTRACES to be defined!
+#  error HPX_HAVE_THREAD_BACKTRACE_ON_SUSPENSION requires HPX_HAVE_STACKTRACES to be defined!
 #endif
 
-/// By default we capture only 5 levels of stack back trace on suspension
+/// By default we capture only 20 levels of stack back trace on suspension
 #if !defined(HPX_HAVE_THREAD_BACKTRACE_DEPTH)
 #  define HPX_HAVE_THREAD_BACKTRACE_DEPTH 20
 #endif

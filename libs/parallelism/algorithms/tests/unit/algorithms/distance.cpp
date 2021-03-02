@@ -11,10 +11,10 @@
 
 #include "iter_sent.hpp"
 
-int main(int argc, char* argv[])
+int main()
 {
     HPX_TEST_EQ(hpx::parallel::v1::detail::distance(
-                    Iterator<std::int64_t>{0}, Sentinel<int64_t>{100}),
+                    iterator<std::int64_t>{0}, sentinel<int64_t>{100}),
         100);
 
     return hpx::util::report_errors();

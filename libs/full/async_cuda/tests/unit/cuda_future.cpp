@@ -89,7 +89,7 @@ int test_saxpy(hpx::cuda::experimental::cuda_executor& cudaexec)
     // we can add a continuation to the memcpy future, so that when the
     // memory copy completes, we can do new things ...
     cuda_future
-        .then([&](hpx::future<void>&& f) {
+        .then([&](hpx::future<void>&&) {
             std::cout
                 << "saxpy completed on GPU, checking results in continuation"
                 << std::endl;
@@ -159,7 +159,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
     double testd2 = 3.1415;
     std::cout << "future/continuation : " << testd2 << std::endl;
     auto f3 = hpx::async(cudaexec, cuda_trivial_kernel<double>, testd2);
-    f3.then([](hpx::future<void>&& f) {
+    f3.then([](hpx::future<void>&&) {
           std::cout << "continuation triggered\n";
       }).get();
 
@@ -169,7 +169,7 @@ int hpx_main(hpx::program_options::variables_map& vm)
     std::cout << "Copying executor : " << testd2 + 1 << std::endl;
     auto exec_copy = cudaexec;
     auto f4 = hpx::async(exec_copy, cuda_trivial_kernel<double>, testd2 + 1);
-    f4.then([exec_copy](hpx::future<void>&& f) {
+    f4.then([exec_copy](hpx::future<void>&&) {
           std::cout << "copy continuation triggered\n";
       }).get();
 
@@ -194,6 +194,9 @@ int main(int argc, char** argv)
         "iterations")("seed,s", hpx::program_options::value<unsigned int>(),
         "the random number generator seed to use for this run");
 
-    auto result = hpx::init(cmdline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    auto result = hpx::init(argc, argv, init_args);
     return result || hpx::util::report_errors();
 }

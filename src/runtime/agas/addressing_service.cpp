@@ -10,8 +10,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/traits/action_priority.hpp>
+#include <hpx/actions_base/traits/action_was_object_migrated.hpp>
 #include <hpx/agas/primary_namespace.hpp>
 #include <hpx/agas/server/primary_namespace.hpp>
 #include <hpx/assert.hpp>
@@ -54,7 +54,6 @@
 #include <hpx/serialization/serialize.hpp>
 #include <hpx/serialization/vector.hpp>
 #include <hpx/thread_support/unlock_guard.hpp>
-#include <hpx/traits/action_was_object_migrated.hpp>
 #include <hpx/type_support/unused.hpp>
 #include <hpx/util/get_entry_as.hpp>
 #include <hpx/util/insert_checked.hpp>
@@ -139,27 +138,25 @@ namespace hpx { namespace agas
         }
     }; // }}}
 
-addressing_service::addressing_service(
-    util::runtime_configuration const& ini_
-  , runtime_mode runtime_type_
-    )
-  : gva_cache_(new gva_cache_type)
-  , console_cache_(naming::invalid_locality_id)
-  , max_refcnt_requests_(ini_.get_agas_max_pending_refcnt_requests())
-  , refcnt_requests_count_(0)
-  , enable_refcnt_caching_(true)
-  , refcnt_requests_(new refcnt_requests_type)
-  , service_type(ini_.get_agas_service_mode())
-  , runtime_type(runtime_type_)
-  , caching_(ini_.get_agas_caching_mode())
-  , range_caching_(caching_ ? ini_.get_agas_range_caching_mode() : false)
-  , action_priority_(threads::thread_priority_boost)
-  , rts_lva_(0)
-  , state_(state_starting)
-  , locality_()
-{
-    if (caching_)
-        gva_cache_->reserve(ini_.get_agas_local_cache_size());
+    addressing_service::addressing_service(
+        util::runtime_configuration const& ini_)
+      : gva_cache_(new gva_cache_type)
+      , console_cache_(naming::invalid_locality_id)
+      , max_refcnt_requests_(ini_.get_agas_max_pending_refcnt_requests())
+      , refcnt_requests_count_(0)
+      , enable_refcnt_caching_(true)
+      , refcnt_requests_(new refcnt_requests_type)
+      , service_type(ini_.get_agas_service_mode())
+      , runtime_type(ini_.mode_)
+      , caching_(ini_.get_agas_caching_mode())
+      , range_caching_(caching_ ? ini_.get_agas_range_caching_mode() : false)
+      , action_priority_(threads::thread_priority::boost)
+      , rts_lva_(0)
+      , state_(state_starting)
+      , locality_()
+    {
+        if (caching_)
+            gva_cache_->reserve(ini_.get_agas_local_cache_size());
 }
 
 #if defined(HPX_HAVE_NETWORKING)
@@ -1517,10 +1514,10 @@ void addressing_service::route(
         threads::thread_init_data data(
             threads::make_thread_function_nullary(util::deferred_call(
                 route_ptr, this, std::move(p), std::move(f), local_priority)),
-            "addressing_service::route",
-            threads::thread_priority_normal,
+            "addressing_service::route", threads::thread_priority::normal,
             threads::thread_schedule_hint(),
-            threads::thread_stacksize_default, threads::pending, true);
+            threads::thread_stacksize::default_,
+            threads::thread_schedule_state::pending, true);
         threads::register_thread(data);
         return;
     }
@@ -1535,10 +1532,9 @@ void addressing_service::route(
 // if there was a pending decref request at the point when the incref was sent.
 // The pending decref was subtracted from the amount of credits to incref.
 std::int64_t addressing_service::synchronize_with_async_incref(
-    hpx::future<std::int64_t> fut
-  , naming::id_type const& id
-  , std::int64_t compensated_credit
-    )
+    hpx::future<std::int64_t> fut, naming::id_type const& /* id */
+    ,
+    std::int64_t compensated_credit)
 {
     return fut.get() + compensated_credit;
 }
@@ -1668,13 +1664,12 @@ void addressing_service::decref(
     {
         // reschedule this call as an HPX thread
         threads::thread_init_data data(
-            threads::make_thread_function_nullary([=]() -> void {
-                return decref(raw, credit, throws);
-            }),
-            "addressing_service::decref",
-            threads::thread_priority_normal,
+            threads::make_thread_function_nullary(
+                [=]() -> void { return decref(raw, credit, throws); }),
+            "addressing_service::decref", threads::thread_priority::normal,
             threads::thread_schedule_hint(),
-            threads::thread_stacksize_default, threads::pending, true);
+            threads::thread_stacksize::default_,
+            threads::thread_schedule_state::pending, true);
         threads::register_thread(data, ec);
 
         return;
@@ -1933,13 +1928,12 @@ void addressing_service::update_cache_entry(
             return;
         }
         threads::thread_init_data data(
-            threads::make_thread_function_nullary([=]() -> void {
-                return update_cache_entry(id, g, throws);
-            }),
+            threads::make_thread_function_nullary(
+                [=]() -> void { return update_cache_entry(id, g, throws); }),
             "addressing_service::update_cache_entry",
-            threads::thread_priority_normal,
-            threads::thread_schedule_hint(),
-            threads::thread_stacksize_default, threads::pending, true);
+            threads::thread_priority::normal, threads::thread_schedule_hint(),
+            threads::thread_stacksize::default_,
+            threads::thread_schedule_state::pending, true);
         threads::register_thread(data, ec);
     }
 
@@ -2239,7 +2233,7 @@ namespace detail
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper functions to access the current cache statistics
-std::uint64_t addressing_service::get_cache_entries(bool reset)
+std::uint64_t addressing_service::get_cache_entries(bool /* reset */)
 {
     std::lock_guard<mutex_type> lock(gva_cache_mtx_);
     return gva_cache_->size();
@@ -2582,6 +2576,7 @@ void addressing_service::send_refcnt_requests_non_blocking(
   , error_code& ec
     )
 {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
     HPX_ASSERT(l.owns_lock());
 
     try {
@@ -2649,6 +2644,11 @@ void addressing_service::send_refcnt_requests_non_blocking(
         HPX_RETHROWS_IF(ec, e,
             "addressing_service::send_refcnt_requests_non_blocking");
     }
+#else
+    HPX_UNUSED(l);
+    HPX_UNUSED(ec);
+    HPX_ASSERT(false);
+#endif
 }
 
 std::vector<hpx::future<std::vector<std::int64_t> > >
@@ -2656,6 +2656,7 @@ addressing_service::send_refcnt_requests_async(
     std::unique_lock<addressing_service::mutex_type>& l
     )
 {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
     HPX_ASSERT(l.owns_lock());
 
     if (refcnt_requests_->empty())
@@ -2717,6 +2718,12 @@ addressing_service::send_refcnt_requests_async(
     }
 
     return lazy_results;
+#else
+    HPX_UNUSED(l);
+    HPX_ASSERT(false);
+    std::vector<hpx::future<std::vector<std::int64_t>>> lazy_results;
+    return lazy_results;
+#endif
 }
 
 void addressing_service::send_refcnt_requests_sync(
@@ -2741,6 +2748,7 @@ hpx::future<void> addressing_service::mark_as_migrated(
   , bool expect_to_be_marked_as_migrating
     )
 {
+    HPX_UNUSED(expect_to_be_marked_as_migrating);
     if (!gid_)
     {
         return hpx::make_exceptional_future<void>(
@@ -3062,4 +3070,3 @@ namespace hpx
         return agas::unregister_name(std::move(name));
     }
 }
-#endif

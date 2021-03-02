@@ -119,7 +119,7 @@ double run_remove_if_benchmark_hpx(int test_count, ExPolicy policy,
         hpx::copy(hpx::execution::par, org_first, org_last, first);
 
         std::uint64_t elapsed = hpx::chrono::high_resolution_clock::now();
-        hpx::parallel::remove_if(policy, first, last, pred);
+        hpx::remove_if(policy, first, last, pred);
         time += hpx::chrono::high_resolution_clock::now() - elapsed;
     }
 
@@ -297,7 +297,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

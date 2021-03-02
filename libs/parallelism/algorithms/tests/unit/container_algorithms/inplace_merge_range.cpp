@@ -298,7 +298,7 @@ void test_inplace_merge_etc(IteratorTag, DataType, int rand_base)
         hpx::ranges::inplace_merge(
             iterator(res_first), iterator(res_middle), iterator(res_last),
             [](DataType const& a, DataType const& b) -> bool { return a < b; },
-            [&val](DataType const& elem) -> DataType& {
+            [&val](DataType const&) -> DataType& {
                 // This is projection.
                 return val;
             });
@@ -347,7 +347,7 @@ void test_inplace_merge_etc(
             policy, iterator(res_first), iterator(res_middle),
             iterator(res_last),
             [](DataType const& a, DataType const& b) -> bool { return a < b; },
-            [&val](DataType const& elem) -> DataType& {
+            [&val](DataType const&) -> DataType& {
                 // This is projection.
                 return val;
             });
@@ -410,7 +410,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

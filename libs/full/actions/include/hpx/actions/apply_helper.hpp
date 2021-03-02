@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2017 Hartmut Kaiser
+//  Copyright (c) 2007-2020 Hartmut Kaiser
 //  Copyright (c)      2011 Bryce Lelbach
 //
 //  SPDX-License-Identifier: BSL-1.0
@@ -8,10 +8,12 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/actions/apply_helper_fwd.hpp>
+#include <hpx/actions/traits/action_continuation.hpp>
+#include <hpx/actions/traits/action_decorate_continuation.hpp>
 #include <hpx/actions_base/actions_base_support.hpp>
-#include <hpx/actions_base/traits/action_continuation.hpp>
 #include <hpx/actions_base/traits/action_priority.hpp>
+#include <hpx/actions_base/traits/action_schedule_thread.hpp>
 #include <hpx/actions_base/traits/action_select_direct_execution.hpp>
 #include <hpx/actions_base/traits/action_stacksize.hpp>
 #include <hpx/async_base/launch_policy.hpp>
@@ -20,8 +22,6 @@
 #include <hpx/runtime_fwd.hpp>
 #include <hpx/state.hpp>
 #include <hpx/threading_base/thread_helpers.hpp>
-#include <hpx/traits/action_decorate_continuation.hpp>
-#include <hpx/traits/action_schedule_thread.hpp>
 
 #include <chrono>
 #include <exception>
@@ -52,8 +52,8 @@ namespace hpx { namespace applier { namespace detail {
         naming::address::component_type comptype,
         threads::thread_priority priority, Ts&&... vs)
     {
-        typedef typename traits::action_continuation<Action>::type
-            continuation_type;
+        using continuation_type =
+            typename traits::action_continuation<Action>::type;
 
         continuation_type cont;
         if (traits::action_decorate_continuation<Action>::call(cont))    //-V614
@@ -150,10 +150,6 @@ namespace hpx { namespace applier { namespace detail {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Action,
-        bool DirectExecute = Action::direct_execution::value>
-    struct apply_helper;
-
     template <typename Action>
     struct apply_helper<Action, /*DirectExecute=*/false>
     {
@@ -253,4 +249,3 @@ namespace hpx { namespace applier { namespace detail {
         }
     };
 }}}    // namespace hpx::applier::detail
-#endif

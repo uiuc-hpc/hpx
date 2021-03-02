@@ -8,7 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #include <hpx/assert.hpp>
 #include <hpx/components_base/component_type.hpp>
@@ -47,8 +46,8 @@ namespace hpx { namespace components
         struct init<traits::construct_with_back_ptr>
         {
             template <typename Component, typename Managed>
-            static constexpr void call(Component* component,
-                Managed* this_)
+            static constexpr void call(
+                Component* /* component */, Managed* /* this_ */)
             {
             }
 
@@ -538,4 +537,4 @@ namespace hpx { namespace components
 }}
 
 
-#endif
+

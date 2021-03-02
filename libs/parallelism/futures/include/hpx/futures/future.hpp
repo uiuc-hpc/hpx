@@ -40,7 +40,7 @@
 
 namespace hpx { namespace lcos { namespace detail {
     ///////////////////////////////////////////////////////////////////////////
-    enum future_state
+    enum class future_state
     {
         invalid = 0,
         has_value = 1,
@@ -91,7 +91,7 @@ namespace hpx { namespace lcos { namespace detail {
         typedef lcos::detail::future_data<value_type> shared_state;
         typedef typename shared_state::init_no_addref init_no_addref;
 
-        int state = future_state::invalid;
+        future_state state = future_state::invalid;
         ar >> state;
         // NOLINTNEXTLINE(bugprone-branch-clone)
         if (state == future_state::has_value)
@@ -133,7 +133,7 @@ namespace hpx { namespace lcos { namespace detail {
         typedef lcos::detail::future_data<void> shared_state;
         typedef typename shared_state::init_no_addref init_no_addref;
 
-        int state = future_state::invalid;
+        future_state state = future_state::invalid;
         ar >> state;
         if (state == future_state::has_value)
         {
@@ -193,7 +193,7 @@ namespace hpx { namespace lcos { namespace detail {
         typedef
             typename hpx::traits::future_traits<Future>::result_type value_type;
 
-        int state = future_state::invalid;
+        future_state state = future_state::invalid;
         if (f.valid() && !f.is_ready())
         {
             if (ar.is_preprocessing())
@@ -243,7 +243,7 @@ namespace hpx { namespace lcos { namespace detail {
         typename hpx::traits::future_traits<Future>::type>::value>::type
     serialize_future_save(Archive& ar, Future const& f)    //-V659
     {
-        int state = future_state::invalid;
+        future_state state = future_state::invalid;
         if (f.valid() && !f.is_ready())
         {
             if (ar.is_preprocessing())
@@ -421,7 +421,8 @@ namespace hpx { namespace lcos { namespace detail {
     struct future_then_dispatch
     {
         template <typename F>
-        HPX_FORCEINLINE static decltype(auto) call(Future&& fut, F&& f)
+        HPX_FORCEINLINE static decltype(auto) call(
+            Future&& /* fut */, F&& /* f */)
         {
             // dummy impl to fail compilation if this function is called
             static_assert(sizeof(Future) == 0, "Cannot use the \
@@ -430,7 +431,8 @@ namespace hpx { namespace lcos { namespace detail {
         }
 
         template <typename T0, typename F>
-        HPX_FORCEINLINE static decltype(auto) call(Future&& fut, T0&& t, F&& f)
+        HPX_FORCEINLINE static decltype(auto) call(
+            Future&& /* fut */, T0&& /* t */, F&& /* f */)
         {
             // dummy impl to fail compilation if this function is called
             static_assert(sizeof(Future) == 0, "Cannot use the \
@@ -440,7 +442,7 @@ namespace hpx { namespace lcos { namespace detail {
 
         template <typename Allocator, typename F>
         HPX_FORCEINLINE static decltype(auto) call_alloc(
-            Allocator const& alloc, Future&& fut, F&& f)
+            Allocator const& /* alloc */, Future&& /* fut */, F&& /* f */)
         {
             // dummy impl to fail compilation if this function is called
             static_assert(sizeof(Future) == 0, "Cannot use the \
@@ -1063,7 +1065,7 @@ namespace hpx { namespace lcos {
         typename std::enable_if<
             std::is_convertible<Future, hpx::lcos::future<T>>::value,
             hpx::lcos::future<T>>::type
-        convert_future_helper(Future&& f, Conv&& conv)
+        convert_future_helper(Future&& f, Conv&& /* conv */)
         {
             return std::forward<Future>(f);
         }

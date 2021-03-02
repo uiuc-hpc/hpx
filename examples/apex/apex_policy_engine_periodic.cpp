@@ -77,10 +77,10 @@ int hpx_main(hpx::program_options::variables_map& vm)
 
 void register_policy(void) {
     periodic_policy_handle =
-    apex::register_periodic_policy(1000, [](apex_context const& context) {
-        std::cout << "Periodic policy!" << std::endl;
-        return APEX_NOERROR;
-    });
+        apex::register_periodic_policy(1000, [](apex_context const&) {
+            std::cout << "Periodic policy!" << std::endl;
+            return APEX_NOERROR;
+        });
 }
 
 void deregister_policy(void) {
@@ -104,5 +104,8 @@ int main(int argc, char* argv[])
     hpx::register_shutdown_function(deregister_policy);
 
     // Initialize and run HPX
-    return hpx::init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }

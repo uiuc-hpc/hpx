@@ -61,7 +61,7 @@ void stack_waste(int N, info_stack& stack)
 }
 //
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     info_stack my_stack_info;
     // just for curiosity
@@ -97,7 +97,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

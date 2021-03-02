@@ -9,7 +9,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/basic_action.hpp>
 #include <hpx/futures/traits/future_access.hpp>
 #include <hpx/futures/traits/is_future.hpp>
@@ -57,7 +56,7 @@ namespace hpx { namespace actions {
 
         template <typename Component, typename R, typename F, typename... Ts>
         R component_invoke(std::true_type, naming::address_type lva,
-            naming::component_type comptype, F Component::*f, Ts&&... vs)
+            naming::component_type /* comptype */, F Component::*f, Ts&&... vs)
         {
             // additional pinning is required such that the object becomes
             // unpinned only after the returned future has become ready
@@ -334,4 +333,3 @@ namespace hpx { namespace actions {
 #endif
 
 #include <hpx/config/warnings_suffix.hpp>
-#endif

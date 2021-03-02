@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     bool run = false;
     hpx::future<void> f1 = hpx::async([&run]() { run = true; });
@@ -27,8 +27,9 @@ int hpx_main(int argc, char* argv[])
     if (!run)
     {
         // This thread should get scheduled last (because of
-        // hpx::threads::pending) and let the function spawned above run.
-        hpx::this_thread::suspend(hpx::threads::pending);
+        // hpx::threads::thread_schedule_state::pending) and let the function
+        // spawned above run.
+        hpx::this_thread::suspend(hpx::threads::thread_schedule_state::pending);
     }
 
     HPX_TEST(run);
@@ -42,7 +43,8 @@ void test_scheduler(int argc, char* argv[])
     hpx::init_params init_args;
 
     init_args.cfg = {"hpx.os_threads=1"};
-    init_args.rp_callback = [](auto& rp) {
+    init_args.rp_callback = [](auto& rp,
+                                hpx::program_options::variables_map const&) {
         rp.create_thread_pool("default",
             [](hpx::threads::thread_pool_init_parameters thread_pool_init,
                 hpx::threads::policies::thread_queue_init_parameters

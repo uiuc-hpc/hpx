@@ -14,7 +14,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/actions_base/basic_action.hpp>
@@ -65,8 +64,8 @@ namespace hpx
                 return static_cast<char>(number_tmp - 10 + 'A');
             }
 
-            inline void
-            convert_byte(std::uint8_t b, char* buffer, char const* end)
+            inline void convert_byte(
+                std::uint8_t b, char* buffer, char const* /* end */)
             {
                 *buffer++ = to_digit((b & 0xF0) >> 4);
                 *buffer++ = to_digit(b & 0x0F);
@@ -227,6 +226,8 @@ namespace hpx
                             pp.add_sent_data(
                                 ps[i].get_action()->get_action_name(),
                                 action_data);
+#else
+                            HPX_UNUSED(pp);
 #endif
                         }
                         archive.flush();
@@ -287,5 +288,4 @@ namespace hpx
     }
 }
 
-#endif
 #endif

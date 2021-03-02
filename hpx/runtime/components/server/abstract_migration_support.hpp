@@ -7,14 +7,13 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/components_base/pinned_ptr.hpp>
+#include <hpx/components_base/traits/action_decorate_function.hpp>
 #include <hpx/functional/bind_front.hpp>
 #include <hpx/futures/future.hpp>
 #include <hpx/modules/threading_base.hpp>
 #include <hpx/naming_base/id_type.hpp>
 #include <hpx/runtime/components/server/migration_support.hpp>
-#include <hpx/traits/action_decorate_function.hpp>
 
 #include <cstdint>
 #include <type_traits>
@@ -73,9 +72,8 @@ namespace hpx { namespace components
         // Execute the wrapped action. This function is bound in decorate_action
         // above. The bound object performs the pinning/unpinning.
         threads::thread_result_type thread_function(
-            threads::thread_function_type && f,
-            components::pinned_ptr,
-            threads::thread_state_ex_enum state)
+            threads::thread_function_type&& f, components::pinned_ptr,
+            threads::thread_restart_state state)
         {
             return f(state);
         }
@@ -137,4 +135,4 @@ namespace hpx { namespace components
         }
     };
 }}
-#endif
+

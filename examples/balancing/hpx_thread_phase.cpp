@@ -40,24 +40,16 @@ using hpx::threads::get_thread_phase;
 using hpx::threads::get_self_id;
 using hpx::threads::get_self;
 using hpx::threads::thread_id_type;
-using hpx::threads::pending;
-using hpx::threads::suspended;
 using hpx::threads::set_thread_state;
-
-using hpx::init;
-using hpx::finalize;
 
 typedef std::pair<thread_id_type, std::size_t> value_type;
 typedef std::vector<value_type> fifo_type;
 
 ///////////////////////////////////////////////////////////////////////////////
-void lock_and_wait(
-    mutex& m
-  , barrier& b0
-  , barrier& b1
-  , value_type& entry
-  , std::size_t wait
-) {
+void lock_and_wait(mutex& m, barrier& b0, barrier& b1, value_type& entry,
+    std::size_t /* wait */
+)
+{
     // Wait for all hpxthreads in this iteration to be created.
     b0.wait();
 
@@ -75,10 +67,12 @@ void lock_and_wait(
         }
 
         // Schedule a wakeup.
-        set_thread_state(this_, milliseconds(30), pending);
+        set_thread_state(this_, milliseconds(30),
+            hpx::threads::thread_schedule_state::pending);
 
         // Suspend this HPX thread.
-        hpx::this_thread::suspend(suspended);
+        hpx::this_thread::suspend(
+            hpx::threads::thread_schedule_state::suspended);
     }
 
     // Make hpx_main wait for us to finish.
@@ -150,7 +144,7 @@ int hpx_main(variables_map& vm)
     }
 
     // Initiate shutdown of the runtime system.
-    finalize();
+    hpx::finalize();
     return 0;
 }
 
@@ -173,6 +167,9 @@ int main(int argc, char* argv[])
         ;
 
     // Initialize and run HPX.
-    return init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }
 

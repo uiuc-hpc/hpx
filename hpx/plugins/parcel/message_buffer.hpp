@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCEL_COALESCING)
 
@@ -84,10 +83,10 @@ namespace hpx { namespace plugins { namespace parcel { namespace detail
                             util::deferred_call(put_parcel_ptr, pp, dest_,
                                 std::move(messages_), std::move(handlers_))),
                         "parcelhandler::put_parcel",
-                        threads::thread_priority_boost,
+                        threads::thread_priority::boost,
                         threads::thread_schedule_hint(),
-                        threads::thread_stacksize_default, threads::pending,
-                        true);
+                        threads::thread_stacksize::default_,
+                        threads::thread_schedule_state::pending, true);
                     threads::register_thread(data);
                     return;
                 }
@@ -167,5 +166,4 @@ namespace hpx { namespace plugins { namespace parcel { namespace detail
     };
 }}}}
 
-#endif
 #endif

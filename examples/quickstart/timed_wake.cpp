@@ -19,11 +19,6 @@ using hpx::program_options::value;
 
 using std::chrono::seconds;
 
-using hpx::init;
-using hpx::finalize;
-
-using hpx::threads::pending;
-using hpx::threads::suspended;
 using hpx::threads::get_self_id;
 using hpx::threads::get_self;
 using hpx::threads::set_thread_state;
@@ -31,7 +26,7 @@ using hpx::threads::set_thread_state;
 using hpx::chrono::high_resolution_timer;
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(variables_map& vm)
+int hpx_main()
 {
     {
         std::cout << "waiting for 5 seconds\n";
@@ -39,15 +34,17 @@ int hpx_main(variables_map& vm)
         high_resolution_timer t;
 
         // Schedule a wakeup in 5 seconds.
-        set_thread_state(get_self_id(), seconds(5), pending);
+        set_thread_state(get_self_id(), seconds(5),
+            hpx::threads::thread_schedule_state::pending);
 
         // Suspend this HPX thread.
-        hpx::this_thread::suspend(suspended);
+        hpx::this_thread::suspend(
+            hpx::threads::thread_schedule_state::suspended);
 
         std::cout << "woke up after " << t.elapsed() << " seconds\n";
     }
 
-    finalize();
+    hpx::finalize();
     return 0;
 }
 
@@ -59,6 +56,9 @@ int main(int argc, char* argv[])
        desc_commandline("Usage: " HPX_APPLICATION_STRING " [options]");
 
     // Initialize and run HPX.
-    return init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }
 

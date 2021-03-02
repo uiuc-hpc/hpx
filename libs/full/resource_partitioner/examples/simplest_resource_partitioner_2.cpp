@@ -14,12 +14,13 @@
 
 #include <iostream>
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     return hpx::finalize();
 }
 
-void init_resource_partitioner_handler(hpx::resource::partitioner& rp)
+void init_resource_partitioner_handler(hpx::resource::partitioner& rp,
+    hpx::program_options::variables_map const& /*vm*/)
 {
     rp.create_thread_pool("my-thread-pool");
 
@@ -28,9 +29,9 @@ void init_resource_partitioner_handler(hpx::resource::partitioner& rp)
 
     hpx::resource::numa_domain const& d = rp.numa_domains()[0];
 
-    for (const hpx::resource::core& c : d.cores())
+    for (hpx::resource::core const& c : d.cores())
     {
-        for (const hpx::resource::pu& p : c.pus())
+        for (hpx::resource::pu const& p : c.pus())
         {
             if (one_numa_domain && !skipped_first_pu)
             {

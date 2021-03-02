@@ -18,8 +18,6 @@ set(CMAKE_SYSTEM_NAME Linux)
 
 # Set the gcc Compiler
 set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_C_COMPILER gcc)
-# set(CMAKE_Fortran_COMPILER)
 
 # Add flags we need for BGAS compilation
 set(CMAKE_CXX_FLAGS_INIT
@@ -40,11 +38,6 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT
     CACHE STRING "BGAS flags"
 )
 
-set(CMAKE_C_FLAGS_INIT
-    "-D__powerpc__ -I/gpfs/bbp.cscs.ch/home/biddisco/src/bgas/rdmahelper"
-    CACHE STRING "BGAS flags"
-)
-
 # We do not perform cross compilation here ...
 set(CMAKE_CROSSCOMPILING OFF)
 
@@ -55,12 +48,6 @@ set(HPX_PLATFORM "native")
 set(HPX_WITH_GENERIC_CONTEXT_COROUTINES
     OFF
     CACHE BOOL "disable generic coroutines"
-)
-
-# BGAS nodes support ibverbs, but it is deprecated
-set(HPX_WITH_PARCELPORT_VERBS
-    OFF
-    CACHE BOOL ""
 )
 
 # Always disable the tcp parcelport as it is non-functional on the BGQ.

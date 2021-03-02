@@ -280,28 +280,37 @@ endfunction()
 function(hpx_check_for_cxx11_std_atomic)
   # Make sure HPX_HAVE_LIBATOMIC is removed from the cache if necessary
   if(NOT HPX_WITH_CXX11_ATOMIC)
-    unset(HPX_HAVE_LIBATOMIC CACHE)
+    unset(HPX_CXX11_STD_ATOMIC_LIBRARIES CACHE)
   endif()
 
-  if(NOT MSVC)
-    # Sometimes linking against libatomic is required for atomic ops, if the
-    # platform doesn't support lock-free atomics. We know, it's not needed for
-    # MSVC
-    check_library_exists(atomic __atomic_fetch_add_4 "" HPX_HAVE_LIBATOMIC)
-    if(HPX_HAVE_LIBATOMIC)
-      set(HPX_CXX11_STD_ATOMIC_LIBRARIES
-          atomic
-          CACHE BOOL "std::atomics need separate library" FORCE
-      )
-    endif()
-  endif()
-
+  # first see if we can build atomics with no -latomics
   add_hpx_config_test(
     HPX_WITH_CXX11_ATOMIC
     SOURCE cmake/tests/cxx11_std_atomic.cpp
     LIBRARIES ${HPX_CXX11_STD_ATOMIC_LIBRARIES}
     FILE ${ARGN}
   )
+
+  if(NOT MSVC)
+    # Sometimes linking against libatomic is required, if the platform doesn't
+    # support lock-free atomics. We already know that MSVC works
+    if(NOT HPX_WITH_CXX11_ATOMIC)
+      set(HPX_CXX11_STD_ATOMIC_LIBRARIES
+          atomic
+          CACHE STRING "std::atomics need separate library" FORCE
+      )
+      unset(HPX_WITH_CXX11_ATOMIC CACHE)
+      add_hpx_config_test(
+        HPX_WITH_CXX11_ATOMIC
+        SOURCE cmake/tests/cxx11_std_atomic.cpp
+        LIBRARIES ${HPX_CXX11_STD_ATOMIC_LIBRARIES}
+        FILE ${ARGN}
+      )
+      if(NOT HPX_WITH_CXX11_ATOMIC_128BIT)
+        unset(HPX_WITH_CXX11_ATOMIC_128BIT CACHE)
+      endif()
+    endif()
+  endif()
 endfunction()
 
 # Separately check for 128 bit atomics
@@ -312,6 +321,26 @@ function(hpx_check_for_cxx11_std_atomic_128bit)
     LIBRARIES ${HPX_CXX11_STD_ATOMIC_LIBRARIES}
     FILE ${ARGN}
   )
+  if(NOT MSVC)
+    # Sometimes linking against libatomic is required, if the platform doesn't
+    # support lock-free atomics. We already know that MSVC works
+    if(NOT HPX_WITH_CXX11_ATOMIC_128BIT)
+      set(HPX_CXX11_STD_ATOMIC_LIBRARIES
+          atomic
+          CACHE STRING "std::atomics need separate library" FORCE
+      )
+      unset(HPX_WITH_CXX11_ATOMIC_128BIT CACHE)
+      add_hpx_config_test(
+        HPX_WITH_CXX11_ATOMIC_128BIT
+        SOURCE cmake/tests/cxx11_std_atomic_128bit.cpp
+        LIBRARIES ${HPX_CXX11_STD_ATOMIC_LIBRARIES}
+        FILE ${ARGN}
+      )
+      if(NOT HPX_WITH_CXX11_ATOMIC_128BIT)
+        unset(HPX_WITH_CXX11_ATOMIC_128BIT CACHE)
+      endif()
+    endif()
+  endif()
 endfunction()
 
 # ##############################################################################
@@ -319,6 +348,23 @@ function(hpx_check_for_cxx11_std_shared_ptr_lwg3018)
   add_hpx_config_test(
     HPX_WITH_CXX11_SHARED_PTR_LWG3018
     SOURCE cmake/tests/cxx11_std_shared_ptr_lwg3018.cpp
+    FILE ${ARGN}
+  )
+endfunction()
+
+# ##############################################################################
+function(hpx_check_for_c11_aligned_alloc)
+  add_hpx_config_test(
+    HPX_WITH_C11_ALIGNED_ALLOC
+    SOURCE cmake/tests/c11_aligned_alloc.cpp
+    FILE ${ARGN}
+  )
+endfunction()
+
+function(hpx_check_for_cxx17_std_aligned_alloc)
+  add_hpx_config_test(
+    HPX_WITH_CXX17_STD_ALIGNED_ALLOC
+    SOURCE cmake/tests/cxx17_std_aligned_alloc.cpp
     FILE ${ARGN}
   )
 endfunction()
@@ -505,6 +551,15 @@ function(hpx_check_for_cxx20_coroutines)
 endfunction()
 
 # ##############################################################################
+function(hpx_check_for_cxx20_no_unique_address_attribute)
+  add_hpx_config_test(
+    HPX_WITH_CXX20_NO_UNIQUE_ADDRESS_ATTRIBUTE
+    SOURCE cmake/tests/cxx20_no_unique_address_attribute.cpp
+    FILE ${ARGN}
+  )
+endfunction()
+
+# ##############################################################################
 function(hpx_check_for_cxx20_std_disable_sized_sentinel_for)
   add_hpx_config_test(
     HPX_WITH_CXX20_STD_DISABLE_SIZED_SENTINEL_FOR
@@ -514,10 +569,10 @@ function(hpx_check_for_cxx20_std_disable_sized_sentinel_for)
 endfunction()
 
 # ##############################################################################
-function(hpx_check_for_cxx20_no_unique_address_attribute)
+function(hpx_check_for_cxx20_std_endian)
   add_hpx_config_test(
-    HPX_WITH_CXX20_NO_UNIQUE_ADDRESS_ATTRIBUTE
-    SOURCE cmake/tests/cxx20_no_unique_address_attribute.cpp
+    HPX_WITH_CXX20_STD_ENDIAN
+    SOURCE cmake/tests/cxx20_std_endian.cpp
     FILE ${ARGN}
   )
 endfunction()

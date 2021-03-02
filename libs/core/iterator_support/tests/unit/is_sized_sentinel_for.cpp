@@ -9,14 +9,13 @@
 #include "iter_sent.hpp"
 
 #include <cstdint>
-#include <iterator>
 #include <string>
 #include <vector>
 
 void is_sized_sentinel_for()
 {
-    HPX_TEST_MSG((hpx::traits::is_sized_sentinel_for<Sentinel<int64_t>,
-                      Iterator<std::int64_t>>::value == false),
+    HPX_TEST_MSG((hpx::traits::is_sized_sentinel_for<sentinel<int64_t>,
+                      iterator<std::int64_t>>::value == false),
         "Sentinel falsely marked as sized for particular iterator");
 
     HPX_TEST_MSG((hpx::traits::is_sized_sentinel_for<std::vector<int>::iterator,
@@ -33,7 +32,7 @@ void is_sized_sentinel_for()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[])
+int main()
 {
     {
         is_sized_sentinel_for();

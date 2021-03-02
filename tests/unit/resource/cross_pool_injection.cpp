@@ -54,7 +54,7 @@ inline std::size_t st_rand(std::size_t a, std::size_t b)
     return std::size_t(dist(gen));
 }
 
-int hpx_main(int argc, char* /*argv*/[])
+int hpx_main()
 {
     HPX_TEST_EQ(std::size_t(0), hpx::resource::get_pool_index("default"));
     HPX_TEST_EQ(std::size_t(0), hpx::resource::get_pool_index("pool-0"));
@@ -90,15 +90,15 @@ int hpx_main(int argc, char* /*argv*/[])
     {
         std::string pool_name = "pool-" + std::to_string(i);
         HP_executors.emplace_back(&hpx::resource::get_thread_pool(pool_name),
-            hpx::threads::thread_priority_high);
+            hpx::threads::thread_priority::high);
         NP_executors.emplace_back(&hpx::resource::get_thread_pool(pool_name),
-            hpx::threads::thread_priority_default);
+            hpx::threads::thread_priority::default_);
     }
 
     // randomly create tasks that run on a random pool
     // attach continuations to them that run on different
     // random pools
-    const int loops = 1000;
+    int const loops = 1000;
     //
     std::cout << "1: Starting HP " << loops << std::endl;
     std::atomic<int> counter(loops);
@@ -207,8 +207,9 @@ int hpx_main(int argc, char* /*argv*/[])
     return hpx::finalize();
 }
 
-void init_resource_partitioner_handler(
-    hpx::resource::partitioner& rp, hpx::resource::scheduling_policy policy)
+void init_resource_partitioner_handler(hpx::resource::partitioner& rp,
+    hpx::program_options::variables_map const&,
+    hpx::resource::scheduling_policy policy)
 {
     num_pools = 0;
 
@@ -225,11 +226,11 @@ void init_resource_partitioner_handler(
     std::size_t threads_remaining = max_threads;
     std::size_t threads_in_pool = 0;
     // create pools randomly and add a random number of PUs to each pool
-    for (const hpx::resource::numa_domain& d : rp.numa_domains())
+    for (hpx::resource::numa_domain const& d : rp.numa_domains())
     {
-        for (const hpx::resource::core& c : d.cores())
+        for (hpx::resource::core const& c : d.cores())
         {
-            for (const hpx::resource::pu& p : c.pus())
+            for (hpx::resource::pu const& p : c.pus())
             {
                 if (threads_in_pool == 0)
                 {
@@ -257,10 +258,10 @@ void init_resource_partitioner_handler(
 void test_scheduler(
     int argc, char* argv[], hpx::resource::scheduling_policy scheduler)
 {
-    hpx::init_params p;
-    p.rp_callback =
+    hpx::init_params init_args;
+    init_args.rp_callback =
         hpx::bind_back(init_resource_partitioner_handler, scheduler);
-    HPX_TEST_EQ(hpx::init(argc, argv, p), 0);
+    HPX_TEST_EQ(hpx::init(argc, argv, init_args), 0);
 }
 
 int main(int argc, char* argv[])

@@ -119,15 +119,10 @@ namespace hpx { namespace cuda { namespace experimental {
         template <typename Component, typename... Ts>
         hpx::future<hpx::id_type> create(Ts&&... ts) const
         {
-#if defined(HPX_COMPUTE_DEVICE_CODE)
-            HPX_ASSERT(false);
-            return hpx::future<hpx::id_type>();
-#else
             target_type t = this->get_next_target();
             hpx::id_type target_locality = t.get_locality();
             return components::create_async<Component>(
                 target_locality, std::forward<Ts>(ts)..., std::move(t));
-#endif
         }
 
         /// \cond NOINTERNAL
@@ -150,10 +145,16 @@ namespace hpx { namespace cuda { namespace experimental {
         ///
         template <typename Component, typename... Ts>
         hpx::future<std::vector<bulk_locality_result>> bulk_create(
-            std::size_t count, Ts&&... ts) const
+            std::size_t count,
+            Ts&&...
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
+            ts
+#endif
+        ) const
         {
 #if defined(HPX_COMPUTE_DEVICE_CODE)
             HPX_ASSERT(false);
+            HPX_UNUSED(count);
             return hpx::future<std::vector<bulk_locality_result>>();
 #else
             std::vector<hpx::id_type> localities;

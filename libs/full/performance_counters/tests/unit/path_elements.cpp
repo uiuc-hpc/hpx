@@ -528,7 +528,7 @@ namespace test {
     }
 }    // namespace test
 
-int hpx_main(hpx::program_options::variables_map& vm)
+int hpx_main()
 {
     {
         test::good();
@@ -542,7 +542,6 @@ int hpx_main(hpx::program_options::variables_map& vm)
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-    return hpx::init(
-        HPX_APPLICATION_STRING, argc, argv);    // Initialize and run HPX.
+    return hpx::init(argc, argv);    // Initialize and run HPX.
 }
 #endif

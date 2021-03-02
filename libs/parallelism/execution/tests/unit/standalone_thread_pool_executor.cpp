@@ -72,7 +72,7 @@ void test_then(Executor& exec)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void bulk_test(int value, hpx::thread::id tid, int passed_through)    //-V813
+void bulk_test(int, hpx::thread::id tid, int passed_through)    //-V813
 {
     HPX_TEST_NEQ(tid, hpx::this_thread::get_id());
     HPX_TEST_EQ(passed_through, 42);
@@ -114,7 +114,7 @@ void test_bulk_async(Executor& exec)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void bulk_test_f(int value, hpx::shared_future<void> f, hpx::thread::id tid,
+void bulk_test_f(int, hpx::shared_future<void> f, hpx::thread::id tid,
     int passed_through)    //-V813
 {
     HPX_TEST(f.is_ready());    // make sure, future is ready
@@ -158,7 +158,7 @@ void test_thread_pool_os_executor(hpx::execution::parallel_executor exec)
     test_bulk_then(exec);
 }
 
-int main(int argc, char* argv[])
+int main()
 {
     {
         // Choose a scheduler.
@@ -175,10 +175,11 @@ int main(int argc, char* argv[])
             thread_queue_init{};
         sched_type::init_parameter_type scheduler_init(
             num_threads, ad, num_threads, thread_queue_init, "my_scheduler");
+        hpx::threads::detail::network_background_callback_type
+            network_callback{};
         hpx::threads::thread_pool_init_parameters thread_pool_init("my_pool", 0,
             hpx::threads::policies::scheduler_mode::default_mode, num_threads,
-            0, notifier, ad,
-            hpx::threads::detail::network_background_callback_type{}, 0,
+            0, notifier, ad, network_callback, 0,
             (std::numeric_limits<std::int64_t>::max)(),
             (std::numeric_limits<std::int64_t>::max)());
 

@@ -462,8 +462,8 @@ namespace hpx { namespace parallel { inline namespace v1 {
 
             template <typename ExPolicy, typename Iter, typename Sent,
                 typename Iter2, typename T_, typename Op1, typename Op2>
-            static T sequential(ExPolicy&& policy, Iter first1, Sent last1,
-                Iter2 first2, T_ init, Op1&& op1, Op2&& op2)
+            static T sequential(ExPolicy&& /* policy */, Iter first1,
+                Sent last1, Iter2 first2, T_ init, Op1&& op1, Op2&& op2)
             {
                 if (first1 == last1)
                 {
@@ -493,7 +493,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
                 // this is to support vectorization, it will call op1 for each
                 // of the elements of a value-pack
                 auto result = util::detail::accumulate_values<ExPolicy>(
-                    [&op1](T const& sum, T const& val) -> T {
+                    [&op1](T const& sum, T&& val) -> T {
                         return hpx::util::invoke(op1, sum, val);
                     },
                     std::move(part_sum), std::move(init));
@@ -569,7 +569,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
                     // this is to support vectorization, it will call op1
                     // for each of the elements of a value-pack
                     auto result = util::detail::accumulate_values<ExPolicy>(
-                        [&op1](T const& sum, T const& val) -> T {
+                        [&op1](T const& sum, T&& val) -> T {
                             return hpx::util::invoke(op1, sum, val);
                         },
                         part_sum);

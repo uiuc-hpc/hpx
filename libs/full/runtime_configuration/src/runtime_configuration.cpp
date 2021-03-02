@@ -5,6 +5,7 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpx/config/endian.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/modules/filesystem.hpp>
 #include <hpx/modules/itt_notify.hpp>
@@ -20,7 +21,6 @@
 #include <hpx/util/get_entry_as.hpp>
 #include <hpx/version.hpp>
 
-#include <boost/predef/other/endian.h>
 #include <boost/spirit/include/qi_alternative.hpp>
 #include <boost/spirit/include/qi_numeric.hpp>
 #include <boost/spirit/include/qi_parse.hpp>
@@ -1165,18 +1165,11 @@ namespace hpx { namespace util {
             util::section const* sec = get_section("hpx.parcel");
             if (nullptr != sec)
             {
-#if BOOST_ENDIAN_BIG_BYTE
-                return sec->get_entry("endian_out", "big");
-#else
-                return sec->get_entry("endian_out", "little");
-#endif
+                return sec->get_entry("endian_out",
+                    endian::native == endian::big ? "big" : "little");
             }
         }
-#if BOOST_ENDIAN_BIG_BYTE
-        return "big";
-#else
-        return "little";
-#endif
+        return endian::native == endian::big ? "big" : "little";
     }
 
     // Will return the stack size to use for all HPX-threads.
@@ -1304,20 +1297,20 @@ namespace hpx { namespace util {
     {
         switch (stacksize)
         {
-        case threads::thread_stacksize_medium:
+        case threads::thread_stacksize::medium:
             return medium_stacksize;
 
-        case threads::thread_stacksize_large:
+        case threads::thread_stacksize::large:
             return large_stacksize;
 
-        case threads::thread_stacksize_huge:
+        case threads::thread_stacksize::huge:
             return huge_stacksize;
 
-        case threads::thread_stacksize_nostack:
+        case threads::thread_stacksize::nostack:
             return (std::numeric_limits<std::ptrdiff_t>::max)();
 
         default:
-        case threads::thread_stacksize_small:
+        case threads::thread_stacksize::small_:
             break;
         }
         return small_stacksize;

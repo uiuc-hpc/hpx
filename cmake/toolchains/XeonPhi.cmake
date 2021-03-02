@@ -14,20 +14,10 @@ set(CMAKE_SYSTEM_NAME Linux)
 
 # Set the Intel Compiler
 set(CMAKE_CXX_COMPILER icpc)
-set(CMAKE_C_COMPILER icc)
-set(CMAKE_Fortran_COMPILER ifort)
 
 # Add the -mmic compile flag such that everything will be compiled for the
 # correct platform
 set(CMAKE_CXX_FLAGS_INIT
-    "-mmic"
-    CACHE STRING "Initial compiler flags used to compile for the Xeon Phi"
-)
-set(CMAKE_C_FLAGS_INIT
-    "-mmic"
-    CACHE STRING "Initial compiler flags used to compile for the Xeon Phi"
-)
-set(CMAKE_Fortran_FLAGS_INIT
     "-mmic"
     CACHE STRING "Initial compiler flags used to compile for the Xeon Phi"
 )
@@ -44,14 +34,6 @@ set(CMAKE_CROSSCOMPILING ON)
 
 # Set our platform name
 set(HPX_PLATFORM "XeonPhi")
-
-# Always disable the ibverbs parcelport as it is non-functional on the BGQ.
-set(HPX_WITH_PARCELPORT_VERBS
-    OFF
-    CACHE
-      BOOL
-      "Enable the ibverbs based parcelport. This is currently an experimental feature"
-)
 
 set(HPX_WITH_PARCELPORT_MPI
     ON

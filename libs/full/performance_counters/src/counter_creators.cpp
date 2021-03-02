@@ -5,7 +5,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/assert.hpp>
 #include <hpx/async_distributed/async.hpp>
 #include <hpx/functional/function.hpp>
 #include <hpx/modules/errors.hpp>
@@ -17,6 +17,7 @@
 #include <hpx/runtime/agas/server/component_namespace.hpp>
 #include <hpx/runtime/agas/server/locality_namespace.hpp>
 #include <hpx/runtime/agas/server/symbol_namespace.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <cstdint>
 #include <string>
@@ -32,7 +33,7 @@ namespace hpx { namespace performance_counters {
     /// with the counter types. It will pass the \a counter_info and the
     /// \a error_code to the supplied function.
     bool default_counter_discoverer(counter_info const& info,
-        discover_counter_func const& f, discover_counters_mode mode,
+        discover_counter_func const& f, discover_counters_mode /* mode */,
         error_code& ec)
     {
         return f(info, ec);
@@ -503,6 +504,7 @@ namespace hpx { namespace performance_counters {
         {
             naming::gid_type id;
 
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
             //  get action code from counter type
             agas::namespace_action_code service_code =
                 agas::detail::retrieve_action_service_code(name, ec);
@@ -539,8 +541,14 @@ namespace hpx { namespace performance_counters {
                     "unknown counter agas counter name: " + name);
                 break;
             }
-
             return id;
+#else
+            HPX_ASSERT(false);
+            HPX_UNUSED(name);
+            HPX_UNUSED(agas_id);
+            HPX_UNUSED(ec);
+            return id;
+#endif
         }
     }    // namespace detail
 
@@ -610,4 +618,3 @@ namespace hpx { namespace performance_counters {
         return naming::invalid_gid;
     }
 }}    // namespace hpx::performance_counters
-#endif

@@ -9,7 +9,7 @@
 #include <hpx/config.hpp>
 #include <hpx/parallel/algorithm.hpp>
 #include <hpx/parallel/container_algorithms.hpp>
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
 #include <hpx/parallel/segmented_algorithm.hpp>
 #endif
 
@@ -20,10 +20,8 @@ namespace hpx {
     using hpx::parallel::minmax_element;
     using hpx::parallel::partition;
     using hpx::parallel::partition_copy;
-    using hpx::parallel::remove;
     using hpx::parallel::remove_copy;
     using hpx::parallel::remove_copy_if;
-    using hpx::parallel::remove_if;
     using hpx::parallel::replace;
     using hpx::parallel::replace_copy;
     using hpx::parallel::replace_copy_if;
@@ -32,13 +30,10 @@ namespace hpx {
     using hpx::parallel::reverse_copy;
     using hpx::parallel::rotate;
     using hpx::parallel::rotate_copy;
-    using hpx::parallel::search;
-    using hpx::parallel::search_n;
     using hpx::parallel::sort;
     using hpx::parallel::stable_partition;
     using hpx::parallel::stable_sort;
     using hpx::parallel::swap_ranges;
-    using hpx::parallel::transform;
     using hpx::parallel::unique;
     using hpx::parallel::unique_copy;
 }    // namespace hpx

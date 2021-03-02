@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-set(tests lockfree_fifo)
+set(tests contiguous_index_queue lockfree_fifo)
 
 set(lockfree_fifo_FLAGS NOLIBS)
 set(lockfree_fifo_LIBRARIES
@@ -19,6 +19,8 @@ set(lockfree_fifo_LIBRARIES
     hpx_testing
     hpx_type_support
 )
+
+set(contiguous_index_queue_PARAMETERS THREADS_PER_LOCALITY 4)
 
 foreach(test ${tests})
   set(sources ${test}.cpp)
@@ -40,3 +42,4 @@ target_compile_definitions(
   lockfree_fifo_test PRIVATE HPX_MODULE_STATIC_LINKING HPX_NO_VERSION_CHECK
 )
 target_include_directories(lockfree_fifo_test PRIVATE ${HPX_SOURCE_DIR})
+target_link_libraries(lockfree_fifo_test PRIVATE hpx_allocator_support)

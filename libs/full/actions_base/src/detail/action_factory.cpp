@@ -5,12 +5,12 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/actions_base/detail/action_factory.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/modules/errors.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -157,6 +157,8 @@ namespace hpx { namespace actions { namespace detail {
                 msg += ", for typename " + *name;
             }
             msg += this_.collect_registered_typenames();
+#else
+            HPX_UNUSED(name);
 #endif
             HPX_THROW_EXCEPTION(
                 serialization_error, "action_registry::create", msg);
@@ -173,6 +175,8 @@ namespace hpx { namespace actions { namespace detail {
                 msg += ", for typename " + *name;
             }
             msg += this_.collect_registered_typenames();
+#else
+            HPX_UNUSED(name);
 #endif
             HPX_THROW_EXCEPTION(
                 serialization_error, "action_registry::create", msg);
@@ -234,5 +238,4 @@ namespace hpx { namespace actions { namespace detail {
     }
 }}}    // namespace hpx::actions::detail
 
-#endif
 #endif

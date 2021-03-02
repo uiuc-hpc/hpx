@@ -10,7 +10,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/async_combinators/wait_all.hpp>
 #include <hpx/async_combinators/when_all.hpp>
@@ -928,7 +927,7 @@ namespace hpx
         /// \param pos   Position of the element in the vector
         /// \param val   The value to be copied
         ///
-        void set_values(launch::sync_policy, size_type part,
+        void set_values(launch::sync_policy, size_type /* part */,
             std::vector<size_type> const& pos, std::vector<T> const& val)
         {
             set_values(pos, val).get();
@@ -1294,4 +1293,4 @@ namespace hpx
         }
     };
 }
-#endif
+

@@ -17,8 +17,6 @@
 /// classes are asynchronous API which return the futures.
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
-#include <hpx/actions/base_action.hpp>
 #include <hpx/actions/transfer_action.hpp>
 #include <hpx/actions/transfer_continuation_action.hpp>
 #include <hpx/actions_base/basic_action.hpp>
@@ -36,6 +34,7 @@
 #include <hpx/runtime/components/server/locking_hook.hpp>
 #include <hpx/runtime/components/server/simple_component_base.hpp>
 #include <hpx/runtime/get_ptr.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <cstddef>
 #include <iostream>
@@ -329,6 +328,8 @@ namespace hpx { namespace server
     };
 }}
 
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
+
 ///////////////////////////////////////////////////////////////////////////////
 #define HPX_REGISTER_UNORDERED_MAP_DECLARATION(...)                           \
     HPX_REGISTER_UNORDERED_MAP_DECLARATION_(__VA_ARGS__)                      \
@@ -451,6 +452,12 @@ namespace hpx { namespace server
     > HPX_PP_CAT(__unordered_map_, name);                                     \
     HPX_REGISTER_COMPONENT(HPX_PP_CAT(__unordered_map_, name))                \
 /**/
+#else    // COMPUTE DEVICE CODE
+
+#define HPX_REGISTER_UNORDERED_MAP_DECLARATION(...) /**/
+#define HPX_REGISTER_UNORDERED_MAP(...)             /**/
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx
@@ -536,9 +543,16 @@ namespace hpx
         ///
         future<T> get_value(Key const& pos, bool erase) const
         {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
             HPX_ASSERT(this->get_id());
             return hpx::async<typename server_type::get_value_action>(
                 this->get_id(), pos, erase);
+#else
+            HPX_ASSERT(false);
+            HPX_UNUSED(pos);
+            HPX_UNUSED(erase);
+            return hpx::future<T>{};
+#endif
         }
 
         /// Returns the value at position \a pos in the partition_unordered_map
@@ -592,9 +606,16 @@ namespace hpx
         template <typename T_>
         future<void> set_value(Key const& pos, T_ && val)
         {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
             HPX_ASSERT(this->get_id());
             return hpx::async<typename server_type::set_value_action>(
                 this->get_id(), pos, std::forward<T_>(val));
+#else
+            HPX_ASSERT(false);
+            HPX_UNUSED(pos);
+            HPX_UNUSED(val);
+            return hpx::make_ready_future();
+#endif
         }
 
         /// Copy the value of \a val in the element at position
@@ -666,4 +687,4 @@ namespace hpx
         }
     };
 }
-#endif
+

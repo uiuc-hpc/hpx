@@ -109,7 +109,8 @@ int hpx_main(hpx::program_options::variables_map& vm)
     return hpx::finalize(); // Handles HPX shutdown
 }
 
-bool test_function(apex_context const& context) {
+bool test_function(apex_context const&)
+{
     if (!counters_initialized) return false;
     try {
         performance_counter counter(get_counter());
@@ -152,5 +153,8 @@ int main(int argc, char* argv[])
     hpx::register_startup_function(&register_policies);
 
     // Initialize and run HPX
-    return hpx::init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }

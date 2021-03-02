@@ -7,26 +7,25 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
-#include <hpx/assert.hpp>
+#include <hpx/actions/continuation.hpp>
 #include <hpx/agas/agas_fwd.hpp>
+#include <hpx/assert.hpp>
+#include <hpx/async_distributed/applier/applier.hpp>
+#include <hpx/components_base/pinned_ptr.hpp>
 #include <hpx/execution_base/register_locks.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/threadmanager.hpp>
-#include <hpx/runtime_local/runtime_local.hpp>
-#include <hpx/threading_base/thread_description.hpp>
-#include <hpx/threading_base/thread_helpers.hpp>
-
-#include <hpx/async_distributed/applier/applier.hpp>
-#include <hpx/components_base/pinned_ptr.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime/agas/interface.hpp>
 #include <hpx/runtime/naming/resolver_client.hpp>
 #include <hpx/runtime/parcelset/parcel.hpp>
 #include <hpx/runtime/parcelset/parcelhandler.hpp>
 #include <hpx/runtime/runtime_fwd.hpp>
 #include <hpx/runtime_distributed.hpp>
+#include <hpx/runtime_local/runtime_local.hpp>
+#include <hpx/threading_base/thread_description.hpp>
+#include <hpx/threading_base/thread_helpers.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -87,6 +86,9 @@ namespace hpx { namespace applier {
 #if defined(HPX_HAVE_NETWORKING)
         return parcel_handler_.get_raw_remote_localities(prefixes, type, ec);
 #else
+        HPX_UNUSED(prefixes);
+        HPX_UNUSED(type);
+        HPX_UNUSED(ec);
         return true;
 #endif
     }
@@ -102,6 +104,9 @@ namespace hpx { namespace applier {
         for (naming::gid_type& gid : raw_prefixes)
             prefixes.emplace_back(gid, naming::id_type::unmanaged);
 #endif
+        HPX_UNUSED(prefixes);
+        HPX_UNUSED(type);
+        HPX_UNUSED(ec);
         return true;
     }
 
@@ -114,6 +119,8 @@ namespace hpx { namespace applier {
         naming::gid_type id;
         naming::get_agas_client().get_console_locality(id);
         prefixes.emplace_back(id);
+        HPX_UNUSED(prefixes);
+        HPX_UNUSED(type);
         return true;
 #endif
     }
@@ -132,6 +139,8 @@ namespace hpx { namespace applier {
 #else
         prefixes.emplace_back(agas::get_console_locality());
 #endif
+        HPX_UNUSED(prefixes);
+        HPX_UNUSED(ec);
         return true;
     }
 
@@ -148,6 +157,9 @@ namespace hpx { namespace applier {
 #else
         prefixes.emplace_back(agas::get_console_locality());
 #endif
+        HPX_UNUSED(prefixes);
+        HPX_UNUSED(type);
+        HPX_UNUSED(ec);
         return true;
     }
 
@@ -161,4 +173,3 @@ namespace hpx { namespace applier {
         return &hpx::get_runtime_distributed().get_applier();
     }
 }}    // namespace hpx::applier
-#endif

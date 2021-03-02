@@ -53,16 +53,18 @@ struct cmp
     T value_;
 
     template <typename Archive>
-    void serialize(Archive& ar, unsigned version)
+    void serialize(Archive& ar, unsigned)
     {
-        ar& value_;
+        // clang-format off
+        ar & value_;
+        // clang-format on
     }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename ExPolicy, typename T, typename U = T>
 void verify_values(
-    ExPolicy&& policy, hpx::partitioned_vector<T> const& v, U const& val)
+    ExPolicy&&, hpx::partitioned_vector<T> const& v, U const& val)
 {
     typedef typename hpx::partitioned_vector<T>::const_iterator const_iterator;
 
@@ -97,8 +99,7 @@ void test_transform_binary(ExPolicy&& policy, hpx::partitioned_vector<T>& v,
     verify_values(policy, w, val);
     verify_values_count(policy, w, val);
 
-    hpx::parallel::transform(
-        policy, v.begin(), v.end(), w.begin(), x.begin(), add<V>());
+    hpx::transform(policy, v.begin(), v.end(), w.begin(), x.begin(), add<V>());
 
     verify_values(policy, x, 2 * val);
     verify_values_count(policy, x, 2 * val);
@@ -126,8 +127,7 @@ void test_transform_binary_async(ExPolicy&& policy,
     verify_values(policy, w, val);
     verify_values_count_async(policy, w, val);
 
-    hpx::parallel::transform(
-        policy, v.begin(), v.end(), w.begin(), x.begin(), add<V>())
+    hpx::transform(policy, v.begin(), v.end(), w.begin(), x.begin(), add<V>())
         .get();
 
     verify_values(policy, x, 2 * val);
@@ -143,15 +143,15 @@ void transform_binary_tests(std::vector<hpx::id_type>& localities)
         hpx::partitioned_vector<T> v;
         hpx::partitioned_vector<U> w;
         hpx::partitioned_vector<V> x;
-        hpx::parallel::transform(hpx::execution::seq, v.begin(), v.end(),
-            w.begin(), x.begin(), add<V>());
-        hpx::parallel::transform(hpx::execution::par, v.begin(), v.end(),
-            w.begin(), x.begin(), add<V>());
-        hpx::parallel::transform(hpx::execution::seq(hpx::execution::task),
-            v.begin(), v.end(), w.begin(), x.begin(), add<V>())
+        hpx::transform(hpx::execution::seq, v.begin(), v.end(), w.begin(),
+            x.begin(), add<V>());
+        hpx::transform(hpx::execution::par, v.begin(), v.end(), w.begin(),
+            x.begin(), add<V>());
+        hpx::transform(hpx::execution::seq(hpx::execution::task), v.begin(),
+            v.end(), w.begin(), x.begin(), add<V>())
             .get();
-        hpx::parallel::transform(hpx::execution::par(hpx::execution::task),
-            v.begin(), v.end(), w.begin(), x.begin(), add<V>())
+        hpx::transform(hpx::execution::par(hpx::execution::task), v.begin(),
+            v.end(), w.begin(), x.begin(), add<V>())
             .get();
     }
 

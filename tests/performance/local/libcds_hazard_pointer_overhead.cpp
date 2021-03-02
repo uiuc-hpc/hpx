@@ -40,9 +40,6 @@ using hpx::program_options::options_description;
 using hpx::program_options::value;
 using hpx::program_options::variables_map;
 
-using hpx::finalize;
-using hpx::init;
-
 using hpx::find_here;
 using hpx::naming::id_type;
 
@@ -218,8 +215,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
     auto const thread_func =
         hpx::threads::detail::thread_function_nullary<decltype(func)>{func};
     auto desc = hpx::util::thread_description();
-    auto prio = hpx::threads::thread_priority_normal;
-    auto stack_size = hpx::threads::thread_stacksize_small;
+    auto prio = hpx::threads::thread_priority::normal;
+    auto stack_size = hpx::threads::thread_stacksize::small_;
     auto num_threads = hpx::get_num_worker_threads();
     hpx::error_code ec;
 
@@ -238,7 +235,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
             {
                 hpx::threads::thread_init_data init(
                     hpx::threads::thread_function_type(thread_func), desc, prio,
-                    hint, stack_size, hpx::threads::pending, false, sched);
+                    hint, stack_size,
+                    hpx::threads::thread_schedule_state::pending, false, sched);
                 sched->create_thread(init, nullptr, ec);
             }
         };
@@ -248,7 +246,8 @@ void measure_function_futures_create_thread_hierarchical_placement(
 
         hpx::threads::thread_init_data init(
             hpx::threads::thread_function_type(thread_spawn_func), desc, prio,
-            hint, stack_size, hpx::threads::pending, false, sched);
+            hint, stack_size, hpx::threads::thread_schedule_state::pending,
+            false, sched);
         sched->create_thread(init, nullptr, ec);
     }
     l.wait();
@@ -349,5 +348,8 @@ int main(int argc, char* argv[])
     // clang-format on
 
     // Initialize and run HPX.
-    return init(cmdline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    return hpx::init(argc, argv, init_args);
 }

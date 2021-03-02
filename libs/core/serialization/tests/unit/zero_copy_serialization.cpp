@@ -8,6 +8,7 @@
 #if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx_init.hpp>
 
+#include <hpx/config/endian.hpp>
 #include <hpx/include/actions.hpp>
 #include <hpx/include/apply.hpp>
 #include <hpx/lcos/base_lco_with_value.hpp>
@@ -18,8 +19,6 @@
 #include <hpx/serialization/serialize.hpp>
 #include <hpx/serialization/serialize_buffer.hpp>
 #include <hpx/timing/high_resolution_timer.hpp>
-
-#include <boost/predef/other/endian.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -69,29 +68,29 @@ struct data_buffer
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-int test_function1(hpx::serialization::serialize_buffer<double> const& b)
+int test_function1(hpx::serialization::serialize_buffer<double> const& /* b */)
 {
     return 42;
 }
 HPX_PLAIN_ACTION(test_function1, test_action1)
 
-int test_function2(hpx::serialization::serialize_buffer<double> const& b1,
-    hpx::serialization::serialize_buffer<int> const& b2)
+int test_function2(hpx::serialization::serialize_buffer<double> const& /* b1 */,
+    hpx::serialization::serialize_buffer<int> const& /* b2 */)
 {
     return 42;
 }
 HPX_PLAIN_ACTION(test_function2, test_action2)
 
-int test_function3(double d,
-    hpx::serialization::serialize_buffer<double> const& b1,
-    std::string const& s, int i,
-    hpx::serialization::serialize_buffer<int> const& b2)
+int test_function3(double /* d */,
+    hpx::serialization::serialize_buffer<double> const& /* b1 */,
+    std::string const& /* s */, int /* i */,
+    hpx::serialization::serialize_buffer<int> const& /* b2 */)
 {
     return 42;
 }
 HPX_PLAIN_ACTION(test_function3, test_action3)
 
-int test_function4(data_buffer<double> const& b)
+int test_function4(data_buffer<double> const& /* b */)
 {
     return 42;
 }
@@ -169,7 +168,7 @@ void test_parcel_serialization(hpx::parcelset::parcel outp,
     //naming::address const* inaddrs = pin.get_destination_addrs();
     //hpx::threads::thread_init_data data;
     //inact->get_thread_init_data(inaddrs[0].address_, data);
-    //data.func(hpx::threads::wait_signaled);
+    //data.func(hpx::threads::thread_restart_state::signaled);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -183,18 +182,21 @@ void test_normal_serialization(T& arg)
 
     // compose archive flags
     std::uint32_t out_archive_flags = hpx::serialization::disable_data_chunking;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(
         hpx::parcelset::detail::create_parcel::call(std::move(dest),
             std::move(addr), hpx::actions::typed_continuation<int>(here),
-            Action(), hpx::threads::thread_priority_normal, arg));
+            Action(), hpx::threads::thread_priority::normal, arg));
 
     outp.set_source_id(here);
 
@@ -211,18 +213,21 @@ void test_normal_serialization(T1& arg1, T2& arg2)
 
     // compose archive flags
     std::uint32_t out_archive_flags = hpx::serialization::disable_data_chunking;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(
         hpx::parcelset::detail::create_parcel::call(std::move(dest),
             std::move(addr), hpx::actions::typed_continuation<int>(here),
-            test_action2(), hpx::threads::thread_priority_normal, arg1, arg2));
+            test_action2(), hpx::threads::thread_priority::normal, arg1, arg2));
 
     outp.set_source_id(here);
 
@@ -240,18 +245,21 @@ void test_normal_serialization(
 
     // compose archive flags
     std::uint32_t out_archive_flags = hpx::serialization::disable_data_chunking;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(hpx::parcelset::detail::create_parcel::call(
         std::move(dest), std::move(addr),
         hpx::actions::typed_continuation<int>(here), test_action3(),
-        hpx::threads::thread_priority_normal, d, arg1, s, i, arg2));
+        hpx::threads::thread_priority::normal, d, arg1, s, i, arg2));
 
     outp.set_source_id(here);
 
@@ -269,18 +277,21 @@ void test_zero_copy_serialization(T& arg)
 
     // compose archive flags
     std::uint32_t out_archive_flags = 0U;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(
         hpx::parcelset::detail::create_parcel::call(std::move(dest),
             std::move(addr), hpx::actions::typed_continuation<int>(here),
-            Action(), hpx::threads::thread_priority_normal, arg));
+            Action(), hpx::threads::thread_priority::normal, arg));
 
     outp.set_source_id(here);
 
@@ -297,18 +308,21 @@ void test_zero_copy_serialization(T1& arg1, T2& arg2)
 
     // compose archive flags
     std::uint32_t out_archive_flags = 0U;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(
         hpx::parcelset::detail::create_parcel::call(std::move(dest),
             std::move(addr), hpx::actions::typed_continuation<int>(here),
-            test_action2(), hpx::threads::thread_priority_normal, arg1, arg2));
+            test_action2(), hpx::threads::thread_priority::normal, arg1, arg2));
 
     outp.set_source_id(here);
 
@@ -326,18 +340,21 @@ void test_zero_copy_serialization(
 
     // compose archive flags
     std::uint32_t out_archive_flags = 0U;
-#if BOOST_ENDIAN_BIG_BYTE
-    out_archive_flags |= hpx::serialization::endian_big;
-#else
-    out_archive_flags |= hpx::serialization::endian_little;
-#endif
+    if (hpx::endian::native == hpx::endian::big)
+    {
+        out_archive_flags |= hpx::serialization::endian_big;
+    }
+    else
+    {
+        out_archive_flags |= hpx::serialization::endian_little;
+    }
 
     // create a parcel with/without continuation
     hpx::naming::gid_type dest = here.get_gid();
     hpx::parcelset::parcel outp(hpx::parcelset::detail::create_parcel::call(
         std::move(dest), std::move(addr),
         hpx::actions::typed_continuation<int>(here), test_action3(),
-        hpx::threads::thread_priority_normal, d, arg1, s, i, arg2));
+        hpx::threads::thread_priority::normal, d, arg1, s, i, arg2));
 
     outp.set_source_id(here);
 
@@ -345,7 +362,7 @@ void test_zero_copy_serialization(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(hpx::program_options::variables_map& vm)
+int hpx_main()
 {
     std::size_t size = 1;
     for (std::size_t i = 0; i != 20; ++i)

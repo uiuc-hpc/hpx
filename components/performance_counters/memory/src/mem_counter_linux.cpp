@@ -6,7 +6,6 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(__linux) || defined(linux) || defined(linux__) || defined(__linux__)
 
@@ -16,7 +15,6 @@
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/format.hpp>
 
-#include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -178,4 +176,4 @@ namespace hpx { namespace performance_counters { namespace memory
 }}}
 
 #endif
-#endif
+

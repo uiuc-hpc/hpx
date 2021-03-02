@@ -30,7 +30,7 @@ struct throw_always
     }
 
     template <typename T>
-    void operator()(T v)
+    void operator()(T)
     {
         if (--throw_after_ == 0)
             throw std::runtime_error("test");
@@ -49,7 +49,7 @@ struct throw_bad_alloc
     }
 
     template <typename T>
-    void operator()(T v)
+    void operator()(T)
     {
         if (--throw_after_ == 0)
             throw std::bad_alloc();
@@ -418,7 +418,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

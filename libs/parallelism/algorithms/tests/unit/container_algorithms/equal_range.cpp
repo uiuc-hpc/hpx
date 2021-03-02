@@ -332,7 +332,7 @@ void test_equal_exception(IteratorTag)
     try
     {
         hpx::ranges::equal(iterator(std::begin(c1)), iterator(std::end(c1)),
-            std::begin(c2), std::end(c2), [](std::size_t v1, std::size_t v2) {
+            std::begin(c2), std::end(c2), [](std::size_t, std::size_t) {
                 return throw std::runtime_error("test"), true;
             });
 
@@ -373,7 +373,7 @@ void test_equal_exception(ExPolicy&& policy, IteratorTag)
     {
         hpx::ranges::equal(policy, iterator(std::begin(c1)),
             iterator(std::end(c1)), std::begin(c2), std::end(c2),
-            [](std::size_t v1, std::size_t v2) {
+            [](std::size_t, std::size_t) {
                 return throw std::runtime_error("test"), true;
             });
 
@@ -411,7 +411,7 @@ void test_equal_exception_async(ExPolicy&& p, IteratorTag)
     {
         hpx::future<bool> f = hpx::ranges::equal(p, iterator(std::begin(c1)),
             iterator(std::end(c1)), std::begin(c2), std::end(c2),
-            [](std::size_t v1, std::size_t v2) {
+            [](std::size_t, std::size_t) {
                 return throw std::runtime_error("test"), true;
             });
         returned_from_algorithm = true;
@@ -478,7 +478,7 @@ void test_equal_bad_alloc(ExPolicy&& policy, IteratorTag)
     {
         hpx::ranges::equal(policy, iterator(std::begin(c1)),
             iterator(std::end(c1)), std::begin(c2), std::end(c2),
-            [](std::size_t v1, std::size_t v2) {
+            [](std::size_t, std::size_t) {
                 return throw std::bad_alloc(), true;
             });
 
@@ -515,7 +515,7 @@ void test_equal_bad_alloc_async(ExPolicy&& p, IteratorTag)
     {
         hpx::future<bool> f = hpx::ranges::equal(p, iterator(std::begin(c1)),
             iterator(std::end(c1)), std::begin(c2), std::end(c2),
-            [](std::size_t v1, std::size_t v2) {
+            [](std::size_t, std::size_t) {
                 return throw std::bad_alloc(), true;
             });
         returned_from_algorithm = true;
@@ -587,7 +587,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

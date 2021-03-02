@@ -6,8 +6,10 @@
 
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
-set(allocator_support_headers hpx/allocator_support/allocator_deleter.hpp
-                              hpx/allocator_support/internal_allocator.hpp
+set(allocator_support_headers
+    hpx/allocator_support/aligned_allocator.hpp
+    hpx/allocator_support/allocator_deleter.hpp
+    hpx/allocator_support/internal_allocator.hpp
 )
 
 # cmake-format: off
@@ -29,6 +31,7 @@ add_hpx_module(
   SOURCES ${allocator_support_sources}
   HEADERS ${allocator_support_headers}
   COMPAT_HEADERS ${allocator_support_compat_headers}
-  MODULE_DEPENDENCIES hpx_config hpx_preprocessor hpx_dependencies_allocator
+  DEPENDENCIES hpx_dependencies_allocator
+  MODULE_DEPENDENCIES hpx_config hpx_preprocessor
   CMAKE_SUBDIRS examples tests
 )

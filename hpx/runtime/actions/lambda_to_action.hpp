@@ -8,10 +8,7 @@
 
 #pragma once
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/include/plain_actions.hpp>
-
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -52,9 +49,9 @@ namespace hpx { namespace actions
                 return "lambda action()";
             }
 
-            template <typename ...Ts>
+            template <typename... Ts>
             static ReturnType invoke(naming::address::address_type /*lva*/,
-                naming::address::component_type comptype, Ts&&... vs)
+                naming::address::component_type /*comptype*/, Ts&&... vs)
             {
                 int* dummy = nullptr;
                 return reinterpret_cast<const F&>(*dummy)(    // -V522
@@ -107,4 +104,4 @@ namespace hpx { namespace actions
             true ? nullptr : hpx::actions::detail::addr_add() + f;
     }
 }}
-#endif
+

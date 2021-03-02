@@ -40,6 +40,7 @@ namespace hpx { namespace threads { namespace policies {
             std::int64_t& idle_loop_count, bool running)
         {
 #if !defined(HPX_HAVE_THREAD_MINIMAL_DEADLOCK_DETECTION)
+            HPX_UNUSED(num_thread);
             HPX_UNUSED(tm);
             HPX_UNUSED(idle_loop_count);
             HPX_UNUSED(running);    //-V601
@@ -60,8 +61,9 @@ namespace hpx { namespace threads { namespace policies {
             for (typename Map::const_iterator it = tm.begin(); it != end; ++it)
             {
                 threads::thread_data const* thrd = get_thread_id_data(*it);
-                threads::thread_state_enum state = thrd->get_state().state();
-                threads::thread_state_enum marked_state =
+                threads::thread_schedule_state state =
+                    thrd->get_state().state();
+                threads::thread_schedule_state marked_state =
                     thrd->get_marked_state();
 
                 if (state != marked_state)
@@ -129,12 +131,12 @@ namespace hpx { namespace threads { namespace policies {
                     {
                         switch (state)
                         {
-                        case threads::suspended:
+                        case threads::thread_schedule_state::suspended:
                             result = true;    // at least one is suspended
                             break;
 
-                        case threads::pending:
-                        case threads::active:
+                        case threads::thread_schedule_state::pending:
+                        case threads::thread_schedule_state::active:
                             result =
                                 false;    // one is active, no deadlock (yet)
                             collect_suspended = false;

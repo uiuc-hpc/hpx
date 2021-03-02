@@ -9,7 +9,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/agas/agas_fwd.hpp>
@@ -60,8 +59,8 @@ namespace hpx { namespace parcelset
     private:
         void parcel_sink(parcel const& p);
 
-        threads::thread_state_enum decode_parcel(
-            parcelport& pp, std::shared_ptr<std::vector<char> > parcel_data,
+        threads::thread_schedule_state decode_parcel(parcelport& pp,
+            std::shared_ptr<std::vector<char>> parcel_data,
             performance_counters::parcels::data_point receive_data);
 
         // make sure the parcel has been properly initialized
@@ -486,4 +485,4 @@ namespace hpx { namespace parcelset
 #include <hpx/config/warnings_suffix.hpp>
 
 #endif
-#endif
+

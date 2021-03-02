@@ -16,8 +16,6 @@
 // $134.01 and will have made $34.01 in interest.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
 
@@ -115,7 +113,9 @@ int main(int argc, char ** argv)
             "The time money is invested [months]")
     ;
 
-    return hpx::init(cmdline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    return hpx::init(argc, argv, init_args);
 }
 //]
-#endif

@@ -4,8 +4,6 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/modules/errors.hpp>
 #include <hpx/naming_base/address.hpp>
 #include <hpx/serialization/serialize.hpp>
@@ -14,7 +12,7 @@
 namespace hpx { namespace naming {
 
     template <typename Archive>
-    void address::save(Archive& ar, unsigned int version) const
+    void address::save(Archive& ar, unsigned int /* version */) const
     {
         // clang-format off
         ar & locality_ & type_ & address_;
@@ -22,7 +20,7 @@ namespace hpx { namespace naming {
     }
 
     template <typename Archive>
-    void address::load(Archive& ar, unsigned int version)
+    void address::load(Archive& ar, unsigned int /* version */)
     {
         // clang-format off
         ar & locality_ & type_ & address_;
@@ -35,4 +33,3 @@ namespace hpx { namespace naming {
     template HPX_EXPORT void address::load(
         serialization::input_archive&, unsigned int);
 }}    // namespace hpx::naming
-#endif

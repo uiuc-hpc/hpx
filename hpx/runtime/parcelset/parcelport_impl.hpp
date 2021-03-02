@@ -11,28 +11,26 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
+#include <hpx/config/endian.hpp>
 #include <hpx/assert.hpp>
-#include <hpx/modules/errors.hpp>
+#include <hpx/execution_base/this_thread.hpp>
 #include <hpx/functional/bind_front.hpp>
 #include <hpx/functional/deferred_call.hpp>
-#include <hpx/runtime_local/config_entry.hpp>
+#include <hpx/io_service/io_service_pool.hpp>
+#include <hpx/modules/errors.hpp>
+#include <hpx/modules/threading.hpp>
 #include <hpx/runtime/parcelset/detail/call_for_each.hpp>
 #include <hpx/runtime/parcelset/detail/parcel_await.hpp>
 #include <hpx/runtime/parcelset/encode_parcels.hpp>
 #include <hpx/runtime/parcelset/parcelport.hpp>
-#include <hpx/modules/threading.hpp>
+#include <hpx/runtime_configuration/runtime_configuration.hpp>
+#include <hpx/runtime_local/config_entry.hpp>
 #include <hpx/thread_support/atomic_count.hpp>
 #include <hpx/util/connection_cache.hpp>
 #include <hpx/util/from_string.hpp>
 #include <hpx/util/get_entry_as.hpp>
-#include <hpx/io_service/io_service_pool.hpp>
-#include <hpx/runtime_configuration/runtime_configuration.hpp>
-#include <hpx/execution_base/this_thread.hpp>
-
-#include <boost/predef/other/endian.h>
 
 #include <atomic>
 #include <chrono>
@@ -124,11 +122,8 @@ namespace hpx { namespace parcelset
                 hpx::get_config_entry("hpx.max_background_threads",
                     (std::numeric_limits<std::size_t>::max)())))
         {
-#if BOOST_ENDIAN_BIG_BYTE
-            std::string endian_out = get_config_entry("hpx.parcel.endian_out", "big");
-#else
-            std::string endian_out = get_config_entry("hpx.parcel.endian_out", "little");
-#endif
+            std::string endian_out = get_config_entry("hpx.parcel.endian_out",
+                endian::native == endian::big ? "big" : "little");
             if (endian_out == "little")
                 archive_flags_ |= serialization::endian_little;
             else if (endian_out == "big")
@@ -327,10 +322,11 @@ namespace hpx { namespace parcelset
                             &parcelport_impl::remove_from_connection_cache,
                             this, loc)),
                     "remove_from_connection_cache_delayed",
-                    threads::thread_priority_normal,
+                    threads::thread_priority::normal,
                     threads::thread_schedule_hint(
                         static_cast<std::int16_t>(get_next_num_thread())),
-                    threads::thread_stacksize_default, threads::pending, true);
+                    threads::thread_stacksize::default_,
+                    threads::thread_schedule_state::pending, true);
                 hpx::threads::register_thread(data, ec);
                 if (!ec) return;
             }
@@ -342,21 +338,23 @@ namespace hpx { namespace parcelset
         {
             error_code ec(lightweight);
             hpx::threads::thread_init_data data(
-                    hpx::threads::make_thread_function_nullary(util::deferred_call(
-                        &parcelport_impl::remove_from_connection_cache_delayed,
-                        this, loc)),
-                    "remove_from_connection_cache", threads::thread_priority_normal,
-                    threads::thread_schedule_hint(
-                        static_cast<std::int16_t>(get_next_num_thread())),
-                    threads::thread_stacksize_default,
-                    threads::suspended, true);
+                hpx::threads::make_thread_function_nullary(util::deferred_call(
+                    &parcelport_impl::remove_from_connection_cache_delayed,
+                    this, loc)),
+                "remove_from_connection_cache",
+                threads::thread_priority::normal,
+                threads::thread_schedule_hint(
+                    static_cast<std::int16_t>(get_next_num_thread())),
+                threads::thread_stacksize::default_,
+                threads::thread_schedule_state::suspended, true);
             threads::thread_id_type id =
                 hpx::threads::register_thread(data, ec);
             if (ec) return;
 
             threads::set_thread_state(id, std::chrono::milliseconds(100),
-                threads::pending, threads::wait_signaled,
-                threads::thread_priority_boost, true, ec);
+                threads::thread_schedule_state::pending,
+                threads::thread_restart_state::signaled,
+                threads::thread_priority::boost, true, ec);
         }
 
         /// Return the name of this locality
@@ -425,12 +423,9 @@ namespace hpx { namespace parcelset
         }
 
         template <typename ConnectionHandler_>
-        typename std::enable_if<
-            !connection_handler_traits<
-                ConnectionHandler_
-            >::send_early_parcel::value
-        >::type
-        send_early_parcel_impl(locality const & dest, parcel p)
+        typename std::enable_if<!connection_handler_traits<
+            ConnectionHandler_>::send_early_parcel::value>::type
+        send_early_parcel_impl(locality const& /* dest */, parcel /* p */)
         {
             HPX_THROW_EXCEPTION(network_error, "send_early_parcel",
                 "This parcelport does not support sending early parcels");
@@ -566,15 +561,12 @@ namespace hpx { namespace parcelset
         }
 
         template <typename ConnectionHandler_>
-        typename std::enable_if<
-            !connection_handler_traits<
-                ConnectionHandler_
-            >::send_immediate_parcels::value,
-            void
-        >::type
-        send_immediate_impl(
-            parcelport_impl &this_, locality const&dest_,
-            write_handler_type *fs, parcel *ps, std::size_t num_parcels)
+        typename std::enable_if<!connection_handler_traits<ConnectionHandler_>::
+                                    send_immediate_parcels::value,
+            void>::type
+        send_immediate_impl(parcelport_impl& /* this_ */,
+            locality const& /* dest_ */, write_handler_type* /* fs */,
+            parcel* /* ps */, std::size_t /* num_parcels */)
         {
             HPX_ASSERT(false);
         }
@@ -582,7 +574,7 @@ namespace hpx { namespace parcelset
     private:
         ///////////////////////////////////////////////////////////////////////
         std::shared_ptr<connection> get_connection(
-            locality const& l, bool force, error_code& ec)
+            locality const& l, bool /* force */, error_code& ec)
         {
             // Request new connection from connection cache.
             std::shared_ptr<connection> sender_connection;
@@ -785,7 +777,7 @@ namespace hpx { namespace parcelset
     private:
         ///////////////////////////////////////////////////////////////////////
         void get_connection_and_send_parcels(
-            locality const& locality_id, bool background = false)
+            locality const& locality_id, bool /* background */ = false)
         {
 
             if (connection_handler_traits<ConnectionHandler>::
@@ -965,5 +957,4 @@ namespace hpx { namespace parcelset
     };
 }}
 
-#endif
 #endif

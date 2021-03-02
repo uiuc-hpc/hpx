@@ -16,6 +16,7 @@
 #include <hpx/execution/detail/async_launch_policy_dispatch.hpp>
 #include <hpx/execution/detail/post_policy_dispatch.hpp>
 #include <hpx/execution/detail/sync_launch_policy_dispatch.hpp>
+#include <hpx/execution/executors/execution_parameters.hpp>
 #include <hpx/execution/executors/fused_bulk_execute.hpp>
 #include <hpx/execution/executors/static_chunk_size.hpp>
 #include <hpx/execution/traits/is_executor.hpp>
@@ -95,9 +96,9 @@ namespace hpx { namespace execution {
         /// Create a new parallel executor
         constexpr explicit parallel_policy_executor(
             threads::thread_priority priority =
-                threads::thread_priority_default,
+                threads::thread_priority::default_,
             threads::thread_stacksize stacksize =
-                threads::thread_stacksize_default,
+                threads::thread_stacksize::default_,
             threads::thread_schedule_hint schedulehint = {},
             Policy l =
                 parallel::execution::detail::get_default_policy<Policy>::call(),
@@ -131,7 +132,7 @@ namespace hpx { namespace execution {
                 parallel::execution::detail::get_default_policy<Policy>::call())
           : pool_(nullptr)
           , priority_(l.priority())
-          , stacksize_(threads::thread_stacksize_default)
+          , stacksize_(threads::thread_stacksize::default_)
           , schedulehint_(schedulehint)
           , policy_(l)
         {
@@ -140,7 +141,7 @@ namespace hpx { namespace execution {
         constexpr explicit parallel_policy_executor(Policy l)
           : pool_(nullptr)
           , priority_(l.priority())
-          , stacksize_(threads::thread_stacksize_default)
+          , stacksize_(threads::thread_stacksize::default_)
           , schedulehint_()
           , policy_(l)
         {
@@ -148,9 +149,9 @@ namespace hpx { namespace execution {
 
         explicit parallel_policy_executor(threads::thread_pool_base* pool,
             threads::thread_priority priority =
-                threads::thread_priority_default,
+                threads::thread_priority::default_,
             threads::thread_stacksize stacksize =
-                threads::thread_stacksize_default,
+                threads::thread_stacksize::default_,
             threads::thread_schedule_hint schedulehint = {},
             Policy l =
                 parallel::execution::detail::get_default_policy<Policy>::call(),
@@ -163,6 +164,23 @@ namespace hpx { namespace execution {
           , policy_(l)
           , hierarchical_threshold_(hierarchical_threshold)
         {
+        }
+
+        friend parallel_policy_executor tag_invoke(
+            hpx::execution::experimental::make_with_hint_t,
+            parallel_policy_executor const& exec,
+            hpx::threads::thread_schedule_hint hint)
+        {
+            auto exec_with_hint = exec;
+            exec_with_hint.schedulehint_ = hint;
+            return exec_with_hint;
+        }
+
+        friend hpx::threads::thread_schedule_hint tag_invoke(
+            hpx::execution::experimental::get_hint_t,
+            parallel_policy_executor const& exec)
+        {
+            return exec.schedulehint_;
         }
 
         /// \cond NOINTERNAL
@@ -279,7 +297,7 @@ namespace hpx { namespace execution {
         friend class hpx::serialization::access;
 
         template <typename Archive>
-        void serialize(Archive& ar, const unsigned int version)
+        void serialize(Archive& ar, const unsigned int /* version */)
         {
             // clang-format off
             ar & priority_ & stacksize_ & policy_ & hierarchical_threshold_;

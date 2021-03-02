@@ -44,6 +44,7 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
         std::unique_lock<mutex_type> const& lock) const
     {
         HPX_ASSERT(lock.owns_lock());
+        HPX_UNUSED(lock);
 
         return queue_.empty();
     }
@@ -52,6 +53,7 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
         std::unique_lock<mutex_type> const& lock) const
     {
         HPX_ASSERT(lock.owns_lock());
+        HPX_UNUSED(lock);
 
         return queue_.size();
     }
@@ -59,7 +61,7 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
     // Return false if no more threads are waiting (returns true if queue
     // is non-empty).
     bool condition_variable::notify_one(std::unique_lock<mutex_type> lock,
-        threads::thread_priority priority, error_code& ec)
+        threads::thread_priority /* priority */, error_code& ec)
     {
         HPX_ASSERT(lock.owns_lock());
 
@@ -96,7 +98,7 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
     }
 
     void condition_variable::notify_all(std::unique_lock<mutex_type> lock,
-        threads::thread_priority priority, error_code& ec)
+        threads::thread_priority /* priority */, error_code& ec)
     {
         HPX_ASSERT(lock.owns_lock());
 
@@ -167,9 +169,9 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
         abort_all<mutex_type>(std::move(lock));
     }
 
-    threads::thread_state_ex_enum condition_variable::wait(
-        std::unique_lock<mutex_type>& lock, char const* description,
-        error_code& ec)
+    threads::thread_restart_state condition_variable::wait(
+        std::unique_lock<mutex_type>& lock, char const* /* description */,
+        error_code& /* ec */)
     {
         HPX_ASSERT(lock.owns_lock());
 
@@ -185,13 +187,14 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
             this_ctx.suspend();
         }
 
-        return f.ctx_ ? threads::wait_timeout : threads::wait_signaled;
+        return f.ctx_ ? threads::thread_restart_state::timeout :
+                        threads::thread_restart_state::signaled;
     }
 
-    threads::thread_state_ex_enum condition_variable::wait_until(
+    threads::thread_restart_state condition_variable::wait_until(
         std::unique_lock<mutex_type>& lock,
-        hpx::chrono::steady_time_point const& abs_time, char const* description,
-        error_code& ec)
+        hpx::chrono::steady_time_point const& abs_time,
+        char const* /* description */, error_code& /* ec */)
     {
         HPX_ASSERT(lock.owns_lock());
 
@@ -207,7 +210,8 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
             this_ctx.sleep_until(abs_time.value());
         }
 
-        return f.ctx_ ? threads::wait_timeout : threads::wait_signaled;
+        return f.ctx_ ? threads::thread_restart_state::timeout :
+                        threads::thread_restart_state::signaled;
     }
 
     template <typename Mutex>
@@ -256,6 +260,7 @@ namespace hpx { namespace lcos { namespace local { namespace detail {
         std::unique_lock<mutex_type>& lock, queue_type& queue)
     {
         HPX_ASSERT(lock.owns_lock());
+        HPX_UNUSED(lock);
 
         // splice is constant time only if it == end
         queue.splice(queue.end(), queue_);

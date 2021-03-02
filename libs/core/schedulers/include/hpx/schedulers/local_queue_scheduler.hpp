@@ -294,7 +294,7 @@ namespace hpx { namespace threads { namespace policies {
             thread_init_data& data, thread_id_type* id, error_code& ec) override
         {
             std::size_t num_thread =
-                data.schedulehint.mode == thread_schedule_hint_mode_thread ?
+                data.schedulehint.mode == thread_schedule_hint_mode::thread ?
                 data.schedulehint.hint :
                 std::size_t(-1);
 
@@ -447,11 +447,11 @@ namespace hpx { namespace threads { namespace policies {
         /// Schedule the passed thread
         void schedule_thread(threads::thread_data* thrd,
             threads::thread_schedule_hint schedulehint, bool allow_fallback,
-            thread_priority priority = thread_priority_normal) override
+            thread_priority /* priority */ = thread_priority::normal) override
         {
             // NOTE: This scheduler ignores NUMA hints.
             std::size_t num_thread = std::size_t(-1);
-            if (schedulehint.mode == thread_schedule_hint_mode_thread)
+            if (schedulehint.mode == thread_schedule_hint_mode::thread)
             {
                 num_thread = schedulehint.hint;
             }
@@ -482,11 +482,11 @@ namespace hpx { namespace threads { namespace policies {
 
         void schedule_thread_last(threads::thread_data* thrd,
             threads::thread_schedule_hint schedulehint, bool allow_fallback,
-            thread_priority priority = thread_priority_normal) override
+            thread_priority /* priority */ = thread_priority::normal) override
         {
             // NOTE: This scheduler ignores NUMA hints.
             std::size_t num_thread = std::size_t(-1);
-            if (schedulehint.mode == thread_schedule_hint_mode_thread)
+            if (schedulehint.mode == thread_schedule_hint_mode::thread)
             {
                 num_thread = schedulehint.hint;
             }
@@ -544,10 +544,11 @@ namespace hpx { namespace threads { namespace policies {
 
         ///////////////////////////////////////////////////////////////////////
         // Queries the current thread count of the queues.
-        std::int64_t get_thread_count(thread_state_enum state = unknown,
-            thread_priority priority = thread_priority_default,
+        std::int64_t get_thread_count(
+            thread_schedule_state state = thread_schedule_state::unknown,
+            thread_priority priority = thread_priority::default_,
             std::size_t num_thread = std::size_t(-1),
-            bool reset = false) const override
+            bool /* reset */ = false) const override
         {
             // Return thread count of one specific queue.
             std::int64_t count = 0;
@@ -557,21 +558,21 @@ namespace hpx { namespace threads { namespace policies {
 
                 switch (priority)
                 {
-                case thread_priority_default:
-                case thread_priority_low:
-                case thread_priority_normal:
-                case thread_priority_boost:
-                case thread_priority_high:
-                case thread_priority_high_recursive:
+                case thread_priority::default_:
+                case thread_priority::low:
+                case thread_priority::normal:
+                case thread_priority::boost:
+                case thread_priority::high:
+                case thread_priority::high_recursive:
                     return queues_[num_thread]->get_thread_count(state);
 
                 default:
-                case thread_priority_unknown:
+                case thread_priority::unknown:
                 {
                     HPX_THROW_EXCEPTION(bad_parameter,
                         "local_queue_scheduler::get_thread_count",
                         "unknown thread priority value "
-                        "(thread_priority_unknown)");
+                        "(thread_priority::unknown)");
                     return 0;
                 }
                 }
@@ -581,12 +582,12 @@ namespace hpx { namespace threads { namespace policies {
             // Return the cumulative count for all queues.
             switch (priority)
             {
-            case thread_priority_default:
-            case thread_priority_low:
-            case thread_priority_normal:
-            case thread_priority_boost:
-            case thread_priority_high:
-            case thread_priority_high_recursive:
+            case thread_priority::default_:
+            case thread_priority::low:
+            case thread_priority::normal:
+            case thread_priority::boost:
+            case thread_priority::high:
+            case thread_priority::high_recursive:
             {
                 for (std::size_t i = 0; i != queues_.size(); ++i)
                     count += queues_[i]->get_thread_count(state);
@@ -594,12 +595,12 @@ namespace hpx { namespace threads { namespace policies {
             }
 
             default:
-            case thread_priority_unknown:
+            case thread_priority::unknown:
             {
                 HPX_THROW_EXCEPTION(bad_parameter,
                     "local_queue_scheduler::get_thread_count",
                     "unknown thread priority value "
-                    "(thread_priority_unknown)");
+                    "(thread_priority::unknown)");
                 return 0;
             }
             }
@@ -616,7 +617,8 @@ namespace hpx { namespace threads { namespace policies {
         // Enumerate matching threads from all queues
         bool enumerate_threads(
             util::function_nonser<bool(thread_id_type)> const& f,
-            thread_state_enum state = unknown) const override
+            thread_schedule_state state =
+                thread_schedule_state::unknown) const override
         {
             bool result = true;
             for (std::size_t i = 0; i != queues_.size(); ++i)
@@ -684,7 +686,7 @@ namespace hpx { namespace threads { namespace policies {
         /// scheduler. Returns true if the OS thread calling this function
         /// has to be terminated (i.e. no more work has to be done).
         virtual bool wait_or_add_new(std::size_t num_thread, bool running,
-            std::int64_t& idle_loop_count, bool /*enable_stealing*/,
+            std::int64_t& idle_loop_count, bool /* enable_stealing */,
             std::size_t& added) override
         {
             std::size_t queues_size = queues_.size();
@@ -840,6 +842,8 @@ namespace hpx { namespace threads { namespace policies {
                     }
                 }
             }
+#else
+            HPX_UNUSED(idle_loop_count);
 #endif
 
             return result;
