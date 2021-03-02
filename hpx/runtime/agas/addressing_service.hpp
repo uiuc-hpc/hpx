@@ -12,7 +12,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/agas/agas_fwd.hpp>
 #include <hpx/agas/gva.hpp>
 #include <hpx/agas/primary_namespace.hpp>
@@ -125,10 +124,7 @@ public:
         resolved_localities_type;
     resolved_localities_type resolved_localities_;
 
-    addressing_service(
-        util::runtime_configuration const& ini_
-      , runtime_mode runtime_type_
-        );
+    explicit addressing_service(util::runtime_configuration const& ini_);
 
 #if defined(HPX_HAVE_NETWORKING)
     ~addressing_service()
@@ -1135,12 +1131,11 @@ public:
     /// \note             The route operation is asynchronous, thus it returns
     ///                   before the parcel has been delivered to its
     ///                   destination.
-    void route(
-        parcelset::parcel p
-      , util::function_nonser<void(std::error_code const&,
-            parcelset::parcel const&)> &&
-      , threads::thread_priority local_priority =
-            threads::thread_priority_default);
+    void route(parcelset::parcel p,
+        util::function_nonser<void(
+            std::error_code const&, parcelset::parcel const&)>&&,
+        threads::thread_priority local_priority =
+            threads::thread_priority::default_);
 #endif
 
     /// \brief Increment the global reference count for the given id
@@ -1425,4 +1420,4 @@ public:
 
 #include <hpx/config/warnings_suffix.hpp>
 
-#endif
+

@@ -196,7 +196,11 @@ rst_prolog += '''
 .. |cpplang_slack| replace:: Cpplang Slack
 .. _cpplang_slack: https://cpplang.slack.com
 .. |stellar_hpx_download| replace:: |hpx| Downloads
-.. _stellar_hpx_download: https://stellar-group.org/downloads/
+.. _stellar_hpx_download: https://hpx.stellar-group.org/downloads/
+.. |stellar_hpx_funding| replace:: |hpx| Funding Acknowledgements
+.. _stellar_hpx_funding: https://hpx.stellar-group.org/funding-acknowledgements/
+.. |stellar_hpx_users| replace:: |hpx| Users
+.. _stellar_hpx_users: https://hpx.stellar-group.org/hpx-users/
 .. |hpx_github| replace:: Github
 .. _hpx_github: https://github.com/STEllAR-GROUP/hpx/
 .. |hpx_github_issues| replace:: |hpx| Issues
@@ -437,6 +441,10 @@ rst_prolog += '''
 .. _cpp20_p0075r1: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0075r1.pdf
 .. |cpp20_p0443| replace:: P0443
 .. _cpp20_p0443: https://github.com/executors/issaquah_2016
+.. |p1393| replace:: P1393
+.. _p1393: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1393r0.html
+.. |p2220| replace:: P2220
+.. _p2220: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2220r0.pdf
 
 .. |semver| replace:: semver
 .. _semver: https://semver.org

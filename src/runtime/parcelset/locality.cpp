@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/runtime_distributed.hpp>
@@ -15,6 +14,7 @@
 #include <hpx/runtime/runtime_fwd.hpp>
 #include <hpx/serialization/serialize.hpp>
 #include <hpx/serialization/string.hpp>
+#include <hpx/type_support/unused.hpp>
 #include <hpx/util/ios_flags_saver.hpp>
 
 #include <string>
@@ -33,6 +33,7 @@ namespace hpx { namespace parcelset
         HPX_THROW_EXCEPTION(invalid_status,
             "locality::save",
             "this shouldn't be called if networking is disabled");
+        HPX_UNUSED(ar);
 #endif
     }
 
@@ -53,6 +54,7 @@ namespace hpx { namespace parcelset
         HPX_THROW_EXCEPTION(invalid_status,
             "locality::load",
             "this shouldn't be called if networking is disabled");
+        HPX_UNUSED(ar);
 #endif
     }
 
@@ -69,4 +71,3 @@ namespace hpx { namespace parcelset
         return os;
     }
 }}
-#endif

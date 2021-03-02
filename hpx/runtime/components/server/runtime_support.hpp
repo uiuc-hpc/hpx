@@ -9,11 +9,10 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
-#include <hpx/actions/base_action.hpp>
 #include <hpx/actions/transfer_action.hpp>
 #include <hpx/actions/transfer_continuation_action.hpp>
 #include <hpx/actions_base/component_action.hpp>
+#include <hpx/actions_base/traits/action_does_termination_detection.hpp>
 #include <hpx/agas/agas_fwd.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/components_base/component_type.hpp>
@@ -30,7 +29,6 @@
 #include <hpx/synchronization/condition_variable.hpp>
 #include <hpx/synchronization/mutex.hpp>
 #include <hpx/synchronization/spinlock.hpp>
-#include <hpx/traits/action_does_termination_detection.hpp>
 
 #include <atomic>
 #include <condition_variable>
@@ -298,10 +296,10 @@ namespace hpx { namespace components { namespace server
             bool isdefault, bool isenabled,
             hpx::program_options::options_description& options,
             std::set<std::string>& startup_handled);
-        bool load_startup_shutdown_functions_static(std::string const& module,
+        bool load_startup_shutdown_functions_static(std::string const& mod,
             error_code& ec);
         bool load_commandline_options_static(
-            std::string const& module,
+            std::string const& mod,
             hpx::program_options::options_description& options,
             error_code& ec);
 
@@ -714,4 +712,4 @@ namespace hpx { namespace traits
       : std::true_type
     {};
 }}
-#endif
+

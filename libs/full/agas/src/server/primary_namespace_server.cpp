@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/actions/continuation.hpp>
 #include <hpx/agas/server/primary_namespace.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/async_combinators/wait_all.hpp>
@@ -20,7 +20,6 @@
 #include <hpx/modules/async_distributed.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/logging.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime/agas/interface.hpp>
 #include <hpx/runtime/agas/namespace_action_code.hpp>
 #include <hpx/runtime/components/server/destroy_component.hpp>
@@ -92,7 +91,7 @@ namespace hpx { namespace agas { namespace server {
         }
     }
 
-#if defined(HPX_HAVE_NETWORKING)
+#if defined(HPX_HAVE_NETWORKING) && !defined(HPX_COMPUTE_DEVICE_CODE)
     // Parcel routing forwards the message handler request to the routed action
     parcelset::policies::message_handler*
     primary_namespace::get_message_handler(parcelset::parcelhandler* ph,
@@ -779,8 +778,9 @@ namespace hpx { namespace agas { namespace server {
     ///////////////////////////////////////////////////////////////////////////////
     void primary_namespace::resolve_free_list(std::unique_lock<mutex_type>& l,
         std::list<refcnt_table_type::iterator> const& free_list,
-        free_entry_list_type& free_entry_list, naming::gid_type const& lower,
-        naming::gid_type const& upper, error_code& ec)
+        free_entry_list_type& free_entry_list,
+        naming::gid_type const& /* lower */,
+        naming::gid_type const& /* upper */, error_code& ec)
     {
         HPX_ASSERT_OWNS_LOCK(l);
 
@@ -1362,4 +1362,3 @@ namespace hpx { namespace agas { namespace server {
     }
 
 }}}    // namespace hpx::agas::server
-#endif

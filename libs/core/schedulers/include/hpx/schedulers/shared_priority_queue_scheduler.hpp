@@ -28,6 +28,7 @@
 #include <hpx/topology/topology.hpp>
 
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -175,6 +176,7 @@ namespace hpx { namespace threads { namespace policies {
           , debug_init_(false)
           , thread_init_counter_(0)
         {
+            set_scheduler_mode(scheduler_mode::default_mode);
             HPX_ASSERT(num_workers_ != 0);
         }
 
@@ -272,7 +274,7 @@ namespace hpx { namespace threads { namespace policies {
 
         // ------------------------------------------------------------
         bool cleanup_terminated(
-            std::size_t thread_num, bool delete_all) override
+            std::size_t /* thread_num */, bool delete_all) override
         {
             std::size_t local_num = local_thread_number();
             HPX_ASSERT(local_num < num_workers_);
@@ -315,7 +317,7 @@ namespace hpx { namespace threads { namespace policies {
             using threads::thread_schedule_hint_mode;
             switch (data.schedulehint.mode)
             {
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_none:
+            case thread_schedule_hint_mode::none:
             {
                 spq_deb.set(msg, "HINT_NONE  ");
                 // Create thread on this worker thread if possible
@@ -371,7 +373,7 @@ namespace hpx { namespace threads { namespace policies {
                 q_index = q_lookup_[thread_num];
                 break;
             }
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_thread:
+            case thread_schedule_hint_mode::thread:
             {
                 spq_deb.set(msg, "HINT_THREAD");
                 // @TODO. We should check that the thread num is valid
@@ -381,7 +383,7 @@ namespace hpx { namespace threads { namespace policies {
                 q_index = q_lookup_[thread_num];
                 break;
             }
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_numa:
+            case thread_schedule_hint_mode::numa:
             {
                 // Create thread on requested NUMA domain
                 spq_deb.set(msg, "HINT_NUMA  ");
@@ -411,7 +413,8 @@ namespace hpx { namespace threads { namespace policies {
                 HPX_THROW_EXCEPTION(bad_parameter,
                     "shared_priority_queue_scheduler::create_thread",
                     "Invalid schedule hint mode: " +
-                        std::to_string(data.schedulehint.mode));
+                        std::to_string(
+                            static_cast<std::size_t>(data.schedulehint.mode)));
             }
             // we do not allow threads created on other queues to 'run now'
             // as this causes cross-thread allocations and map accesses
@@ -426,8 +429,8 @@ namespace hpx { namespace threads { namespace policies {
                             , "D", debug::dec<2>(domain_num)
                             , "Q", debug::dec<3>(q_index)
                             , "this"
-                            , "D", debug::dec<2>(d_lookup_[local_num])
-                            , "Q", debug::dec<3>(local_num)
+                            , "D", debug::dec<2>(d_lookup_[thread_num])
+                            , "Q", debug::dec<3>(thread_num)
                             , "run_now OVERRIDE ", data.run_now
                             , debug::threadinfo<thread_init_data>(data));
                 // clang-format on
@@ -442,8 +445,8 @@ namespace hpx { namespace threads { namespace policies {
                             , "D", debug::dec<2>(domain_num)
                             , "Q", debug::dec<3>(q_index)
                             , "this"
-                            , "D", debug::dec<2>(d_lookup_[local_num])
-                            , "Q", debug::dec<3>(local_num)
+                            , "D", debug::dec<2>(d_lookup_[thread_num])
+                            , "Q", debug::dec<3>(thread_num)
                             , "run_now", data.run_now
                             , debug::threadinfo<thread_init_data>(data));
                 // clang-format on
@@ -613,16 +616,18 @@ namespace hpx { namespace threads { namespace policies {
 
             auto get_next_thread_function_HP =
                 [&](std::size_t domain, std::size_t q_index,
-                    thread_holder_type* receiver, threads::thread_data*& thrd,
-                    bool stealing, bool allow_stealing) {
+                    thread_holder_type* /* receiver */,
+                    threads::thread_data*& thrd, bool stealing,
+                    bool allow_stealing) {
                     return numa_holder_[domain].get_next_thread_HP(
                         q_index, thrd, stealing, allow_stealing);
                 };
 
             auto get_next_thread_function =
                 [&](std::size_t domain, std::size_t q_index,
-                    thread_holder_type* receiver, threads::thread_data*& thrd,
-                    bool stealing, bool allow_stealing) {
+                    thread_holder_type* /* receiver */,
+                    threads::thread_data*& thrd, bool stealing,
+                    bool allow_stealing) {
                     return numa_holder_[domain].get_next_thread(
                         q_index, thrd, stealing, allow_stealing);
                 };
@@ -653,9 +658,9 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         /// Return the next thread to be executed, return false if none available
-        virtual bool wait_or_add_new(std::size_t thread_num, bool running,
-            std::int64_t& idle_loop_count, bool /*enable_stealing*/,
-            std::size_t& added) override
+        virtual bool wait_or_add_new(std::size_t /* thread_num */,
+            bool /* running */, std::int64_t& /* idle_loop_count */,
+            bool /*enable_stealing*/, std::size_t& added) override
         {
             std::size_t this_thread = local_thread_number();
             HPX_ASSERT(this_thread < num_workers_);
@@ -706,7 +711,7 @@ namespace hpx { namespace threads { namespace policies {
         /// Schedule the passed thread
         void schedule_thread(threads::thread_data* thrd,
             threads::thread_schedule_hint schedulehint, bool allow_fallback,
-            thread_priority priority = thread_priority_normal) override
+            thread_priority priority = thread_priority::normal) override
         {
             HPX_ASSERT(thrd->get_scheduler_base() == this);
 
@@ -723,7 +728,7 @@ namespace hpx { namespace threads { namespace policies {
 
             switch (schedulehint.mode)
             {
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_none:
+            case thread_schedule_hint_mode::none:
             {
                 // Create thread on this worker thread if possible
                 spq_deb.set(msg, "HINT_NONE  ");
@@ -770,7 +775,7 @@ namespace hpx { namespace threads { namespace policies {
                 thread_num = select_active_pu(l, thread_num, allow_fallback);
                 break;
             }
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_thread:
+            case thread_schedule_hint_mode::thread:
             {
                 // @TODO. We should check that the thread num is valid
                 // Create thread on requested worker thread
@@ -783,12 +788,12 @@ namespace hpx { namespace threads { namespace policies {
                 q_index = q_lookup_[thread_num];
                 break;
             }
-            case thread_schedule_hint_mode::thread_schedule_hint_mode_numa:
+            case thread_schedule_hint_mode::numa:
             {
                 // Create thread on requested NUMA domain
                 spq_deb.set(msg, "HINT_NUMA  ");
                 // TODO: This case does not handle suspended PUs.
-                domain_num = fast_mod(schedulehint.mode, num_domains_);
+                domain_num = fast_mod(schedulehint.hint, num_domains_);
                 // if the thread creating the new task is on the domain
                 // assigned to the new task - try to reuse the core as well
                 if (d_lookup_[thread_num] == domain_num)
@@ -807,7 +812,8 @@ namespace hpx { namespace threads { namespace policies {
                 HPX_THROW_EXCEPTION(bad_parameter,
                     "shared_priority_queue_scheduler::schedule_thread",
                     "Invalid schedule hint mode: " +
-                        std::to_string(schedulehint.mode));
+                        std::to_string(
+                            static_cast<std::size_t>(schedulehint.mode)));
             }
 
             spq_deb.debug(debug::str<>("thread scheduled"), msg, "Thread",
@@ -822,7 +828,7 @@ namespace hpx { namespace threads { namespace policies {
         /// just put it on the normal queue for now
         void schedule_thread_last(threads::thread_data* thrd,
             threads::thread_schedule_hint schedulehint, bool allow_fallback,
-            thread_priority priority = thread_priority_normal) override
+            thread_priority priority = thread_priority::normal) override
         {
             spq_deb.debug(debug::str<>("schedule_thread_last"));
             schedule_thread(thrd, schedulehint, allow_fallback, priority);
@@ -887,10 +893,11 @@ namespace hpx { namespace threads { namespace policies {
         //---------------------------------------------------------------------
         // Queries the current thread count of the queues.
         //---------------------------------------------------------------------
-        std::int64_t get_thread_count(thread_state_enum state = unknown,
-            thread_priority priority = thread_priority_default,
+        std::int64_t get_thread_count(
+            thread_schedule_state state = thread_schedule_state::unknown,
+            thread_priority priority = thread_priority::default_,
             std::size_t thread_num = std::size_t(-1),
-            bool reset = false) const override
+            bool /* reset */ = false) const override
         {
             spq_deb.debug(debug::str<>("get_thread_count"), "thread_num ",
                 debug::dec<3>(thread_num));
@@ -930,7 +937,8 @@ namespace hpx { namespace threads { namespace policies {
         // Enumerate matching threads from all queues
         bool enumerate_threads(
             util::function_nonser<bool(thread_id_type)> const& f,
-            thread_state_enum state = unknown) const override
+            thread_schedule_state state =
+                thread_schedule_state::unknown) const override
         {
             bool result = true;
 
@@ -1230,7 +1238,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         void on_error(
-            std::size_t thread_num, std::exception_ptr const& e) override
+            std::size_t thread_num, std::exception_ptr const& /* e */) override
         {
             if (thread_num > num_workers_)
             {
@@ -1242,7 +1250,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
 #ifdef HPX_HAVE_THREAD_CREATION_AND_CLEANUP_RATES
-        std::uint64_t get_creation_time(bool reset) override
+        std::uint64_t get_creation_time(bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_creation_time",
@@ -1250,7 +1258,7 @@ namespace hpx { namespace threads { namespace policies {
                 "get_creation_time performance counter");
             return 0;
         }
-        std::uint64_t get_cleanup_time(bool reset) override
+        std::uint64_t get_cleanup_time(bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_cleanup_time",
@@ -1262,7 +1270,7 @@ namespace hpx { namespace threads { namespace policies {
 
 #ifdef HPX_HAVE_THREAD_STEALING_COUNTS
         std::int64_t get_num_pending_misses(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_num_pending_misses",
@@ -1272,7 +1280,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         std::int64_t get_num_pending_accesses(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_num_pending_accesses",
@@ -1282,7 +1290,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         std::int64_t get_num_stolen_from_pending(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_num_stolen_from_pending",
@@ -1292,7 +1300,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         std::int64_t get_num_stolen_to_pending(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_creation_time",
@@ -1302,7 +1310,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         std::int64_t get_num_stolen_from_staged(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_num_stolen_from_staged",
@@ -1312,7 +1320,7 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         std::int64_t get_num_stolen_to_staged(
-            std::size_t num, bool reset) override
+            std::size_t /* num */, bool /* reset */) override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_num_stolen_to_staged",
@@ -1324,7 +1332,7 @@ namespace hpx { namespace threads { namespace policies {
 
 #ifdef HPX_HAVE_THREAD_QUEUE_WAITTIME
         std::int64_t get_average_thread_wait_time(
-            std::size_t num_thread = std::size_t(-1)) const override
+            std::size_t /* num_thread */ = std::size_t(-1)) const override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_average_thread_wait_time",
@@ -1333,7 +1341,7 @@ namespace hpx { namespace threads { namespace policies {
             return 0;
         }
         std::int64_t get_average_task_wait_time(
-            std::size_t num_thread = std::size_t(-1)) const override
+            std::size_t /* num_thread */ = std::size_t(-1)) const override
         {
             HPX_THROW_EXCEPTION(invalid_status,
                 "shared_priority_scheduler::get_average_task_wait_time",
@@ -1391,10 +1399,10 @@ namespace hpx { namespace threads { namespace policies {
 
         // used to make sure the scheduler is only initialized once on a thread
         std::mutex init_mutex;
-        volatile bool initialized_;
+        bool initialized_;
         // a flag to ensure startup debug info is only printed on one thread
-        volatile bool debug_init_;
-        volatile std::size_t thread_init_counter_;
+        bool debug_init_;
+        std::atomic<std::size_t> thread_init_counter_;
         // used in thread pool checks
         std::size_t pool_index_;
     };

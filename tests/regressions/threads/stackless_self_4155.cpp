@@ -13,14 +13,13 @@ void stackless_thread()
     HPX_TEST_NEQ(hpx::threads::get_self_id(), hpx::threads::invalid_thread_id);
 }
 
-int main(int argc, char* argv[])
+int main()
 {
     hpx::threads::thread_init_data data(
-        hpx::threads::make_thread_function_nullary(
-            stackless_thread), "stackless_thread",
-            hpx::threads::thread_priority_default,
-            hpx::threads::thread_schedule_hint(),
-            hpx::threads::thread_stacksize_nostack);
+        hpx::threads::make_thread_function_nullary(stackless_thread),
+        "stackless_thread", hpx::threads::thread_priority::default_,
+        hpx::threads::thread_schedule_hint(),
+        hpx::threads::thread_stacksize::nostack);
     hpx::threads::register_work(data);
     return hpx::util::report_errors();
 }

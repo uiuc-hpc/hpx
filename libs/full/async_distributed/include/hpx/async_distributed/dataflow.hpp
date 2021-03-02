@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/basic_action_fwd.hpp>
 #include <hpx/actions_base/traits/extract_action.hpp>
 #include <hpx/allocator_support/internal_allocator.hpp>
@@ -48,10 +47,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace lcos { namespace detail {
-    template <typename Action, typename Args>
-    struct dataflow_return_impl</*IsAction=*/true, Action, Args>
+    template <typename Policy, typename Action, typename Args>
+    struct dataflow_return_impl</*IsAction=*/true, Policy, Action, Args>
     {
-        typedef typename Action::result_type type;
+        using type = hpx::lcos::future<typename Action::result_type>;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -61,12 +60,10 @@ namespace hpx { namespace lcos { namespace detail {
     {
         template <typename Allocator, typename Policy_, typename Component,
             typename Signature, typename Derived, typename... Ts>
-        HPX_FORCEINLINE static lcos::future<typename traits::
-                promise_local_result<typename hpx::actions::basic_action<
-                    Component, Signature, Derived>::remote_result_type>::type>
-        call(Allocator const& alloc, Policy_&& policy,
+        HPX_FORCEINLINE static decltype(auto) call(Allocator const& alloc,
+            Policy_&& policy,
             hpx::actions::basic_action<Component, Signature, Derived> const&
-                act,
+            /* act */,
             naming::id_type const& id, Ts&&... ts)
         {
             return detail::create_dataflow_alloc(alloc,
@@ -79,17 +76,18 @@ namespace hpx { namespace lcos { namespace detail {
     struct dataflow_dispatch_impl<true, FD,
         typename std::enable_if<!traits::is_launch_policy<FD>::value &&
             !(traits::is_one_way_executor<FD>::value ||
-                traits::is_two_way_executor<FD>::value ||
-                traits::is_threads_executor<FD>::value)>::type>
+                traits::is_two_way_executor<FD>::value
+#if defined(HPX_HAVE_THREAD_EXECUTORS_COMPATIBILITY)
+                || traits::is_threads_executor<FD>::value
+#endif
+                )>::type>
     {
         template <typename Allocator, typename Component, typename Signature,
             typename Derived, typename... Ts>
-        HPX_FORCEINLINE static auto call(Allocator const& alloc,
+        HPX_FORCEINLINE static decltype(auto) call(Allocator const& alloc,
             hpx::actions::basic_action<Component, Signature, Derived> const&
                 act,
             naming::id_type const& id, Ts&&... ts)
-            -> decltype(dataflow_dispatch_impl<true, launch>::call(
-                alloc, launch::async, act, id, std::forward<Ts>(ts)...))
         {
             return dataflow_dispatch_impl<true, launch>::call(
                 alloc, launch::async, act, id, std::forward<Ts>(ts)...);
@@ -160,4 +158,3 @@ namespace hpx {
 }    // namespace hpx
 
 // #endif
-#endif

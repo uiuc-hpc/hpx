@@ -8,7 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/runtime/parcelset/detail/data_point.hpp>
@@ -48,11 +47,13 @@ namespace hpx { namespace parcelset
           , size_(0), data_size_(0), header_size_(0)
         {}
 
-        explicit parcel_buffer(BufferType && data,
-            allocator_type *allocator)
+        explicit parcel_buffer(
+            BufferType&& data, allocator_type* /* allocator */)
           : data_(std::move(data))
           , num_chunks_(count_chunks_type(0, 0))
-          , size_(0), data_size_(0), header_size_(0)
+          , size_(0)
+          , data_size_(0)
+          , header_size_(0)
         {}
 
         parcel_buffer(parcel_buffer && other)
@@ -111,5 +112,4 @@ namespace hpx { namespace parcelset
     };
 }}
 
-#endif
 #endif

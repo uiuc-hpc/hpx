@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/async_distributed/applier/applier.hpp>
 #include <hpx/runtime/components/stubs/runtime_support.hpp>
 
@@ -60,19 +59,18 @@ namespace hpx { namespace components
 
         /// Asynchronously create N new default constructed components using
         /// the runtime_support
-        template <typename Component, typename ...Ts>
+        template <typename Component, typename... Ts>
         std::vector<naming::id_type> bulk_create_component(
-            std::size_t count, Ts&&...vs)
+            std::size_t /* count */, Ts&&... vs)
         {
             return this->base_type::template bulk_create_component<Component>
                 (gid_, std::forward<Ts>(vs)...);
         }
 
         /// Asynchronously create a new component using the runtime_support
-        template <typename Component, typename ...Ts>
-        lcos::future<std::vector<naming::id_type> >
-        bulk_create_components_async(
-            std::size_t count, Ts&&...vs)
+        template <typename Component, typename... Ts>
+        lcos::future<std::vector<naming::id_type>> bulk_create_components_async(
+            std::size_t /* count */, Ts&&... vs)
         {
             return this->base_type::template bulk_create_component<Component>
                 (gid_, std::forward<Ts>(vs)...);
@@ -154,4 +152,3 @@ namespace hpx { namespace components
         naming::id_type gid_;
     };
 }}
-#endif

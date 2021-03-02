@@ -7,11 +7,8 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/components_base/pinned_ptr.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime/agas/interface.hpp>
 #include <hpx/runtime/components/stubs/runtime_support.hpp>
 #include <hpx/runtime/naming/resolver_client.hpp>
@@ -36,12 +33,9 @@ bool is_console()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool register_name(
-    launch::sync_policy
-  , std::string const& name
-  , naming::gid_type const& gid
-  , error_code& ec
-    )
+bool register_name(launch::sync_policy, std::string const& name,
+    naming::gid_type const& gid, error_code& /* ec */
+)
 {
     naming::resolver_client& agas_ = naming::get_agas_client();
     return agas_.register_name(name, gid);
@@ -73,10 +67,8 @@ lcos::future<bool> register_name(
 
 ///////////////////////////////////////////////////////////////////////////////
 naming::id_type unregister_name(
-    launch::sync_policy
-  , std::string const& name
-  , error_code& ec
-    )
+    launch::sync_policy, std::string const& name, error_code& /* ec */
+)
 {
     if (!hpx::is_stopped())
     {
@@ -132,8 +124,8 @@ naming::id_type resolve_name(
 // }
 
 lcos::future<std::uint32_t> get_num_localities(
-    components::component_type type
-    )
+    components::component_type /* type */
+)
 {
     naming::resolver_client& agas_ = naming::get_agas_client();
     return agas_.get_num_localities_async();
@@ -316,20 +308,17 @@ bool bind(
 }
 
 hpx::future<naming::address> unbind(
-    naming::gid_type const& id
-  , std::uint64_t count
-    )
+    naming::gid_type const& id, std::uint64_t /* count */
+)
 {
     naming::resolver_client& agas_ = naming::get_agas_client();
     return agas_.unbind_range_async(id);
 }
 
-naming::address unbind(
-    launch::sync_policy
-  , naming::gid_type const& id
-  , std::uint64_t count
-  , error_code& ec
-    )
+naming::address unbind(launch::sync_policy, naming::gid_type const& id,
+    std::uint64_t /* count */
+    ,
+    error_code& ec)
 {
     naming::resolver_client& agas_ = naming::get_agas_client();
     return agas_.unbind_range_async(id).get(ec);
@@ -468,12 +457,9 @@ hpx::future<std::int64_t> incref(
 }
 
 std::int64_t incref(
-    launch::sync_policy
-  , naming::gid_type const& gid
-  , std::int64_t credits
-  , naming::id_type const& keep_alive_
-  , error_code& ec
-  )
+    launch::sync_policy, naming::gid_type const& gid, std::int64_t credits,
+    naming::id_type const& keep_alive_, error_code& /* ec */
+)
 {
     HPX_ASSERT(!naming::detail::is_locked(gid));
 
@@ -561,4 +547,4 @@ symbol_namespace::iterate_names_return_type find_symbols(
 }
 
 }}
-#endif
+

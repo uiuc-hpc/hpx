@@ -66,7 +66,7 @@ namespace hpx { namespace lcos { namespace local {
         owner_id_ = self_id;
     }
 
-    bool mutex::try_lock(char const* description, error_code& ec)
+    bool mutex::try_lock(char const* /* description */, error_code& /* ec */)
     {
         HPX_ASSERT(threads::get_self_ptr() != nullptr);
 
@@ -109,7 +109,7 @@ namespace hpx { namespace lcos { namespace local {
 
         {
             util::ignore_while_checking<std::unique_lock<mutex_type>> il(&l);
-            cond_.notify_one(std::move(l), threads::thread_priority_boost, ec);
+            cond_.notify_one(std::move(l), threads::thread_priority::boost, ec);
         }
     }
 
@@ -122,8 +122,8 @@ namespace hpx { namespace lcos { namespace local {
     timed_mutex::~timed_mutex() {}
 
     bool timed_mutex::try_lock_until(
-        hpx::chrono::steady_time_point const& abs_time, char const* description,
-        error_code& ec)
+        hpx::chrono::steady_time_point const& abs_time,
+        char const* /* description */, error_code& ec)
     {
         HPX_ASSERT(threads::get_self_ptr() != nullptr);
 
@@ -133,7 +133,7 @@ namespace hpx { namespace lcos { namespace local {
         threads::thread_id_type self_id = threads::get_self_id();
         if (owner_id_ != threads::invalid_thread_id)
         {
-            threads::thread_state_ex_enum const reason =
+            threads::thread_restart_state const reason =
                 cond_.wait_until(l, abs_time, ec);
             if (ec)
             {
@@ -141,7 +141,7 @@ namespace hpx { namespace lcos { namespace local {
                 return false;
             }
 
-            if (reason == threads::wait_timeout)    //-V110
+            if (reason == threads::thread_restart_state::timeout)    //-V110
             {
                 HPX_ITT_SYNC_CANCEL(this);
                 return false;

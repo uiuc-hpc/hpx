@@ -8,7 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/async_base/launch_policy.hpp>
 #include <hpx/async_combinators/wait_all.hpp>
 #include <hpx/async_combinators/when_all.hpp>
@@ -23,6 +22,7 @@
 #include <hpx/runtime/components/server/distributed_metadata_base.hpp>
 #include <hpx/runtime/get_ptr.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <hpx/components/containers/container_distribution_policy.hpp>
 #include <hpx/components/containers/partitioned_vector/partitioned_vector_decl.hpp>
@@ -98,6 +98,7 @@ namespace hpx
     HPX_PARTITIONED_VECTOR_SPECIALIZATION_EXPORT hpx::future<void>
     partitioned_vector<T, Data>::connect_to_helper(id_type id)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         typedef typename components::server::distributed_metadata_base<
             server::partitioned_vector_config_data>::get_action act;
 
@@ -105,6 +106,11 @@ namespace hpx
             [=](future<server::partitioned_vector_config_data>&& f) -> void {
                 return get_data_helper(id, f.get());
             });
+#else
+        HPX_ASSERT(false);
+        HPX_UNUSED(id);
+        return hpx::make_ready_future();
+#endif
     }
 
     template <typename T, typename Data /*= std::vector<T> */>
@@ -510,4 +516,4 @@ namespace hpx
             create(val, policy);
     }
 }
-#endif
+

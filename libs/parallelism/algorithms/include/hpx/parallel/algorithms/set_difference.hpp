@@ -223,7 +223,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
 
                 // calculate approximate destination index
                 auto f1 = [](difference_type1 idx1,
-                              difference_type2 idx2) -> difference_type1 {
+                              difference_type2 /* idx2 */) -> difference_type1 {
                     return idx1;
                 };
 
@@ -335,8 +335,10 @@ namespace hpx {
                 "Requires at least forward iterator.");
             static_assert((hpx::traits::is_forward_iterator<FwdIter2>::value),
                 "Requires at least forward iterator.");
-            static_assert((hpx::traits::is_forward_iterator<FwdIter3>::value),
-                "Requires at least forward iterator.");
+            static_assert(hpx::traits::is_forward_iterator<FwdIter3>::value ||
+                    (hpx::is_sequenced_execution_policy<ExPolicy>::value &&
+                        hpx::traits::is_output_iterator<FwdIter3>::value),
+                "Requires at least forward iterator or sequential execution.");
 
             using is_seq = std::integral_constant<bool,
                 hpx::is_sequenced_execution_policy<ExPolicy>::value ||
@@ -371,12 +373,12 @@ namespace hpx {
             FwdIter1 last1, FwdIter2 first2, FwdIter2 last2, FwdIter3 dest,
             Pred&& op = Pred())
         {
-            static_assert((hpx::traits::is_forward_iterator<FwdIter1>::value),
-                "Requires at least forward iterator.");
-            static_assert((hpx::traits::is_forward_iterator<FwdIter2>::value),
-                "Requires at least forward iterator.");
-            static_assert((hpx::traits::is_forward_iterator<FwdIter3>::value),
-                "Requires at least forward iterator.");
+            static_assert((hpx::traits::is_input_iterator<FwdIter1>::value),
+                "Requires at least input iterator.");
+            static_assert((hpx::traits::is_input_iterator<FwdIter2>::value),
+                "Requires at least input iterator.");
+            static_assert((hpx::traits::is_output_iterator<FwdIter3>::value),
+                "Requires at least output iterator.");
 
             using result_type =
                 hpx::parallel::util::in_out_result<FwdIter1, FwdIter3>;

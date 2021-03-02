@@ -7,8 +7,6 @@
 // This example demonstrates the use of a channel which is very similar to the
 // equally named feature in the Go language.
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx_main.hpp>
 #include <hpx/include/apply.hpp>
 #include <hpx/iostream.hpp>
@@ -159,7 +157,7 @@ void channel_range()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[])
+int main()
 {
     calculate_sum();
     pingpong();
@@ -170,4 +168,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-#endif

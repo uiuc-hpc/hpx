@@ -128,7 +128,6 @@ namespace hpx { namespace lcos {
 
 #include <hpx/config.hpp>
 #if !defined(HPX_COMPUTE_DEVICE_CODE)
-#include <hpx/actions/base_action.hpp>
 #include <hpx/actions/transfer_action.hpp>
 #include <hpx/actions/transfer_continuation_action.hpp>
 #include <hpx/actions_base/plain_action.hpp>
@@ -837,6 +836,68 @@ namespace hpx { namespace lcos {
             ::hpx::lcos::detail::broadcast_with_index<Action>>::type,          \
         HPX_PP_CAT(async_colocated_broadcast_with_index_, Name))               \
     /**/
+#else
 
-#endif
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_DECLARATION(...)  /**/
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_DECLARATION_(...) /**/
+
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_DECLARATION_1(Action)       /**/
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_DECLARATION_2(Action, Name) /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION(...)                        /**/
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_(...)                       /**/
+
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_1(Action)                    /**/
+#define HPX_REGISTER_BROADCAST_APPLY_ACTION_2(Action, Name)              /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_DECLARATION(...)  /**/
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_DECLARATION_(...) /**/
+
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_DECLARATION_1(          \
+    Action) /**/
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_DECLARATION_2(          \
+    Action, Name)                                            /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION(...)  /**/
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_(...) /**/
+
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_1(Action)       /**/
+#define HPX_REGISTER_BROADCAST_APPLY_WITH_INDEX_ACTION_2(Action, Name) /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_ACTION_DECLARATION(...)                 /**/
+#define HPX_REGISTER_BROADCAST_ACTION_DECLARATION_(...)                /**/
+
+#define HPX_REGISTER_BROADCAST_ACTION_DECLARATION_1(Action)       /**/
+#define HPX_REGISTER_BROADCAST_ACTION_DECLARATION_2(Action, Name) /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_ACTION(...)                        /**/
+#define HPX_REGISTER_BROADCAST_ACTION_(...)                       /**/
+
+#define HPX_REGISTER_BROADCAST_ACTION_1(Action)                    /**/
+#define HPX_REGISTER_BROADCAST_ACTION_2(Action, Name)              /**/
+#define HPX_REGISTER_BROADCAST_ACTION_ID(Action, Name, Id)         /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_DECLARATION(...)  /**/
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_DECLARATION_(...) /**/
+
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_DECLARATION_1(Action) /**/
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_DECLARATION_2(                \
+    Action, Name)                                      /**/
+
+///////////////////////////////////////////////////////////////////////////////
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION(...)  /**/
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_(...) /**/
+
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_1(Action)            /**/
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_2(Action, Name)      /**/
+#define HPX_REGISTER_BROADCAST_WITH_INDEX_ACTION_ID(Action, Name, Id) /**/
+
+#endif    //COMPUTE_DEVICE_CODE
 #endif    // DOXYGEN

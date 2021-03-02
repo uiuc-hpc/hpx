@@ -179,7 +179,7 @@ void test_variadic()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     test_nullary_void();
     test_nullary();
@@ -199,7 +199,10 @@ int main(int argc, char* argv[])
     };
 
     // Initialize and run HPX
-    HPX_TEST_EQ(hpx::init(argc, argv, cfg), 0);
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ(hpx::init(argc, argv, init_args), 0);
     return hpx::util::report_errors();
 }
 

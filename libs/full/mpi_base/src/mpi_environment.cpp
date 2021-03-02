@@ -83,110 +83,83 @@
 	}}    // namespace hpx::util
 
 #if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)) ||      \
-	    defined(HPX_HAVE_MODULE_MPI_BASE)
+    defined(HPX_HAVE_MODULE_MPI_BASE)
 
-	namespace hpx { namespace util {
+namespace hpx { namespace util {
 
-	    mpi_environment::mutex_type mpi_environment::mtx_;
-	    bool mpi_environment::enabled_ = false;
-	    bool mpi_environment::has_called_init_ = false;
-	    int mpi_environment::provided_threading_flag_ = MPI_THREAD_SINGLE;
-	    MPI_Comm mpi_environment::communicator_ = MPI_COMM_NULL;
+    mpi_environment::mutex_type mpi_environment::mtx_;
+    bool mpi_environment::enabled_ = false;
+    bool mpi_environment::has_called_init_ = false;
+    int mpi_environment::provided_threading_flag_ = MPI_THREAD_SINGLE;
+    MPI_Comm mpi_environment::communicator_ = MPI_COMM_NULL;
 
-	    int mpi_environment::is_initialized_ = -1;
+    int mpi_environment::is_initialized_ = -1;
 
-	    ///////////////////////////////////////////////////////////////////////////
-	    int mpi_environment::init(int* argc, char*** argv, const int required,
-		const int minimal, int& provided)
-	    {
-		has_called_init_ = false;
-
-		DEBUG("mpi_environment::init 1");
-		// Check if MPI_Init has been called previously
-		int is_initialized = 0;
-		int retval = MPI_Initialized(&is_initialized);
-		int lci_retval;
-		if (MPI_SUCCESS != retval)
-		{
-		    return retval;
-		}
-		DEBUG("mpi_environment::init 2");
-		if (!is_initialized)
-		{
-		    DEBUG("mpi_environment::init 2.0");
+    ///////////////////////////////////////////////////////////////////////////
+    int mpi_environment::init(
+        int*, char***, const int required, const int minimal, int& provided)
+    {
+        has_called_init_ = false;
+	
+	DEBUG("mpi_environment::init 1");
+        // Check if MPI_Init has been called previously
+        int is_initialized = 0;
+        int retval = MPI_Initialized(&is_initialized);
+        int lci_retval;
+        if (MPI_SUCCESS != retval)
+        {
+            return retval;
+        }
+        DEBUG("mpi_environment::init 2");
+        if (!is_initialized)
+        {
+            DEBUG("mpi_environment::init 2.0");
 #ifdef USE_LCI
-		    DEBUG("initializing LCI");
-		    lci_retval = LCI_initialize(nullptr, nullptr);
-		    DEBUG("initialized LCI");
-		    // TODO: try an LCI all to all communication
+            DEBUG("initializing LCI");
+            lci_retval = LCI_initialize(nullptr, nullptr);
+            DEBUG("initialized LCI");
 #else
-		    DEBUG("Initialize MPI only");
+            DEBUG("only initializing MPI");
 #endif
-		    DEBUG("mpi_environment::init 2.1");
-		    retval = MPI_Init_thread(nullptr, nullptr, required, &provided);
-		    //retval = MPI_Init(nullptr, nullptr);
-		    DEBUG("mpi_environment::init 2.2");
-		    DEBUG("Attempting MPI broadcast and gather");
-                    int world_rank;
-                    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-                    int world_size;
-                    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-                    int number = world_rank * -10;
-                    MPI_Bcast(&number, 1, MPI_INT, 0, MPI_COMM_WORLD);
-                    printf( "Process %d received %d from process 0\n", world_rank, number );
-                    int my_result = world_rank + 1;
-                    int *results = world_rank == 0 ? (int*)malloc( world_size * sizeof( int ) ) : NULL;
-                    MPI_Gather(&my_result, 1, MPI_INT, results, 1, MPI_INT, 0, MPI_COMM_WORLD);
-                    if(world_rank == 0) {
-                            for (int i = 0; i < world_size; i++) {
-                                    printf( "Process 0 received result %d from process %d\n", results[i], i );
-                            }
-                            free(results);
-                    }
-		    DEBUG("end of all to all comm test");
-		    //retval = MPI_Init(nullptr, nullptr);
-		    //lci_retval = LCI_initialize(nullptr, nullptr);
-		    if (MPI_SUCCESS != retval)
-		    {
-			return retval;
-		    }
-		    DEBUG("mpi_environment::init 2.3");
+            retval = MPI_Init_thread(nullptr, nullptr, required, &provided);
+            if (MPI_SUCCESS != retval)
+            {
+                return retval;
+            }
 
-		    if (provided < minimal)
-		    {
-			HPX_THROW_EXCEPTION(invalid_status,
-			    "hpx::util::mpi_environment::init",
-			    "MPI doesn't provide minimal requested thread level");
-		    }
-		    DEBUG("mpi_environment::init 2.4");
-		    has_called_init_ = true;
-		}
-		DEBUG("mpi_environment::init 3");
-		return retval;
-	    }
+            if (provided < minimal)
+            {
+                HPX_THROW_EXCEPTION(invalid_status,
+                    "hpx::util::mpi_environment::init",
+                    "MPI doesn't provide minimal requested thread level");
+            }
+            has_called_init_ = true;
+        }
+        return retval;
+    }
 
-	    ///////////////////////////////////////////////////////////////////////////
-	    void mpi_environment::init(
-		int* argc, char*** argv, util::runtime_configuration& rtcfg)
-	    {
-		if (enabled_)
-		    return;    // don't call twice
+    ///////////////////////////////////////////////////////////////////////////
+    void mpi_environment::init(
+        int* argc, char*** argv, util::runtime_configuration& rtcfg)
+    {
+        if (enabled_)
+            return;    // don't call twice
 
-		int this_rank = -1;
-		has_called_init_ = false;
+        int this_rank = -1;
+        has_called_init_ = false;
 
-		// We assume to use the MPI parcelport if it is not explicitly disabled
-		enabled_ = check_mpi_environment(rtcfg);
-		if (!enabled_)
-		{
-		    rtcfg.add_entry("hpx.parcel.mpi.enable", "0");
-		    return;
-		}
+        // We assume to use the MPI parcelport if it is not explicitly disabled
+        enabled_ = check_mpi_environment(rtcfg);
+        if (!enabled_)
+        {
+            rtcfg.add_entry("hpx.parcel.mpi.enable", "0");
+            return;
+        }
 
-		rtcfg.add_entry("hpx.parcel.bootstrap", "mpi");
+        rtcfg.add_entry("hpx.parcel.bootstrap", "mpi");
 
-		int required = MPI_THREAD_SINGLE;
-		int minimal = MPI_THREAD_SINGLE;
+        int required = MPI_THREAD_SINGLE;
+        int minimal = MPI_THREAD_SINGLE;
 #if defined(HPX_HAVE_PARCELPORT_MPI_MULTITHREADED)
 		required =
 		    (get_entry_as(rtcfg, "hpx.parcel.mpi.multithreaded", 1) != 0) ?

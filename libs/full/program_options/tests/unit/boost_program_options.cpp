@@ -19,7 +19,7 @@
 
 namespace po = boost::program_options;
 
-int hpx_main(po::variables_map& vm)
+int hpx_main(po::variables_map&)
 {
     return hpx::finalize();
 }
@@ -34,5 +34,9 @@ int main(int argc, char* argv[])
     ;
     // clang-format on
 
-    return hpx::init(desc, argc, argv);
+    hpx::program_options::options_description cmdline(desc);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    return hpx::init(argc, argv, init_args);
 }

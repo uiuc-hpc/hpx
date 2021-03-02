@@ -7,8 +7,8 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/traits/extract_action.hpp>
+#include <hpx/actions_base/traits/is_valid_action.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/async_base/launch_policy.hpp>
 #include <hpx/async_base/traits/is_launch_policy.hpp>
@@ -28,7 +28,6 @@
 #include <hpx/runtime/components/client_base.hpp>
 #include <hpx/traits/is_client.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
-#include <hpx/traits/is_valid_action.hpp>
 #include <hpx/type_support/lazy_enable_if.hpp>
 #include <hpx/util/bind_action.hpp>
 
@@ -324,4 +323,3 @@ namespace hpx { namespace detail {
         }
     };
 }}    // namespace hpx::detail
-#endif

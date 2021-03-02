@@ -14,7 +14,6 @@
  // http://lafstern.org/matt/segmented.pdf.
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/algorithms/traits/is_value_proxy.hpp>
 #include <hpx/algorithms/traits/segmented_iterator_traits.hpp>
 #include <hpx/assert.hpp>
@@ -282,12 +281,12 @@ namespace hpx
         friend class hpx::serialization::access;
 
         template <typename Archive>
-        void load(Archive& ar, unsigned version)
+        void load(Archive& ar, unsigned /* version */)
         {
             ar & partition_ & local_index_;
         }
         template <typename Archive>
-        void save(Archive& ar, unsigned version) const
+        void save(Archive& ar, unsigned /* version */) const
         {
             ar & partition_ & local_index_;
         }
@@ -436,12 +435,12 @@ namespace hpx
         friend class hpx::serialization::access;
 
         template <typename Archive>
-        void load(Archive& ar, unsigned version)
+        void load(Archive& ar, unsigned /* version */)
         {
             ar & partition_ & local_index_;
         }
         template <typename Archive>
-        void save(Archive& ar, unsigned version) const
+        void save(Archive& ar, unsigned /* version */) const
         {
             ar & partition_ & local_index_;
         }
@@ -1109,4 +1108,4 @@ namespace hpx { namespace traits
       : std::true_type
     {};
 }}
-#endif
+

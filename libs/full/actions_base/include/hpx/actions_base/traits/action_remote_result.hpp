@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/type_support/unused.hpp>
 
 namespace hpx { namespace traits {
@@ -19,14 +17,14 @@ namespace hpx { namespace traits {
         template <typename Result, typename Enable = void>
         struct action_remote_result_customization_point
         {
-            typedef Result type;
+            using type = Result;
         };
 
         // If an action returns void, we need to do special things
         template <>
         struct action_remote_result_customization_point<void>
         {
-            typedef util::unused_type type;
+            using type = util::unused_type;
         };
     }    // namespace detail
     /// \endcond
@@ -37,4 +35,3 @@ namespace hpx { namespace traits {
     {
     };
 }}    // namespace hpx::traits
-#endif

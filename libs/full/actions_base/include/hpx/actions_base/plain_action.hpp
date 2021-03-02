@@ -10,9 +10,9 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/basic_action.hpp>
 #include <hpx/assert.hpp>
+#include <hpx/components_base/component_type.hpp>
 #include <hpx/components_base/traits/component_type_database.hpp>
 #include <hpx/naming_base/address.hpp>
 #include <hpx/preprocessor/cat.hpp>
@@ -109,7 +109,7 @@ namespace hpx { namespace actions {
 
         template <typename... Ts>
         static R invoke(naming::address::address_type /*lva*/,
-            naming::address::component_type comptype, Ts&&... vs)
+            naming::address::component_type /* comptype */, Ts&&... vs)
         {
             basic_action<detail::plain_function, R(Ps...),
                 derived_type>::increment_invocation_count();
@@ -380,4 +380,3 @@ namespace hpx { namespace traits {
 /// \endcond
 
 #include <hpx/config/warnings_suffix.hpp>
-#endif

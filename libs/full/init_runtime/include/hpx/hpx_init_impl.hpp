@@ -158,6 +158,9 @@ namespace hpx {
     /// (or one of its overloads below) should be called from the users `main()`
     /// function. It will set up the HPX runtime environment and schedule the
     /// function given by \p f as a HPX thread.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(util::function_nonser<int(
                         hpx::program_options::variables_map& vm)> const& f,
         hpx::program_options::options_description const& desc_cmdline, int argc,
@@ -181,6 +184,9 @@ namespace hpx {
     /// (or one of its overloads below) should be called from the users `main()`
     /// function. It will set up the HPX runtime environment and schedule the
     /// function given by \p f as a HPX thread.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(int (*f)(hpx::program_options::variables_map& vm),
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, startup_function_type startup,
@@ -203,6 +209,9 @@ namespace hpx {
     ///
     /// In console mode it will execute the user supplied function `hpx_main`,
     /// in worker mode it will execute an empty `hpx_main`.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, startup_function_type startup,
@@ -225,6 +234,9 @@ namespace hpx {
     ///
     /// In console mode it will execute the user supplied function `hpx_main`,
     /// in worker mode it will execute an empty `hpx_main`.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, std::vector<std::string> const& cfg,
@@ -249,6 +261,9 @@ namespace hpx {
     ///
     /// In console mode it will execute the user supplied function `hpx_main`,
     /// in worker mode it will execute an empty `hpx_main`.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(int argc, char** argv, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {
@@ -267,6 +282,9 @@ namespace hpx {
     ///
     /// In console mode it will execute the user supplied function `hpx_main`,
     /// in worker mode it will execute an empty `hpx_main`.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, hpx::runtime_mode mode)
@@ -286,6 +304,9 @@ namespace hpx {
     ///
     /// In console mode it will execute the user supplied function `hpx_main`,
     /// in worker mode it will execute an empty `hpx_main`.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(
         hpx::program_options::options_description const& desc_cmdline, int argc,
         char** argv, std::vector<std::string> const& cfg,
@@ -306,6 +327,9 @@ namespace hpx {
     /// This is a simplified main entry point, which can be used to set up the
     /// runtime for an HPX application (the runtime system will be set up in
     /// console mode or worker mode depending on the command line settings).
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
     {
@@ -324,6 +348,9 @@ namespace hpx {
     /// This is a simplified main entry point, which can be used to set up the
     /// runtime for an HPX application (the runtime system will be set up in
     /// console mode or worker mode depending on the command line settings).
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
         DEBUG("init N");
@@ -338,6 +365,9 @@ namespace hpx {
     /// This is a simplified main entry point, which can be used to set up the
     /// runtime for an HPX application (the runtime system will be set up in
     /// console mode or worker mode depending on the command line settings).
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(int (*f)(hpx::program_options::variables_map&),
         std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
@@ -360,6 +390,9 @@ namespace hpx {
     }
 
     // Main entry point for launching the HPX runtime system.
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(int (*f)(hpx::program_options::variables_map&), int argc,
         char** argv, hpx::runtime_mode mode)
     {
@@ -380,6 +413,9 @@ namespace hpx {
     /// This is a simplified main entry point, which can be used to set up the
     /// runtime for an HPX application (the runtime system will be set up in
     /// console mode or worker mode depending on the command line settings).
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(util::function_nonser<int(int, char**)> const& f,
         std::string const& app_name, int argc, char** argv,
         hpx::runtime_mode mode)
@@ -396,6 +432,9 @@ namespace hpx {
         return init(f, argc, argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(util::function_nonser<int(int, char**)> const& f, int argc,
         char** argv, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
@@ -409,6 +448,9 @@ namespace hpx {
         return init(f, argc, argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(util::function_nonser<int(int, char**)> const& f,
         std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
@@ -419,6 +461,9 @@ namespace hpx {
         return init(f, detail::dummy_argc, detail::dummy_argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(std::nullptr_t, std::string const& app_name, int argc,
         char** argv, hpx::runtime_mode mode)
     {
@@ -436,6 +481,9 @@ namespace hpx {
         return init(main_f, argc, argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(
         std::nullptr_t, int argc, char** argv, hpx::runtime_mode mode)
     {
@@ -449,6 +497,9 @@ namespace hpx {
         return init(main_f, argc, argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(std::nullptr_t, int argc, char** argv,
         std::vector<std::string> const& cfg, hpx::runtime_mode mode)
     {
@@ -463,6 +514,9 @@ namespace hpx {
         return init(main_f, argc, argv, iparams);
     }
 
+    HPX_DEPRECATED_V(1, 6,
+        "The init overload used is deprecated. Please use"
+        "the init overloads using the hpx::init_params struct.")
     inline int init(std::nullptr_t, std::vector<std::string> const& cfg,
         hpx::runtime_mode mode)
     {

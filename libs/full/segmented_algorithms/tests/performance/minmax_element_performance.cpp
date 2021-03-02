@@ -47,7 +47,7 @@ struct random_fill
     std::uniform_int_distribution<> dist;
 
     template <typename Archive>
-    void serialize(Archive& ar, unsigned)
+    void serialize(Archive&, unsigned)
     {
     }
 };
@@ -162,6 +162,10 @@ int main(int argc, char* argv[])
         hpx::program_options::value<unsigned int>(),
         "the random number generator seed to use for this run");
 
-    return hpx::init(cmdline, argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

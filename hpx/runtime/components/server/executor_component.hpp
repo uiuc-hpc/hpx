@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/async_base/traits/is_launch_policy.hpp>
 #include <hpx/components_base/get_lva.hpp>
 #include <hpx/coroutines/thread_enums.hpp>
@@ -46,19 +45,19 @@ namespace hpx { namespace components
         // executor
         static void execute(hpx::threads::thread_function_type const& f)
         {
-            f(hpx::threads::wait_signaled);
+            f(hpx::threads::thread_restart_state::signaled);
         }
 
         /// This is the default hook implementation for schedule_thread which
         /// forwards to the executor instance associated with this component.
+#if defined(HPX_HAVE_THREAD_EXECUTORS_COMPATIBILITY)
         template <typename Executor_ = Executor>
         static typename std::enable_if<
-            traits::is_threads_executor<Executor_>::value
-        >::type
+            traits::is_threads_executor<Executor_>::value>::type
         schedule_thread(hpx::naming::address::address_type lva,
-            naming::address::component_type comptype,
+            naming::address::component_type /* comptype */,
             hpx::threads::thread_init_data& data,
-            hpx::threads::thread_state_enum initial_state)
+            hpx::threads::thread_schedule_state /* initial_state */)
         {
             hpx::util::thread_description desc(&executor_component::execute);
 #ifdef HPX_HAVE_THREAD_DESCRIPTION
@@ -70,15 +69,19 @@ namespace hpx { namespace components
                     &executor_component::execute, desc.get_description()),
                 std::move(data.func));
         }
+#endif
 
         template <typename Executor_ = Executor>
+#if defined(HPX_HAVE_THREAD_EXECUTORS_COMPATIBILITY)
         static typename std::enable_if<
-            !traits::is_threads_executor<Executor_>::value
-        >::type
+            !traits::is_threads_executor<Executor_>::value>::type
+#else
+        static void
+#endif
         schedule_thread(hpx::naming::address::address_type lva,
-            naming::address::component_type comptype,
+            naming::address::component_type /* comptype */,
             hpx::threads::thread_init_data& data,
-            hpx::threads::thread_state_enum initial_state)
+            hpx::threads::thread_schedule_state /* initial_state */)
         {
             hpx::util::thread_description desc(&executor_component::execute);
 #ifdef HPX_HAVE_THREAD_DESCRIPTION
@@ -97,5 +100,3 @@ namespace hpx { namespace components
         executor_type exec_;
     };
 }}
-
-#endif

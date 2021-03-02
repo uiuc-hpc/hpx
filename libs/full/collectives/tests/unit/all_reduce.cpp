@@ -21,7 +21,7 @@
 constexpr char const* all_reduce_basename = "/test/all_reduce/";
 constexpr char const* all_reduce_direct_basename = "/test/all_reduce_direct/";
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     std::uint32_t num_localities = hpx::get_num_localities(hpx::launch::sync);
 
@@ -67,7 +67,10 @@ int main(int argc, char* argv[])
 {
     std::vector<std::string> const cfg = {"hpx.run_hpx_main!=1"};
 
-    HPX_TEST_EQ(hpx::init(argc, argv, cfg), 0);
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ(hpx::init(argc, argv, init_args), 0);
     return hpx::util::report_errors();
 }
 #endif

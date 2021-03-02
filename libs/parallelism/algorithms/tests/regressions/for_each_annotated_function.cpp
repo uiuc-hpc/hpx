@@ -23,7 +23,7 @@ int hpx_main()
 
     hpx::ranges::for_each(hpx::execution::par, c,
         hpx::util::annotated_function(
-            [](int i) -> void {
+            [](int) -> void {
                 hpx::util::thread_description desc(
                     hpx::threads::get_thread_description(
                         hpx::threads::get_self_id()));
@@ -43,8 +43,11 @@ int main(int argc, char* argv[])
 {
     std::vector<std::string> const cfg = {"hpx.os_threads=4"};
 
-    HPX_TEST_EQ_MSG(
-        hpx::init(argc, argv, cfg), 0, "HPX main exited with non-zero status");
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
+        "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();
 }

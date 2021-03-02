@@ -70,10 +70,10 @@ Functions
 - :cpp:func:`hpx::partial_sort`
 - :cpp:func:`hpx::parallel::v1::partition`
 - :cpp:func:`hpx::parallel::v1::partition_copy`
-- :cpp:func:`hpx::parallel::v1::remove`
-- :cpp:func:`hpx::parallel::v1::remove_copy`
-- :cpp:func:`hpx::parallel::v1::remove_copy_if`
-- :cpp:func:`hpx::parallel::v1::remove_if`
+- :cpp:func:`hpx::remove`
+- :cpp:func:`hpx::remove_copy`
+- :cpp:func:`hpx::remove_copy_if`
+- :cpp:func:`hpx::remove_if`
 - :cpp:func:`hpx::parallel::v1::replace`
 - :cpp:func:`hpx::parallel::v1::replace_copy`
 - :cpp:func:`hpx::parallel::v1::replace_copy_if`
@@ -82,8 +82,8 @@ Functions
 - :cpp:func:`hpx::parallel::v1::reverse_copy`
 - :cpp:func:`hpx::parallel::v1::rotate`
 - :cpp:func:`hpx::parallel::v1::rotate_copy`
-- :cpp:func:`hpx::parallel::v1::search`
-- :cpp:func:`hpx::parallel::v1::search_n`
+- :cpp:func:`hpx::search`
+- :cpp:func:`hpx::search_n`
 - :cpp:func:`hpx::set_difference`
 - :cpp:func:`hpx::set_intersection`
 - :cpp:func:`hpx::set_symmetric_difference`
@@ -92,6 +92,7 @@ Functions
 - :cpp:func:`hpx::parallel::v1::stable_partition`
 - :cpp:func:`hpx::parallel::v1::stable_sort`
 - :cpp:func:`hpx::parallel::v1::swap_ranges`
+- :cpp:func:`hpx::transform`
 - :cpp:func:`hpx::parallel::v1::unique`
 - :cpp:func:`hpx::parallel::v1::unique_copy`
 - :cpp:func:`hpx::for_loop`
@@ -141,7 +142,7 @@ Header ``hpx/any.hpp``
 ======================
 
 Corresponds to the C++ standard library header :cppreference-header:`any`.
-:cpp:type:`hpx::util::any` is compatible with ``std::any``.
+:cpp:type:`hpx::any` is compatible with ``std::any``.
 
 Classes
 -------
@@ -247,9 +248,9 @@ The following replacements and extensions are provided compared to
 Classes
 -------
 
-- :cpp:class:`hpx::util::high_resolution_clock`
-- :cpp:class:`hpx::util::high_resolution_timer`
-- :cpp:class:`hpx::util::steady_time_point`
+- :cpp:class:`hpx::chrono::high_resolution_clock`
+- :cpp:class:`hpx::chrono::high_resolution_timer`
+- :cpp:class:`hpx::chrono::steady_time_point`
 
 Header ``hpx/condition_variable.hpp``
 =====================================

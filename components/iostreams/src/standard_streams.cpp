@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/functional/bind_back.hpp>
 #include <hpx/lcos/base_lco_with_value.hpp>
 #include <hpx/modules/execution.hpp>
@@ -64,7 +63,7 @@ namespace hpx { namespace iostreams { namespace detail
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    void release_ostream(char const* name, naming::id_type const& id)
+    void release_ostream(char const* name, naming::id_type const& /* id */)
     {
         LRT_(info) << "detail::release_ostream: destroying '" << name
                    << "' stream object";
@@ -144,4 +143,4 @@ namespace hpx
         return iostreams::get_consolestream();
     }
 }
-#endif
+

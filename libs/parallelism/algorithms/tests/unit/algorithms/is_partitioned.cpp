@@ -433,7 +433,7 @@ void partitioned_bad_alloc_test()
     test_partitioned_bad_alloc<std::forward_iterator_tag>();
 }
 
-int hpx_main(hpx::program_options::variables_map& vm)
+int hpx_main()
 {
     partitioned_test1();
     partitioned_test2();
@@ -452,7 +452,11 @@ int main(int argc, char* argv[])
 
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

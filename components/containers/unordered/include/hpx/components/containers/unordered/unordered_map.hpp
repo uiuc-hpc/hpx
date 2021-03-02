@@ -9,7 +9,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/async_combinators/wait_all.hpp>
 #include <hpx/components_base/component_type.hpp>
@@ -23,6 +22,7 @@
 #include <hpx/serialization/unordered_map.hpp>
 #include <hpx/serialization/vector.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <hpx/components/containers/container_distribution_policy.hpp>
 #include <hpx/components/containers/unordered/partition_unordered_map_component.hpp>
@@ -284,19 +284,31 @@ namespace hpx
             hpx::future<typename partition_unordered_map_server::data_type>
                 get_data() const
             {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
                 typedef
                     typename partition_unordered_map_server::get_copied_data_action
                     action_type;
                 return hpx::async<action_type>(this->partition_.get());
+#else
+                HPX_ASSERT(false);
+                return hpx::make_ready_future(
+                    typename partition_unordered_map_server::data_type{});
+#endif
             }
 
             hpx::future<void>
             set_data(typename partition_unordered_map_server::data_type && d)
             {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
                 typedef
                     typename partition_unordered_map_server::set_copied_data_action
                     action_type;
                 return hpx::async<action_type>(this->partition_.get(), std::move(d));
+#else
+                HPX_ASSERT(false);
+                HPX_UNUSED(d);
+                return hpx::make_ready_future();
+#endif
             }
 
             std::shared_ptr<partition_unordered_map_server> local_data_;
@@ -784,6 +796,7 @@ namespace hpx
         ///
         hpx::future<std::size_t> size_async() const
         {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
             std::vector<hpx::id_type> ids = get_partition_ids();
             if (ids.empty())
                 return make_ready_future(std::size_t(0));
@@ -791,6 +804,10 @@ namespace hpx
             return hpx::lcos::reduce<
                     typename partition_unordered_map_server::size_action>(
                 ids, std::plus<std::size_t>());
+#else
+            HPX_ASSERT(false);
+            return hpx::make_ready_future(std::size_t{});
+#endif
         }
 
         /// Compute the size compute the size of the unordered_map.
@@ -893,4 +910,4 @@ namespace hpx
         }
     };
 }
-#endif
+

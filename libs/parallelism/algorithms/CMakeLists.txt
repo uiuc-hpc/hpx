@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 set(algorithms_headers
     hpx/algorithms/traits/is_value_proxy.hpp
+    hpx/algorithms/traits/pointer_category.hpp
     hpx/algorithms/traits/projected.hpp
     hpx/algorithms/traits/projected_range.hpp
     hpx/algorithms/traits/segmented_iterator_traits.hpp
@@ -30,6 +31,7 @@ set(algorithms_headers
     hpx/parallel/algorithms/detail/parallel_stable_sort.hpp
     hpx/parallel/algorithms/detail/rotate.hpp
     hpx/parallel/algorithms/detail/sample_sort.hpp
+    hpx/parallel/algorithms/detail/search.hpp
     hpx/parallel/algorithms/detail/set_operation.hpp
     hpx/parallel/algorithms/detail/spin_sort.hpp
     hpx/parallel/algorithms/detail/transfer.hpp
@@ -171,6 +173,7 @@ set(algorithms_compat_headers
     hpx/parallel/traits/projected.hpp => hpx/algorithms/traits/projected.hpp
     hpx/parallel/traits/projected_range.hpp => hpx/algorithms/traits/projected_range.hpp
     hpx/traits/is_value_proxy.hpp => hpx/algorithms/traits/is_value_proxy.hpp
+    hpx/traits/pointer_category.hpp => hpx/algorithms/traits/pointer_category.hpp
     hpx/traits/segmented_iterator_traits.hpp => hpx/algorithms/traits/segmented_iterator_traits.hpp
     hpx/util/tagged_pair.hpp => hpx/datastructures/tagged_pair.hpp
     hpx/util/tagged_tuple.hpp => hpx/datastructures/tagged_tuple.hpp

@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     HPX_TEST_EQ(
         hpx::threads::hardware_concurrency(),
@@ -35,7 +35,11 @@ char* argv[] =
 int main()
 {
     std::vector<std::string> cfg = { "hpx.os_threads=all" };
-    HPX_TEST_EQ(hpx::init(1, argv, cfg), 0);
+
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ(hpx::init(1, argv, init_args), 0);
     return hpx::util::report_errors();
 }
 #endif

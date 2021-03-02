@@ -32,7 +32,7 @@ using hpx::naming::address;
 using hpx::util::report_errors;
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(variables_map& vm)
+int hpx_main()
 {
     {
         hpx::test::simple_mobile_object a =
@@ -97,6 +97,10 @@ int main(int argc, char* argv[])
     };
 
     // Initialize and run HPX.
-    return init(cmdline, argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

@@ -9,13 +9,14 @@
 // Tasks should always report the right core number when they run.
 
 #include <hpx/debugging/print.hpp>
-#include <hpx/execution/executors/execution.hpp>
-#include <hpx/hpx_init.hpp>
-#include <hpx/include/threads.hpp>
-#include <hpx/modules/async_local.hpp>
-#include <hpx/schedulers/shared_priority_queue_scheduler.hpp>
+#include <hpx/execution.hpp>
+#include <hpx/future.hpp>
+#include <hpx/include/resource_partitioner.hpp>
+#include <hpx/init.hpp>
+#include <hpx/modules/schedulers.hpp>
 #include <hpx/modules/testing.hpp>
-#include <hpx/thread_executors/default_executor.hpp>
+#include <hpx/runtime.hpp>
+#include <hpx/thread.hpp>
 
 #include <atomic>
 #include <cstddef>
@@ -46,15 +47,17 @@ struct dec_counter
 
 void threadLoop()
 {
-    const unsigned iterations = 2048;
+    unsigned const iterations = 2048;
     std::atomic<int> count_down(iterations);
 
-    auto f = [&count_down](std::size_t thread_expected) {
+    auto f = [&count_down](std::size_t iteration, std::size_t thread_expected) {
         dec_counter dec(count_down);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         std::size_t thread_actual = hpx::get_worker_thread_num();
-        hpx::deb_schbin.debug(hpx::debug::str<>("Running on thread"),
-            thread_actual, "Expected", thread_expected);
+        hpx::deb_schbin.debug(hpx::debug::str<10>("Iteration"),
+            hpx::debug::dec<4>(iteration),
+            hpx::debug::str<20>("Running on thread"), thread_actual,
+            hpx::debug::str<10>("Expected"), thread_expected);
         HPX_TEST_EQ(thread_actual, thread_expected);
     };
 
@@ -62,22 +65,26 @@ void threadLoop()
     // launch tasks on threads using numbering 0,1,2,3...0,1,2,3
     for (std::size_t i = 0; i < iterations; ++i)
     {
-        auto exec = hpx::threads::executors::default_executor(
-            hpx::threads::thread_priority_bound,
-            hpx::threads::thread_stacksize_default,
+        auto exec = hpx::execution::parallel_executor(
+            hpx::threads::thread_priority::bound,
+            hpx::threads::thread_stacksize::default_,
             hpx::threads::thread_schedule_hint(std::int16_t(i % threads)));
-        hpx::async(exec, f, (i % threads)).get();
+        hpx::async(exec, f, i, (i % threads)).get();
     }
 
     do
     {
         hpx::this_thread::yield();
+        hpx::deb_schbin.debug(
+            hpx::debug::str<15>("count_down"), hpx::debug::dec<4>(count_down));
     } while (count_down > 0);
 
-    return;
+    hpx::deb_schbin.debug(
+        hpx::debug::str<15>("complete"), hpx::debug::dec<4>(count_down));
+    HPX_TEST_EQ(count_down, 0);
 }
 
-int hpx_main(boost::program_options::variables_map&)
+int hpx_main()
 {
     auto const current = hpx::threads::get_self_id_data()->get_scheduler_base();
     std::cout << "Scheduler is " << current->get_description() << std::endl;
@@ -88,7 +95,9 @@ int hpx_main(boost::program_options::variables_map&)
     }
 
     threadLoop();
+
     hpx::finalize();
+    hpx::deb_schbin.debug(hpx::debug::str<15>("Finalized"));
     return hpx::util::report_errors();
 }
 
@@ -96,7 +105,8 @@ int main(int argc, char* argv[])
 {
     hpx::init_params init_args;
 
-    init_args.rp_callback = [](auto& rp) {
+    init_args.rp_callback = [](auto& rp,
+                                hpx::program_options::variables_map const&) {
         // setup the default pool with a numa/binding aware scheduler
         rp.create_thread_pool("default",
             hpx::resource::scheduling_policy::shared_priority,

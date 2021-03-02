@@ -6,8 +6,6 @@
 
 // This example is meant for inclusion in the documentation.
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx_main.hpp>
 
 #include <hpx/assert.hpp>
@@ -58,11 +56,10 @@ void send_receive_channel()
 //]
 
 ///////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[])
+int main()
 {
     minimal_channel();
     send_receive_channel();
 
     return 0;
 }
-#endif

@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     // Try suspending without elasticity enabled, should throw an exception
     bool exception_thrown = false;
@@ -48,7 +48,8 @@ int main(int argc, char* argv[])
     hpx::init_params init_args;
 
     init_args.cfg = {"hpx.os_threads=4"};
-    init_args.rp_callback = [](auto& rp) {
+    init_args.rp_callback = [](auto& rp,
+                                hpx::program_options::variables_map const&) {
         // Explicitly disable elasticity if it is in defaults
         rp.create_thread_pool("default",
             hpx::resource::scheduling_policy::local_priority_fifo,

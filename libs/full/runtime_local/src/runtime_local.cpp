@@ -7,13 +7,13 @@
 
 #include <hpx/config.hpp>
 #include <hpx/assert.hpp>
+#include <hpx/command_line_handling/parse_command_line.hpp>
 #include <hpx/coroutines/coroutine.hpp>
 #include <hpx/debugging/backtrace.hpp>
 #include <hpx/execution_base/this_thread.hpp>
 #include <hpx/functional/bind.hpp>
 #include <hpx/functional/function.hpp>
 #include <hpx/itt_notify/thread_name.hpp>
-#include <hpx/modules/command_line_handling.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/logging.hpp>
 #include <hpx/modules/threadmanager.hpp>
@@ -260,7 +260,7 @@ namespace hpx {
 
     ///////////////////////////////////////////////////////////////////////////
     runtime::runtime(util::runtime_configuration& rtcfg, bool initialize)
-      : ini_(rtcfg)
+      : rtcfg_(rtcfg)
       , instance_number_(++instance_number_counter_)
       , thread_support_(new util::thread_mapper)
       , topology_(resource::get_partitioner().get_topology())
@@ -274,18 +274,18 @@ namespace hpx {
 #ifdef HPX_HAVE_IO_POOL
       , io_pool_notifier_(runtime::get_notification_policy(
             "io-thread", runtime_local::os_thread_type::io_thread))
-      , io_pool_(
-            rtcfg.get_thread_pool_size("io_pool"), io_pool_notifier_, "io_pool")
+      , io_pool_(rtcfg_.get_thread_pool_size("io_pool"), io_pool_notifier_,
+            "io_pool")
 #endif
 #ifdef HPX_HAVE_TIMER_POOL
       , timer_pool_notifier_(runtime::get_notification_policy(
             "timer-thread", runtime_local::os_thread_type::timer_thread))
-      , timer_pool_(rtcfg.get_thread_pool_size("timer_pool"),
+      , timer_pool_(rtcfg_.get_thread_pool_size("timer_pool"),
             timer_pool_notifier_, "timer_pool")
 #endif
       , notifier_(runtime::get_notification_policy(
             "worker-thread", runtime_local::os_thread_type::worker_thread))
-      , thread_manager_(new hpx::threads::threadmanager(
+      , thread_manager_(new hpx::threads::threadmanager(rtcfg_,
 #ifdef HPX_HAVE_TIMER_POOL
             timer_pool_,
 #endif
@@ -325,7 +325,7 @@ namespace hpx {
 #endif
         ,
         bool initialize)
-      : ini_(rtcfg)
+      : rtcfg_(rtcfg)
       , instance_number_(++instance_number_counter_)
       , thread_support_(new util::thread_mapper)
       , topology_(resource::get_partitioner().get_topology())
@@ -334,20 +334,20 @@ namespace hpx {
       , on_stop_func_(global_on_stop_func)
       , on_error_func_(global_on_error_func)
       , result_(0)
-      , main_pool_notifier_()
+      , main_pool_notifier_(std::move(main_pool_notifier))
       , main_pool_(1, main_pool_notifier_, "main_pool")
 #ifdef HPX_HAVE_IO_POOL
-      , io_pool_notifier_(io_pool_notifier)
-      , io_pool_(
-            rtcfg.get_thread_pool_size("io_pool"), io_pool_notifier_, "io_pool")
+      , io_pool_notifier_(std::move(io_pool_notifier))
+      , io_pool_(rtcfg_.get_thread_pool_size("io_pool"), io_pool_notifier_,
+            "io_pool")
 #endif
 #ifdef HPX_HAVE_TIMER_POOL
-      , timer_pool_notifier_(timer_pool_notifier)
-      , timer_pool_(rtcfg.get_thread_pool_size("timer_pool"),
+      , timer_pool_notifier_(std::move(timer_pool_notifier))
+      , timer_pool_(rtcfg_.get_thread_pool_size("timer_pool"),
             timer_pool_notifier_, "timer_pool")
 #endif
-      , notifier_(notifier)
-      , thread_manager_(new hpx::threads::threadmanager(
+      , notifier_(std::move(notifier))
+      , thread_manager_(new hpx::threads::threadmanager(rtcfg_,
 #ifdef HPX_HAVE_TIMER_POOL
             timer_pool_,
 #endif
@@ -378,36 +378,51 @@ namespace hpx {
     {
         LPROGRESS_;
 
-        // now create all threadmanager pools
-        thread_manager_->create_pools();
-
-        // this initializes the used_processing_units_ mask
-        thread_manager_->init();
-
-        // copy over all startup functions registered so far
-        for (startup_function_type& f : detail::global_pre_startup_functions)
+        try
         {
-            add_pre_startup_function(std::move(f));
-        }
-        detail::global_pre_startup_functions.clear();
+            // now create all threadmanager pools
+            thread_manager_->create_pools();
 
-        for (startup_function_type& f : detail::global_startup_functions)
-        {
-            add_startup_function(std::move(f));
-        }
-        detail::global_startup_functions.clear();
+            // this initializes the used_processing_units_ mask
+            thread_manager_->init();
 
-        for (shutdown_function_type& f : detail::global_pre_shutdown_functions)
-        {
-            add_pre_shutdown_function(std::move(f));
-        }
-        detail::global_pre_shutdown_functions.clear();
+            // copy over all startup functions registered so far
+            for (startup_function_type& f :
+                detail::global_pre_startup_functions)
+            {
+                add_pre_startup_function(std::move(f));
+            }
+            detail::global_pre_startup_functions.clear();
 
-        for (shutdown_function_type& f : detail::global_shutdown_functions)
-        {
-            add_shutdown_function(std::move(f));
+            for (startup_function_type& f : detail::global_startup_functions)
+            {
+                add_startup_function(std::move(f));
+            }
+            detail::global_startup_functions.clear();
+
+            for (shutdown_function_type& f :
+                detail::global_pre_shutdown_functions)
+            {
+                add_pre_shutdown_function(std::move(f));
+            }
+            detail::global_pre_shutdown_functions.clear();
+
+            for (shutdown_function_type& f : detail::global_shutdown_functions)
+            {
+                add_shutdown_function(std::move(f));
+            }
+            detail::global_shutdown_functions.clear();
         }
-        detail::global_shutdown_functions.clear();
+        catch (std::exception const& e)
+        {
+            // errors at this point need to be reported directly
+            detail::report_exception_and_terminate(e);
+        }
+        catch (...)
+        {
+            // errors at this point need to be reported directly
+            detail::report_exception_and_terminate(std::current_exception());
+        }
 
         // set state to initialized
         set_state(state_initialized);
@@ -463,12 +478,12 @@ namespace hpx {
 
     util::runtime_configuration& runtime::get_config()
     {
-        return ini_;
+        return rtcfg_;
     }
 
     util::runtime_configuration const& runtime::get_config() const
     {
-        return ini_;
+        return rtcfg_;
     }
 
     std::size_t runtime::get_instance_number() const
@@ -578,7 +593,7 @@ namespace hpx {
         return newf;
     }
 
-    std::uint32_t runtime::get_locality_id(error_code& ec) const
+    std::uint32_t runtime::get_locality_id(error_code& /* ec */) const
     {
         return 0;
     }
@@ -590,7 +605,7 @@ namespace hpx {
     }
 
     std::uint32_t runtime::get_num_localities(
-        hpx::launch::sync_policy, error_code& ec) const
+        hpx::launch::sync_policy, error_code& /* ec */) const
     {
         return 1;
     }
@@ -803,20 +818,12 @@ namespace hpx {
     std::string get_config_entry(
         std::string const& key, std::string const& dflt)
     {
-        //! FIXME runtime_configuration should probs be a member of
-        // hpx::runtime only, not command_line_handling
-        //! FIXME change functions in this section accordingly
         if (get_runtime_ptr() != nullptr)
         {
             return get_runtime().get_config().get_entry(key, dflt);
         }
-        if (!resource::is_partitioner_valid())
-        {
-            return dflt;
-        }
-        return resource::get_partitioner()
-            .get_command_line_switches()
-            .rtcfg_.get_entry(key, dflt);
+
+        return dflt;
     }
 
     std::string get_config_entry(std::string const& key, std::size_t dflt)
@@ -825,13 +832,8 @@ namespace hpx {
         {
             return get_runtime().get_config().get_entry(key, dflt);
         }
-        if (!resource::is_partitioner_valid())
-        {
-            return std::to_string(dflt);
-        }
-        return resource::get_partitioner()
-            .get_command_line_switches()
-            .rtcfg_.get_entry(key, dflt);
+
+        return std::to_string(dflt);
     }
 
     // set entries
@@ -842,30 +844,11 @@ namespace hpx {
             get_runtime_ptr()->get_config().add_entry(key, value);
             return;
         }
-        if (resource::is_partitioner_valid())
-        {
-            resource::get_partitioner()
-                .get_command_line_switches()
-                .rtcfg_.add_entry(key, value);
-            return;
-        }
     }
 
     void set_config_entry(std::string const& key, std::size_t value)
     {
-        if (get_runtime_ptr() != nullptr)
-        {
-            get_runtime_ptr()->get_config().add_entry(
-                key, std::to_string(value));
-            return;
-        }
-        if (resource::is_partitioner_valid())
-        {
-            resource::get_partitioner()
-                .get_command_line_switches()
-                .rtcfg_.add_entry(key, std::to_string(value));
-            return;
-        }
+        set_config_entry(key, std::to_string(value));
     }
 
     void set_config_entry_callback(std::string const& key,
@@ -876,13 +859,6 @@ namespace hpx {
         {
             get_runtime_ptr()->get_config().add_notification_callback(
                 key, callback);
-            return;
-        }
-        if (resource::is_partitioner_valid())
-        {
-            resource::get_partitioner()
-                .get_command_line_switches()
-                .rtcfg_.add_notification_callback(key, callback);
             return;
         }
     }
@@ -1060,7 +1036,7 @@ namespace hpx { namespace threads {
     // shortcut for runtime_configuration::get_stack_size
     std::ptrdiff_t get_stack_size(threads::thread_stacksize stacksize)
     {
-        if (stacksize == threads::thread_stacksize_current)
+        if (stacksize == threads::thread_stacksize::current)
             return threads::get_self_stacksize();
 
         return get_runtime().get_config().get_stack_size(stacksize);
@@ -1312,7 +1288,8 @@ namespace hpx {
         }
 
         return threads::thread_result_type(
-            threads::terminated, threads::invalid_thread_id);
+            threads::thread_schedule_state::terminated,
+            threads::invalid_thread_id);
     }
 
     int runtime::start(
@@ -1360,8 +1337,8 @@ namespace hpx {
 
         threads::thread_init_data data(util::bind(&runtime::run_helper, this,
                                            func, std::ref(result_), true),
-            "run_helper", threads::thread_priority_normal,
-            threads::thread_schedule_hint(0), threads::thread_stacksize_large);
+            "run_helper", threads::thread_priority::normal,
+            threads::thread_schedule_hint(0), threads::thread_stacksize::large);
 
         this->runtime::starting();
         threads::thread_id_type id = threads::invalid_thread_id;
@@ -1524,7 +1501,7 @@ namespace hpx {
 
 #ifdef HPX_HAVE_TIMER_POOL
         LTM_(info) << "stop: stopping timer pool";
-        timer_pool_.stop();    // stop timer pool as well
+        timer_pool_.stop();
         if (blocking)
         {
             timer_pool_.join();
@@ -1532,9 +1509,14 @@ namespace hpx {
         }
 #endif
 #ifdef HPX_HAVE_IO_POOL
-        io_pool_.stop();    // stops io_pool_ as well
+        LTM_(info) << "stop: stopping io pool";
+        io_pool_.stop();
+        if (blocking)
+        {
+            io_pool_.join();
+            io_pool_.clear();
+        }
 #endif
-        //         deinit_tss();
     }
 
     // Second step in termination: shut down all services.
@@ -2029,19 +2011,19 @@ namespace hpx {
     namespace threads {
         char const* get_stack_size_name(std::ptrdiff_t size)
         {
-            thread_stacksize size_enum = thread_stacksize_unknown;
+            thread_stacksize size_enum = thread_stacksize::unknown;
 
             util::runtime_configuration const& rtcfg = hpx::get_config();
-            if (rtcfg.get_stack_size(thread_stacksize_small) == size)
-                size_enum = thread_stacksize_small;
-            else if (rtcfg.get_stack_size(thread_stacksize_medium) == size)
-                size_enum = thread_stacksize_medium;
-            else if (rtcfg.get_stack_size(thread_stacksize_large) == size)
-                size_enum = thread_stacksize_large;
-            else if (rtcfg.get_stack_size(thread_stacksize_huge) == size)
-                size_enum = thread_stacksize_huge;
-            else if (rtcfg.get_stack_size(thread_stacksize_nostack) == size)
-                size_enum = thread_stacksize_nostack;
+            if (rtcfg.get_stack_size(thread_stacksize::small_) == size)
+                size_enum = thread_stacksize::small_;
+            else if (rtcfg.get_stack_size(thread_stacksize::medium) == size)
+                size_enum = thread_stacksize::medium;
+            else if (rtcfg.get_stack_size(thread_stacksize::large) == size)
+                size_enum = thread_stacksize::large;
+            else if (rtcfg.get_stack_size(thread_stacksize::huge) == size)
+                size_enum = thread_stacksize::huge;
+            else if (rtcfg.get_stack_size(thread_stacksize::nostack) == size)
+                size_enum = thread_stacksize::nostack;
 
             return get_stack_size_enum_name(size_enum);
         }

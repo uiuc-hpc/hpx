@@ -93,7 +93,9 @@ private:
     friend class hpx::serialization::access;
 
     template <typename Archive>
-    void serialize(Archive& ar, const unsigned int version) const {}
+    void serialize(Archive&, const unsigned int) const
+    {
+    }
 
 private:
     buffer_type data_;
@@ -365,6 +367,9 @@ int main(int argc, char* argv[])
     ;
 
     // Initialize and run HPX
-    return hpx::init(desc_commandline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

@@ -9,16 +9,17 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions/actions_fwd.hpp>
+#include <hpx/actions/continuation_fwd.hpp>
 #include <hpx/actions_base/action_priority.hpp>
-#include <hpx/actions_base/continuation_fwd.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/async_distributed/applier/detail/apply_implementations_fwd.hpp>
 #include <hpx/components_base/component_type.hpp>
 #include <hpx/lcos_fwd.hpp>
 #include <hpx/naming_base/address.hpp>
 #include <hpx/naming_base/id_type.hpp>
+#include <hpx/runtime/trigger_lco_fwd.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <exception>
 #include <type_traits>
@@ -26,298 +27,6 @@
 
 namespace hpx
 {
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Trigger the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should be
-    ///                triggered.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void trigger_lco_event(naming::id_type const& id,
-        naming::address && addr, bool move_credits = true);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Trigger the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should be
-    ///                triggered.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void trigger_lco_event(naming::id_type const& id,
-        bool move_credits = true)
-    {
-        trigger_lco_event(id, naming::address(), move_credits);
-    }
-
-    /// \brief Trigger the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should be
-    ///                  triggered.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void trigger_lco_event(naming::id_type const& id,
-        naming::address && addr, naming::id_type const& cont,
-        bool move_credits = true);
-
-    /// \brief Trigger the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should be
-    ///                  triggered.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void trigger_lco_event(naming::id_type const& id,
-        naming::id_type const& cont, bool move_credits = true)
-    {
-        trigger_lco_event(id, naming::address(), cont, move_credits);
-    }
-
-    /// \brief Set the result value for the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the given value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param t  [in] This is the value which should be sent to the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    void set_lco_value(naming::id_type const& id,
-        naming::address && addr, Result && t, bool move_credits = true);
-
-    /// \brief Set the result value for the (managed) LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the given value.
-    /// \param t  [in] This is the value which should be sent to the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    typename std::enable_if<
-        !std::is_same<typename std::decay<Result>::type, naming::address>::value
-    >::type
-    set_lco_value(naming::id_type const& id, Result && t, bool move_credits = true)
-    {
-        naming::address addr(nullptr, components::component_base_lco_with_value);
-        set_lco_value(id, std::move(addr), std::forward<Result>(t), move_credits);
-    }
-
-    /// \brief Set the result value for the (unmanaged) LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the given value.
-    /// \param t  [in] This is the value which should be sent to the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    typename std::enable_if<
-        !std::is_same<typename std::decay<Result>::type, naming::address>::value
-    >::type
-    set_lco_value_unmanaged(naming::id_type const& id, Result && t,
-        bool move_credits = true)
-    {
-        naming::address addr(nullptr,
-            components::component_base_lco_with_value_unmanaged);
-        set_lco_value(id, std::move(addr), std::forward<Result>(t), move_credits);
-    }
-
-    /// \brief Set the result value for the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the given value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param t    [in] This is the value which should be sent to the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    void set_lco_value(naming::id_type const& id,
-        naming::address && addr, Result && t, naming::id_type const& cont,
-        bool move_credits = true);
-
-    /// \brief Set the result value for the (managed) LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the given value.
-    /// \param t    [in] This is the value which should be sent to the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    typename std::enable_if<
-        !std::is_same<typename std::decay<Result>::type, naming::address>::value
-    >::type
-    set_lco_value(naming::id_type const& id, Result && t,
-        naming::id_type const& cont, bool move_credits = true)
-    {
-        naming::address addr(nullptr, components::component_base_lco_with_value);
-        set_lco_value(id, std::move(addr), std::forward<Result>(t), cont,
-            move_credits);
-    }
-
-    /// \brief Set the result value for the (unmanaged) LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the given value.
-    /// \param t    [in] This is the value which should be sent to the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    template <typename Result>
-    typename std::enable_if<
-        !std::is_same<typename std::decay<Result>::type, naming::address>::value
-    >::type
-    set_lco_value_unmanaged(naming::id_type const& id, Result && t,
-        naming::id_type const& cont, bool move_credits = true)
-    {
-        naming::address addr(nullptr,
-            components::component_base_lco_with_value_unmanaged);
-        set_lco_value(id, std::move(addr), std::forward<Result>(t), cont,
-            move_credits);
-    }
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the error value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param e  [in] This is the error value which should be sent to
-    ///                the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void set_lco_error(naming::id_type const& id,
-        naming::address && addr, std::exception_ptr const& e,
-        bool move_credits = true);
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the error value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param e  [in] This is the error value which should be sent to
-    ///                the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void set_lco_error(naming::id_type const& id,
-        naming::address && addr, std::exception_ptr && e,
-        bool move_credits = true);
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the error value.
-    /// \param e  [in] This is the error value which should be sent to
-    ///                the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void set_lco_error(naming::id_type const& id,
-        std::exception_ptr const& e, bool move_credits = true)
-    {
-        set_lco_error(id, naming::address(), e, move_credits);
-    }
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id [in] This represents the id of the LCO which should
-    ///                receive the error value.
-    /// \param e  [in] This is the error value which should be sent to
-    ///                the LCO.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void set_lco_error(naming::id_type const& id,
-        std::exception_ptr && e, bool move_credits = true)
-    {
-        set_lco_error(id, naming::address(), std::move(e), move_credits);
-    }
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the error value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param e    [in] This is the error value which should be sent to
-    ///                  the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void set_lco_error(naming::id_type const& id,
-        naming::address && addr, std::exception_ptr const& e,
-        naming::id_type const& cont, bool move_credits = true);
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the error value.
-    /// \param addr [in] This represents the addr of the LCO which should be
-    ///                triggered.
-    /// \param e    [in] This is the error value which should be sent to
-    ///                  the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    HPX_EXPORT void set_lco_error(naming::id_type const& id,
-        naming::address && addr, std::exception_ptr && e,
-        naming::id_type const& cont, bool move_credits = true);
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the error value.
-    /// \param e    [in] This is the error value which should be sent to
-    ///                  the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void set_lco_error(naming::id_type const& id,
-        std::exception_ptr const& e, naming::id_type const& cont,
-        bool move_credits = true)
-    {
-        set_lco_error(id, naming::address(), e, cont, move_credits);
-    }
-
-    /// \brief Set the error state for the LCO referenced by the given id
-    ///
-    /// \param id   [in] This represents the id of the LCO which should
-    ///                  receive the error value.
-    /// \param e    [in] This is the error value which should be sent to
-    ///                  the LCO.
-    /// \param cont [in] This represents the LCO to trigger after completion.
-    /// \param move_credits [in] If this is set to \a true then it is ok to
-    ///                     send all credits in \a id along with the generated
-    ///                     message. The default value is \a true.
-    inline void set_lco_error(naming::id_type const& id,
-        std::exception_ptr && e, naming::id_type const& cont,
-        bool move_credits = true)
-    {
-        set_lco_error(id, naming::address(), std::move(e), cont, move_credits);
-    }
-
     /// \cond NOINTERNAL
 
     //////////////////////////////////////////////////////////////////////////
@@ -464,6 +173,7 @@ namespace hpx
     void set_lco_value(naming::id_type const& id, naming::address && addr,
         Result && t, bool move_credits)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         typedef typename std::decay<Result>::type remote_result_type;
         typedef typename traits::promise_local_result<
                 remote_result_type
@@ -494,12 +204,20 @@ namespace hpx
             detail::set_lco_value<set_value_action>(id, std::move(addr),
                 std::forward<Result>(t), move_credits);
         }
+#else
+        HPX_UNUSED(id);
+        HPX_UNUSED(addr);
+        HPX_UNUSED(t);
+        HPX_UNUSED(move_credits);
+        HPX_ASSERT(false);
+#endif
     }
 
     template <typename Result>
     void set_lco_value(naming::id_type const& id, naming::address && addr,
         Result && t, naming::id_type const& cont, bool move_credits)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         typedef typename std::decay<Result>::type remote_result_type;
         typedef typename traits::promise_local_result<
                 remote_result_type
@@ -531,7 +249,16 @@ namespace hpx
                     local_result_type, remote_result_type, set_value_action
                 >(id, std::move(addr), std::forward<Result>(t), cont, move_credits);
         }
+#else
+        HPX_UNUSED(id);
+        HPX_UNUSED(addr);
+        HPX_UNUSED(t);
+        HPX_UNUSED(cont);
+        HPX_UNUSED(move_credits);
+        HPX_ASSERT(false);
+#endif
     }
     /// \endcond
 }
-#endif
+
+#include <hpx/async_distributed/applier/apply.hpp>

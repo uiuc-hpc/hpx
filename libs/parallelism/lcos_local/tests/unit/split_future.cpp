@@ -170,7 +170,7 @@ void test_split_future_vector()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     test_split_future0();
     test_split_future1();
@@ -194,5 +194,8 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    return hpx::init(argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }

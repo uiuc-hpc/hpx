@@ -9,7 +9,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #include <hpx/assert.hpp>
 #include <hpx/naming_base/id_type.hpp>
@@ -118,6 +117,7 @@ namespace hpx { namespace agas { namespace detail
         std::uint32_t locality_id)
     {
         HPX_ASSERT(locality_id == 0);
+        HPX_UNUSED(locality_id);
         const char* servicename("locality#0/");
         server_.register_server_instance(servicename);
     }
@@ -127,4 +127,3 @@ namespace hpx { namespace agas { namespace detail
         server_.unregister_server_instance(ec);
     }
 }}}
-#endif

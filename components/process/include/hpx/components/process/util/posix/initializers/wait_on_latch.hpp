@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if !defined(HPX_WINDOWS)
 #include <hpx/modules/collectives.hpp>
@@ -30,7 +29,7 @@ namespace hpx { namespace components { namespace process { namespace posix
             {}
 
             template <typename PosixExecutor>
-            void on_fork_success(PosixExecutor &e) const
+            void on_fork_success(PosixExecutor&) const
             {
                 // wait for the newly launched HPX locality to connect back here
                 hpx::lcos::latch l(2);
@@ -52,5 +51,4 @@ namespace hpx { namespace components { namespace process { namespace posix
     }
 }}}}
 
-#endif
 #endif

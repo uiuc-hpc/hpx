@@ -14,6 +14,7 @@
 #include <hpx/io_service/io_service_pool.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/resource_partitioner/detail/partitioner.hpp>
+#include <hpx/runtime_configuration/runtime_configuration.hpp>
 #include <hpx/thread_pools/scheduled_thread_pool.hpp>
 #include <hpx/threading_base/scheduler_mode.hpp>
 #include <hpx/threading_base/scheduler_state.hpp>
@@ -56,7 +57,7 @@ namespace hpx { namespace threads {
         typedef threads::policies::scheduler_base scheduler_type;
         typedef std::vector<pool_type> pool_vector;
 
-        threadmanager(
+        threadmanager(util::runtime_configuration& rtcfg_,
 #ifdef HPX_HAVE_TIMER_POOL
             util::io_service_pool& timer_pool,
 #endif
@@ -161,8 +162,9 @@ namespace hpx { namespace threads {
         /// \brief return the number of HPX-threads with the given state
         ///
         /// \note This function lock the internal OS lock in the thread manager
-        std::int64_t get_thread_count(thread_state_enum state = unknown,
-            thread_priority priority = thread_priority_default,
+        std::int64_t get_thread_count(
+            thread_schedule_state state = thread_schedule_state::unknown,
+            thread_priority priority = thread_priority::default_,
             std::size_t num_thread = std::size_t(-1), bool reset = false);
 
         std::int64_t get_idle_core_count();
@@ -174,7 +176,7 @@ namespace hpx { namespace threads {
         // Enumerate all matching threads
         bool enumerate_threads(
             util::function_nonser<bool(thread_id_type)> const& f,
-            thread_state_enum state = unknown) const;
+            thread_schedule_state state = thread_schedule_state::unknown) const;
 
         // \brief Abort all threads which are in suspended state. This will set
         //        the state of all suspended threads to \a pending while
@@ -330,33 +332,33 @@ namespace hpx { namespace threads {
 
         std::int64_t get_thread_count_unknown(bool reset)
         {
-            return get_thread_count(
-                unknown, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::unknown,
+                thread_priority::default_, std::size_t(-1), reset);
         }
         std::int64_t get_thread_count_active(bool reset)
         {
-            return get_thread_count(
-                active, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::active,
+                thread_priority::default_, std::size_t(-1), reset);
         }
         std::int64_t get_thread_count_pending(bool reset)
         {
-            return get_thread_count(
-                pending, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::pending,
+                thread_priority::default_, std::size_t(-1), reset);
         }
         std::int64_t get_thread_count_suspended(bool reset)
         {
-            return get_thread_count(
-                suspended, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::suspended,
+                thread_priority::default_, std::size_t(-1), reset);
         }
         std::int64_t get_thread_count_terminated(bool reset)
         {
-            return get_thread_count(
-                terminated, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::terminated,
+                thread_priority::default_, std::size_t(-1), reset);
         }
         std::int64_t get_thread_count_staged(bool reset)
         {
-            return get_thread_count(
-                staged, thread_priority_default, std::size_t(-1), reset);
+            return get_thread_count(thread_schedule_state::staged,
+                thread_priority::default_, std::size_t(-1), reset);
         }
 
 #ifdef HPX_HAVE_THREAD_IDLE_RATES
@@ -392,11 +394,7 @@ namespace hpx { namespace threads {
     private:
         mutable mutex_type mtx_;    // mutex protecting the members
 
-        // specified by the user in command line, or all cores by default
-        // represents the total number of OS threads, irrespective of how many
-        // are in which pool.
-        std::size_t num_threads_;
-
+        util::runtime_configuration& rtcfg_;
         std::vector<pool_id_type> threads_lookup_;
 
 #ifdef HPX_HAVE_TIMER_POOL

@@ -27,6 +27,12 @@ function(hpx_perform_cxx_feature_tests)
     DEFINITIONS HPX_HAVE_CXX11_STD_SHARED_PTR_LWG3018
   )
 
+  hpx_check_for_c11_aligned_alloc(DEFINITIONS HPX_HAVE_C11_ALIGNED_ALLOC)
+
+  hpx_check_for_cxx17_std_aligned_alloc(
+    DEFINITIONS HPX_HAVE_CXX17_STD_ALIGNED_ALLOC
+  )
+
   hpx_check_for_cxx17_filesystem(DEFINITIONS HPX_HAVE_CXX17_FILESYSTEM)
 
   hpx_check_for_cxx17_fold_expressions(
@@ -89,13 +95,15 @@ function(hpx_perform_cxx_feature_tests)
   # C++20 feature tests
   hpx_check_for_cxx20_coroutines(DEFINITIONS HPX_HAVE_CXX20_COROUTINES)
 
+  hpx_check_for_cxx20_no_unique_address_attribute(
+    DEFINITIONS HPX_HAVE_CXX20_NO_UNIQUE_ADDRESS_ATTRIBUTE
+  )
+
   hpx_check_for_cxx20_std_disable_sized_sentinel_for(
     DEFINITIONS HPX_HAVE_CXX20_STD_DISABLE_SIZED_SENTINEL_FOR
   )
 
-  hpx_check_for_cxx20_no_unique_address_attribute(
-    DEFINITIONS HPX_HAVE_CXX20_NO_UNIQUE_ADDRESS_ATTRIBUTE
-  )
+  hpx_check_for_cxx20_std_endian(DEFINITIONS HPX_HAVE_CXX20_STD_ENDIAN)
 
   # Check the availability of certain C++ builtins
   hpx_check_for_builtin_integer_pack(DEFINITIONS HPX_HAVE_BUILTIN_INTEGER_PACK)

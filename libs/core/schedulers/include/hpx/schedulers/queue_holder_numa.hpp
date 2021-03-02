@@ -161,7 +161,7 @@ namespace hpx { namespace threads { namespace policies {
             for (std::size_t i = 0; i < num_queues_;
                  ++i, q = fast_mod((qidx + i), num_queues_))
             {
-                std::size_t added =
+                added =
                     receiver->add_new_HP(64, queues_[q], (stealing || (i > 0)));
                 if (added > 0)
                 {
@@ -192,7 +192,7 @@ namespace hpx { namespace threads { namespace policies {
             for (std::size_t i = 0; i < num_queues_;
                  ++i, q = fast_mod((qidx + i), num_queues_))
             {
-                std::size_t added =
+                added =
                     receiver->add_new(64, queues_[q], (stealing || (i > 0)));
                 if (added > 0)
                 {
@@ -224,8 +224,9 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         // ----------------------------------------------------------------
-        inline std::int64_t get_thread_count(thread_state_enum state = unknown,
-            thread_priority priority = thread_priority_default) const
+        inline std::int64_t get_thread_count(
+            thread_schedule_state state = thread_schedule_state::unknown,
+            thread_priority priority = thread_priority::default_) const
         {
             std::size_t len = 0;
             for (auto& q : queues_)
@@ -243,7 +244,7 @@ namespace hpx { namespace threads { namespace policies {
         // ----------------------------------------------------------------
         bool enumerate_threads(
             util::function_nonser<bool(thread_id_type)> const& f,
-            thread_state_enum state) const
+            thread_schedule_state state) const
         {
             bool result = true;
             for (auto& q : queues_)
@@ -273,16 +274,16 @@ namespace hpx { namespace threads { namespace policies {
         //            return new_tasks_count_.load(order);
         //        }
 
-        void increment_num_pending_misses(std::size_t num = 1) {}
-        void increment_num_pending_accesses(std::size_t num = 1) {}
-        void increment_num_stolen_from_pending(std::size_t num = 1) {}
-        void increment_num_stolen_from_staged(std::size_t num = 1) {}
-        void increment_num_stolen_to_pending(std::size_t num = 1) {}
-        void increment_num_stolen_to_staged(std::size_t num = 1) {}
+        void increment_num_pending_misses(std::size_t /* num */ = 1) {}
+        void increment_num_pending_accesses(std::size_t /* num */ = 1) {}
+        void increment_num_stolen_from_pending(std::size_t /* num */ = 1) {}
+        void increment_num_stolen_from_staged(std::size_t /* num */ = 1) {}
+        void increment_num_stolen_to_pending(std::size_t /* num */ = 1) {}
+        void increment_num_stolen_to_staged(std::size_t /* num */ = 1) {}
 
         // ------------------------------------------------------------
-        bool dump_suspended_threads(
-            std::size_t num_thread, std::int64_t& idle_loop_count, bool running)
+        bool dump_suspended_threads(std::size_t /* num_thread */,
+            std::int64_t& /* idle_loop_count */, bool /* running */)
         {
             return false;
         }
@@ -295,8 +296,11 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         // ------------------------------------------------------------
-        void on_start_thread(std::size_t num_thread) {}
-        void on_stop_thread(std::size_t num_thread) {}
-        void on_error(std::size_t num_thread, std::exception_ptr const& e) {}
+        void on_start_thread(std::size_t /* num_thread */) {}
+        void on_stop_thread(std::size_t /* num_thread */) {}
+        void on_error(
+            std::size_t /* num_thread */, std::exception_ptr const& /* e */)
+        {
+        }
     };
 }}}    // namespace hpx::threads::policies

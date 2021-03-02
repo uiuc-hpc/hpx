@@ -6,15 +6,14 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_NETWORKING)
+#include <hpx/actions/continuation.hpp>
 #include <hpx/actions_base/plain_action.hpp>
 #include <hpx/agas/server/primary_namespace.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/async_distributed/applier/apply.hpp>
 #include <hpx/modules/format.hpp>
-#include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime/agas/addressing_service.hpp>
 #include <hpx/runtime/parcelset/parcelhandler.hpp>
 #include <hpx/runtime_distributed.hpp>
@@ -134,5 +133,4 @@ namespace hpx { namespace agas { namespace server
     } // }}}
 }}}
 
-#endif
 #endif

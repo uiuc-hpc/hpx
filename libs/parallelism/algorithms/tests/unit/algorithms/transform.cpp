@@ -19,6 +19,7 @@ void test_transform()
 {
     using namespace hpx::execution;
 
+    test_transform(IteratorTag());
     test_transform(seq, IteratorTag());
     test_transform(par, IteratorTag());
     test_transform(par_unseq, IteratorTag());
@@ -41,6 +42,7 @@ void test_transform_exception()
     // If the execution policy object is of type vector_execution_policy,
     // std::terminate shall be called. therefore we do not test exceptions
     // with a vector execution policy
+    test_transform_exception(IteratorTag());
     test_transform_exception(seq, IteratorTag());
     test_transform_exception(par, IteratorTag());
 
@@ -106,7 +108,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv, cfg), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

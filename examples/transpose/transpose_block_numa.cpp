@@ -115,9 +115,11 @@ struct sub_block
         return data_[i];
     }
 
-    void load(hpx::serialization::input_archive& ar, unsigned version)
+    void load(hpx::serialization::input_archive& ar, unsigned)
     {
-        ar& size_;
+        // clang-format off
+        ar & size_;
+        // clang-format on
         if (size_ > 0)
         {
             data_ = new double[size_];
@@ -127,9 +129,11 @@ struct sub_block
         }
     }
 
-    void save(hpx::serialization::output_archive& ar, unsigned version) const
+    void save(hpx::serialization::output_archive& ar, unsigned) const
     {
+        // clang-format off
         ar& size_;
+        // clang-format on
         if (size_ > 0)
         {
             hpx::serialization::array<double> arr(data_, size_);
@@ -192,8 +196,8 @@ struct block : hpx::components::client_base<block, block_component>
     {
     }
 
-    block(std::uint64_t id, std::uint64_t size, const char* base_name,
-        std::size_t numa_domain)
+    block(std::uint64_t /* id */, std::uint64_t size,
+        const char* /* base_name */, std::size_t numa_domain)
       : base_type(
             hpx::new_<block_component>(hpx::find_here(), size, numa_domain))
     {
@@ -246,7 +250,7 @@ std::size_t get_num_numa_nodes(
 }
 
 std::pair<std::size_t, std::size_t> get_num_numa_pus(
-    hpx::threads::topology const& topo, std::size_t numa_nodes,
+    hpx::threads::topology const& /* topo */, std::size_t numa_nodes,
     hpx::program_options::variables_map& vm)
 {
     std::size_t numa_pus = hpx::threads::hardware_concurrency() / numa_nodes;
@@ -601,11 +605,16 @@ int main(int argc, char* argv[])
     //    cfg.push_back(bind_desc);
 
     //    return hpx::init();
-    return hpx::init(desc_commandline, argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }
 
 void transpose(hpx::future<sub_block> Af, hpx::future<sub_block> Bf,
-    std::uint64_t block_order, std::uint64_t tile_size, std::uint64_t domain)
+    std::uint64_t block_order, std::uint64_t tile_size,
+    std::uint64_t /* domain */)
 {
     sub_block const A = Af.get();
     sub_block B = Bf.get();

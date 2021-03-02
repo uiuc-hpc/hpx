@@ -11,9 +11,9 @@
 #include <hpx/config.hpp>
 #include <hpx/assert.hpp>
 #include <hpx/command_line_handling/command_line_handling.hpp>
-#include <hpx/debugging/backtrace.hpp>
 #include <hpx/execution_base/register_locks.hpp>
 #include <hpx/futures/futures_factory.hpp>
+#include <hpx/modules/debugging.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/modules/format.hpp>
 #include <hpx/modules/logging.hpp>
@@ -50,15 +50,6 @@
 #include <system_error>
 #include <utility>
 #include <vector>
-
-#ifdef __APPLE__
-#include <crt_externs.h>
-#define environ (*_NSGetEnviron())
-#elif defined(__FreeBSD__)
-HPX_EXPORT char** freebsd_environ = nullptr;
-#elif !defined(HPX_WINDOWS)
-extern char** environ;
-#endif
 
 namespace hpx {
     char const* get_runtime_state_name(state st);
@@ -204,8 +195,8 @@ namespace hpx { namespace util {
 
         error_code ec(lightweight);
         threads::thread_id_type tid = p.apply("hpx::util::trace_on_new_stack",
-            launch::fork, threads::thread_priority_default,
-            threads::thread_stacksize_medium, threads::thread_schedule_hint(),
+            launch::fork, threads::thread_priority::default_,
+            threads::thread_stacksize::medium, threads::thread_schedule_hint(),
             ec);
         if (ec)
             return "<couldn't retrieve stack backtrace>";
@@ -231,6 +222,13 @@ namespace hpx { namespace detail {
 
     ///////////////////////////////////////////////////////////////////////////
     // report an early or late exception and abort
+    void report_exception_and_continue(std::exception const& e)
+    {
+        pre_exception_handler();
+
+        std::cerr << e.what() << std::endl;
+    }
+
     void report_exception_and_continue(std::exception_ptr const& e)
     {
         pre_exception_handler();
@@ -243,6 +241,12 @@ namespace hpx { namespace detail {
         pre_exception_handler();
 
         std::cerr << diagnostic_information(e) << std::endl;
+    }
+
+    void report_exception_and_terminate(std::exception const& e)
+    {
+        report_exception_and_continue(e);
+        std::abort();
     }
 
     void report_exception_and_terminate(std::exception_ptr const& e)

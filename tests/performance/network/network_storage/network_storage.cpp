@@ -119,9 +119,6 @@
 #define DEBUG_LEVEL 0
 
 //----------------------------------------------------------------------------
-// if we have access to boost logging via the verbs aprcelport include this
-// #include "plugins/parcelport/verbs/rdmahelper/include/RdmaLogging.h"
-// otherwise use this
 #if DEBUG_LEVEL>0
 # define LOG_DEBUG_MSG(x) std::cout << "Network storage " << x << std::endl
 # define DEBUG_OUTPUT(level,x)   \
@@ -252,7 +249,7 @@ public:
   pointer address(reference value) const { return &value; }
   const_pointer address(const_reference value) const { return &value; }
 
-  pointer allocate(size_type n, void const* hint = nullptr)
+  pointer allocate(size_type n, void const* /* hint */ = nullptr)
   {
     HPX_TEST_EQ(n, size_);
     return static_cast<T*>(pointer_);
@@ -268,7 +265,7 @@ private:
   friend class hpx::serialization::access;
 
   template <typename Archive>
-  void load(Archive& ar, unsigned int const version)
+  void load(Archive& ar, unsigned int const)
   {
     std::size_t t = 0;
     ar >> size_ >> t;
@@ -276,7 +273,7 @@ private:
   }
 
   template <typename Archive>
-  void save(Archive& ar, unsigned int const version) const
+  void save(Archive& ar, unsigned int const) const
   {
     std::size_t t = reinterpret_cast<std::size_t>(pointer_);
     ar << size_ << t;
@@ -310,8 +307,8 @@ mutex_type keep_alive_mutex;
 alive_map  keep_alive_buffers;
 
 //
-void async_callback(const uint64_t index, std::error_code const& ec,
-    hpx::parcelset::parcel const& p)
+void async_callback(
+    const uint64_t index, std::error_code const&, hpx::parcelset::parcel const&)
 {
     scoped_lock lock(keep_alive_mutex);
     DEBUG_OUTPUT(7, "Async callback triggered for index " << index);
@@ -1087,6 +1084,10 @@ int main(int argc, char* argv[])
     };
 
     DEBUG_OUTPUT(3,"Calling hpx::init");
-    return hpx::init(desc_commandline, argc, argv, cfg);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+    init_args.cfg = cfg;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

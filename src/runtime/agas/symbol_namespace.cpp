@@ -8,8 +8,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/actions_base/component_action.hpp>
+#include <hpx/assert.hpp>
 #include <hpx/hashing/jenkins_hash.hpp>
 #include <hpx/lcos/base_lco_with_value.hpp>
 #include <hpx/modules/async_distributed.hpp>
@@ -18,6 +18,7 @@
 #include <hpx/runtime/agas/server/symbol_namespace.hpp>
 #include <hpx/runtime/agas/symbol_namespace.hpp>
 #include <hpx/runtime/components/component_factory.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <cstdint>
 #include <map>
@@ -138,6 +139,7 @@ namespace hpx { namespace agas
 
     hpx::future<bool> symbol_namespace::bind_async(std::string key, naming::gid_type gid)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         naming::id_type dest = symbol_namespace_locality(key);
         if (naming::get_locality_from_gid(dest.get_gid()) == hpx::get_locality())
         {
@@ -145,10 +147,17 @@ namespace hpx { namespace agas
         }
         server::symbol_namespace::bind_action action;
         return hpx::async(action, std::move(dest), std::move(key), std::move(gid));
+#else
+        HPX_UNUSED(key);
+        HPX_UNUSED(gid);
+        HPX_ASSERT(false);
+        return hpx::make_ready_future(true);
+#endif
     }
 
     bool symbol_namespace::bind(std::string key, naming::gid_type gid)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         naming::id_type dest = symbol_namespace_locality(key);
         if (naming::get_locality_from_gid(dest.get_gid()) == hpx::get_locality())
         {
@@ -156,6 +165,12 @@ namespace hpx { namespace agas
         }
         server::symbol_namespace::bind_action action;
         return action(std::move(dest), std::move(key), std::move(gid));
+#else
+        HPX_UNUSED(key);
+        HPX_UNUSED(gid);
+        HPX_ASSERT(false);
+        return true;
+#endif
     }
 
     hpx::future<naming::id_type> symbol_namespace::resolve_async(std::string key) const
@@ -172,8 +187,13 @@ namespace hpx { namespace agas
             return hpx::make_ready_future(
                 naming::id_type(raw_gid, naming::id_type::unmanaged));
         }
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         server::symbol_namespace::resolve_action action;
         return hpx::async(action, std::move(dest), std::move(key));
+#else
+        HPX_ASSERT(false);
+        return hpx::make_ready_future(naming::id_type{});
+#endif
     }
 
     naming::id_type symbol_namespace::resolve(std::string key) const
@@ -195,8 +215,13 @@ namespace hpx { namespace agas
             return hpx::make_ready_future(
                 naming::id_type(raw_gid, naming::id_type::unmanaged));
         }
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         server::symbol_namespace::unbind_action action;
         return hpx::async(action, std::move(dest), std::move(key));
+#else
+        HPX_ASSERT(false);
+        return hpx::make_ready_future(naming::id_type{});
+#endif
     }
 
     naming::id_type symbol_namespace::unbind(std::string key)
@@ -216,13 +241,19 @@ namespace hpx { namespace agas
             return hpx::make_ready_future(
                 server_->on_event(name, call_for_past_events, std::move(lco)));
         }
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         server::symbol_namespace::on_event_action action;
         return hpx::async(
             action, std::move(dest), name, call_for_past_events, std::move(lco));
+#else
+        return hpx::make_ready_future(true);
+#endif
     }
 }}
 
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
 typedef symbol_namespace::iterate_action iterate_action;
+#endif
 HPX_REGISTER_BROADCAST_ACTION_DECLARATION(iterate_action);
 HPX_REGISTER_BROADCAST_ACTION(iterate_action);
 
@@ -231,6 +262,7 @@ namespace hpx { namespace agas
     hpx::future<symbol_namespace::iterate_names_return_type>
         symbol_namespace::iterate_async(std::string const& pattern) const
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         using return_type = server::symbol_namespace::iterate_names_return_type;
 
         auto localities = hpx::find_all_localities();
@@ -268,6 +300,12 @@ namespace hpx { namespace agas
 
                 return result;
             });
+#else
+        HPX_UNUSED(pattern);
+        HPX_ASSERT(false);
+        return hpx::make_ready_future(
+            symbol_namespace::iterate_names_return_type{});
+#endif
     }
 
     symbol_namespace::iterate_names_return_type symbol_namespace::iterate(
@@ -295,4 +333,3 @@ namespace hpx { namespace agas
         server_->unregister_server_instance(ec);
     }
 }}
-#endif

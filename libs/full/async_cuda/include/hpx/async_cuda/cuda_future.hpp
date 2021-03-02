@@ -175,7 +175,7 @@ namespace hpx { namespace cuda { namespace experimental {
             // extreme care must be taken to not lock/block or take too long
             // in this callback
             static void CUDART_CB stream_callback(
-                cudaStream_t stream, cudaError_t error, void* user_data)
+                cudaStream_t, cudaError_t error, void* user_data)
             {
                 future_data* this_ = static_cast<future_data*>(user_data);
 
@@ -302,8 +302,9 @@ namespace hpx { namespace cuda { namespace experimental {
         HPX_EXPORT hpx::future<void> get_future_with_event(cudaStream_t);
 
         // -------------------------------------------------------------
-        void register_polling(hpx::threads::thread_pool_base& pool);
-        void unregister_polling(hpx::threads::thread_pool_base& pool);
+        HPX_EXPORT void register_polling(hpx::threads::thread_pool_base& pool);
+        HPX_EXPORT void unregister_polling(
+            hpx::threads::thread_pool_base& pool);
 
         // -------------------------------------------------------------
     }    // namespace detail

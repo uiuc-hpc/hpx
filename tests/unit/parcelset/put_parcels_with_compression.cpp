@@ -37,7 +37,7 @@ generate_parcel(hpx::id_type const& dest_id, hpx::id_type const& cont, T && data
     hpx::parcelset::parcel p(hpx::parcelset::detail::create_parcel::call(
         std::move(dest), std::move(addr),
         hpx::actions::typed_continuation<hpx::id_type>(cont),
-        Action(), hpx::threads::thread_priority_normal,
+        Action(), hpx::threads::thread_priority::normal,
         std::forward<T>(data));
 
     p.set_source_id(hpx::find_here());
@@ -318,7 +318,10 @@ int main(int argc, char* argv[])
         ;
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(hpx::init(desc_commandline, argc, argv), 0,
+    hpx::init_params init_args;
+    init_args.desc_cmdline = desc_commandline;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
         "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();

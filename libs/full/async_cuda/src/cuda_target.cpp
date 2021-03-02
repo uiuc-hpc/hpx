@@ -14,7 +14,7 @@
 #include <hpx/runtime_fwd.hpp>
 #include <hpx/threading_base/thread_helpers.hpp>
 
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
 #include <hpx/naming_base/id_type.hpp>
 #include <hpx/runtime/find_here.hpp>
 #if !defined(HPX_COMPUTE_DEVICE_CODE)
@@ -179,7 +179,7 @@ namespace hpx { namespace cuda { namespace experimental {
     ///////////////////////////////////////////////////////////////////////////
     void target::synchronize() const
     {
-#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
+#if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
         // FIXME: implement remote targets
         HPX_ASSERT(hpx::find_here() == locality_);
 #endif
@@ -220,14 +220,13 @@ namespace hpx { namespace cuda { namespace experimental {
 
 #if defined(HPX_HAVE_DISTRIBUTED_RUNTIME) && !defined(HPX_COMPUTE_DEVICE_CODE)
     ///////////////////////////////////////////////////////////////////////////
-    void target::serialize(
-        serialization::input_archive& ar, const unsigned int version)
+    void target::serialize(serialization::input_archive& ar, const unsigned int)
     {
         ar >> handle_.device_ >> locality_;
     }
 
     void target::serialize(
-        serialization::output_archive& ar, const unsigned int version)
+        serialization::output_archive& ar, const unsigned int)
     {
         ar << handle_.device_ << locality_;
     }

@@ -16,7 +16,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 
 #if defined(HPX_HAVE_PARCELPORT_TCP)
 
@@ -153,7 +152,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace tcp
         /// message header.
         template <typename Handler>
         void handle_read_header(std::error_code const& e,
-            std::size_t bytes_transferred, Handler handler)
+            std::size_t /* bytes_transferred */, Handler handler)
         {
             HPX_ASSERT(operation_in_flight_ == 0);
             if (e) {
@@ -385,4 +384,4 @@ namespace hpx { namespace parcelset { namespace policies { namespace tcp
 }}}}
 
 #endif
-#endif
+

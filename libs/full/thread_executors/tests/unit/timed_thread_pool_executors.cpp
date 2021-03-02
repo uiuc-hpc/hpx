@@ -64,7 +64,7 @@ void test_timed_thread_pool_executor(Executor& exec)
     test_timed_apply(exec);
 }
 
-int hpx_main(int argc, char* argv[])
+int hpx_main()
 {
     std::size_t num_threads = hpx::get_os_thread_count();
 
@@ -98,8 +98,11 @@ int main(int argc, char* argv[])
     std::vector<std::string> const cfg = {"hpx.os_threads=all"};
 
     // Initialize and run HPX
-    HPX_TEST_EQ_MSG(
-        hpx::init(argc, argv, cfg), 0, "HPX main exited with non-zero status");
+    hpx::init_params init_args;
+    init_args.cfg = cfg;
+
+    HPX_TEST_EQ_MSG(hpx::init(argc, argv, init_args), 0,
+        "HPX main exited with non-zero status");
 
     return hpx::util::report_errors();
 }

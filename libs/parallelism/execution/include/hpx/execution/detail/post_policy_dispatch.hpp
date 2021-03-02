@@ -47,7 +47,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
             threads::thread_init_data data(
                 threads::make_thread_function_nullary(hpx::util::deferred_call(
                     std::forward<F>(f), std::forward<Ts>(ts)...)),
-                desc, priority, hint, stacksize, threads::pending);
+                desc, priority, hint, stacksize,
+                threads::thread_schedule_state::pending);
             threads::register_work(data, pool);
         }
 
@@ -73,7 +74,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
             threads::thread_init_data data(
                 threads::make_thread_function_nullary(hpx::util::deferred_call(
                     std::forward<F>(f), std::forward<Ts>(ts)...)),
-                desc, priority, hint, stacksize, threads::pending);
+                desc, priority, hint, stacksize,
+                threads::thread_schedule_state::pending);
             threads::register_work(data);
         }
 
@@ -97,7 +99,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
                 threads::make_thread_function_nullary(hpx::util::deferred_call(
                     std::forward<F>(f), std::forward<Ts>(ts)...)),
                 desc, policy.priority(), threads::thread_schedule_hint(),
-                threads::thread_stacksize_default, threads::pending);
+                threads::thread_stacksize::default_,
+                threads::thread_schedule_state::pending);
             threads::register_work(data);
         }
     };
@@ -118,7 +121,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
                 desc, priority,
                 threads::thread_schedule_hint(
                     static_cast<std::int16_t>(get_worker_thread_num())),
-                stacksize, threads::pending_do_not_schedule, true);
+                stacksize,
+                threads::thread_schedule_state::pending_do_not_schedule, true);
             threads::thread_id_type tid = threads::register_thread(data, pool);
             threads::thread_id_type tid_self = threads::get_self_id();
 
@@ -129,7 +133,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
             {
                 // yield_to(tid)
                 hpx::this_thread::suspend(
-                    threads::pending, tid, "post_policy_dispatch(suspend)");
+                    threads::thread_schedule_state::pending, tid,
+                    "post_policy_dispatch(suspend)");
             }
         }
 
@@ -150,8 +155,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
             hpx::util::thread_description const& desc, F&& f, Ts&&... ts)
         {
             call(policy, desc, threads::detail::get_self_or_default_pool(),
-                threads::thread_priority_default,
-                threads::thread_stacksize_default,
+                threads::thread_priority::default_,
+                threads::thread_stacksize::default_,
                 threads::thread_schedule_hint{}, std::forward<F>(f),
                 std::forward<Ts>(ts)...);
         }
@@ -162,9 +167,10 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
     {
         template <typename F, typename... Ts>
         static void call(launch::sync_policy const&,
-            hpx::util::thread_description const& desc,
-            threads::thread_pool_base* pool, threads::thread_priority priority,
-            threads::thread_stacksize stacksize,
+            hpx::util::thread_description const& /* desc */,
+            threads::thread_pool_base* /* pool */,
+            threads::thread_priority /* priority */,
+            threads::thread_stacksize /* stacksize */,
             threads::thread_schedule_hint /*hint*/, F&& f, Ts&&... ts)
         {
             using result_type =
@@ -177,11 +183,11 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
         }
 
         template <typename F, typename... Ts>
-        static void call(launch::sync_policy const& policy,
-            hpx::util::thread_description const& desc,
-            threads::thread_priority priority,
-            threads::thread_stacksize stacksize,
-            threads::thread_schedule_hint hint, F&& f, Ts&&... ts)
+        static void call(launch::sync_policy const& /* policy */,
+            hpx::util::thread_description const& /* desc */,
+            threads::thread_priority /* priority */,
+            threads::thread_stacksize /* stacksize */,
+            threads::thread_schedule_hint /* hint */, F&& f, Ts&&... ts)
         {
             using result_type =
                 typename hpx::util::detail::invoke_deferred_result<F,
@@ -193,8 +199,8 @@ namespace hpx { namespace parallel { namespace execution { namespace detail {
         }
 
         template <typename F, typename... Ts>
-        static void call(launch::sync_policy const& policy,
-            hpx::util::thread_description const& desc, F&& f, Ts&&... ts)
+        static void call(launch::sync_policy const& /* policy */,
+            hpx::util::thread_description const& /* desc */, F&& f, Ts&&... ts)
         {
             using result_type =
                 typename hpx::util::detail::invoke_deferred_result<F,

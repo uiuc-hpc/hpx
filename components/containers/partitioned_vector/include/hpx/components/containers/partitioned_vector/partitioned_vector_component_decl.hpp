@@ -16,8 +16,6 @@
 /// asynchronous API which return the futures.
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
-#include <hpx/actions/base_action.hpp>
 #include <hpx/actions/transfer_action.hpp>
 #include <hpx/actions/transfer_continuation_action.hpp>
 #include <hpx/actions_base/component_action.hpp>
@@ -337,11 +335,7 @@ namespace hpx
             > base_type;
 
     public:
-#if defined(HPX_CLANG_VERSION) && HPX_CLANG_VERSION < 60000
-        partitioned_vector_partition() {};
-#else
         partitioned_vector_partition() = default;
-#endif
 
         explicit partitioned_vector_partition(id_type const& gid);
 
@@ -587,4 +581,4 @@ namespace hpx
 }
 
 #include <hpx/config/warnings_suffix.hpp>
-#endif
+

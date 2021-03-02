@@ -8,7 +8,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/runtime/components/default_distribution_policy.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
 
@@ -114,7 +113,7 @@ namespace hpx
         friend class hpx::serialization::access;
 
         template <typename Archive>
-        void serialize(Archive & ar, const unsigned int version)
+        void serialize(Archive& ar, const unsigned int /* version */)
         {
             ar & localities_ & num_partitions_;
         }
@@ -161,4 +160,4 @@ namespace hpx
         };
     }
 }
-#endif
+

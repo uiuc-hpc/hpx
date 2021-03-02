@@ -113,7 +113,7 @@ namespace hpx { namespace compute { namespace host {
 
         // The number of elements along dimension x=0,y=1,z=2,...
         // This function is only required for debug purposes
-        virtual std::size_t array_size(std::size_t axis) const
+        virtual std::size_t array_size(std::size_t /* axis */) const
         {
             return memory_bytes() / sizeof(T);
         };
@@ -122,14 +122,14 @@ namespace hpx { namespace compute { namespace host {
         // how large a step should be taken in units of elements.
         // This should include padding along an axis
         // This function is only required for debug purposes
-        virtual std::size_t memory_step(std::size_t axis) const
+        virtual std::size_t memory_step(std::size_t /* axis */) const
         {
             return 1;
         };
 
         // When displaying the data, what step size should be used
         // This function is only required for debug purposes
-        virtual std::size_t display_step(std::size_t axis) const
+        virtual std::size_t display_step(std::size_t /* axis */) const
         {
             return 1;
         };
@@ -445,7 +445,7 @@ namespace hpx { namespace compute { namespace host {
             // to remain on the right queue and be executed on the right domain.
             guided_pool_executor<allocator_hint_type> numa_executor(
                 &hpx::resource::get_thread_pool(binding_helper_->pool_name()),
-                threads::thread_priority_bound);
+                threads::thread_priority::bound);
 
             nba_deb.debug("Launching First-Touch tasks");
             // for each numa domain, we must launch a task to 'touch' the memory

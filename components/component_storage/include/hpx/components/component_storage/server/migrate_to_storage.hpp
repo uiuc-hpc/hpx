@@ -7,11 +7,12 @@
 #pragma once
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
+#include <hpx/assert.hpp>
 #include <hpx/functional/bind_back.hpp>
 #include <hpx/modules/errors.hpp>
 #include <hpx/naming_base/address.hpp>
 #include <hpx/naming_base/id_type.hpp>
+#include <hpx/type_support/unused.hpp>
 
 #include <hpx/components/component_storage/export_definitions.hpp>
 #include <hpx/components/component_storage/server/component_storage.hpp>
@@ -61,9 +62,8 @@ namespace hpx { namespace components { namespace server
         // clean up (source) memory of migrated object
         template <typename Component>
         naming::id_type migrate_to_storage_here_cleanup(
-            future<naming::id_type> f,
-            std::shared_ptr<Component> ptr,
-            naming::id_type const& to_migrate)
+            future<naming::id_type> f, std::shared_ptr<Component> ptr,
+            naming::id_type const& /* to_migrate */)
         {
             ptr->mark_as_migrated();
             return f.get();
@@ -76,6 +76,7 @@ namespace hpx { namespace components { namespace server
             naming::id_type const& to_migrate,
             naming::id_type const& target_storage)
         {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
             using components::stubs::runtime_support;
 
             std::uint32_t pin_count = ptr->pin_count();
@@ -120,6 +121,13 @@ namespace hpx { namespace components { namespace server
                 .then(util::bind_back(
                     &migrate_to_storage_here_cleanup<Component>,
                     ptr, to_migrate));
+#else
+            HPX_ASSERT(false);
+            HPX_UNUSED(ptr);
+            HPX_UNUSED(to_migrate);
+            HPX_UNUSED(target_storage);
+            return hpx::make_ready_future(naming::id_type{});
+#endif
         }
     }
 
@@ -167,6 +175,7 @@ namespace hpx { namespace components { namespace server
         naming::id_type const& to_migrate,
         naming::id_type const& target_storage)
     {
+#if !defined(HPX_COMPUTE_DEVICE_CODE)
         if (!traits::component_supports_migration<Component>::call())
         {
             HPX_THROW_EXCEPTION(invalid_status,
@@ -200,6 +209,12 @@ namespace hpx { namespace components { namespace server
                     agas::end_migration(to_migrate);
                     return f.get();
                 });
+#else
+        HPX_ASSERT(false);
+        HPX_UNUSED(to_migrate);
+        HPX_UNUSED(target_storage);
+        return hpx::make_ready_future(naming::id_type{});
+#endif
     }
 
     template <typename Component>
@@ -213,4 +228,4 @@ namespace hpx { namespace components { namespace server
 }}}
 
 
-#endif
+

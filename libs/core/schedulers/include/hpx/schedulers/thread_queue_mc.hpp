@@ -122,7 +122,7 @@ namespace hpx { namespace threads { namespace policies {
                     debug::threadinfo<threads::thread_id_type*>(&tid));
 
                 // insert the thread into work-items queue if in pending state
-                if (data.initial_state == pending)
+                if (data.initial_state == thread_schedule_state::pending)
                 {
                     // pushing the new thread into the pending queue of the
                     // specified thread_queue
@@ -177,9 +177,9 @@ namespace hpx { namespace threads { namespace policies {
         // ----------------------------------------------------------------
         // This returns the current length of the staged queue
         std::int64_t get_queue_length_staged(
-            std::memory_order order = std::memory_order_seq_cst) const
+            std::memory_order order = std::memory_order_relaxed) const
         {
-            return new_tasks_count_.data_.load(std::memory_order_relaxed);
+            return new_tasks_count_.data_.load(order);
         }
 
         // ----------------------------------------------------------------
@@ -200,12 +200,12 @@ namespace hpx { namespace threads { namespace policies {
             if (id)
                 *id = invalid_thread_id;
 
-            if (data.stacksize == threads::thread_stacksize_current)
+            if (data.stacksize == threads::thread_stacksize::current)
             {
                 data.stacksize = get_self_stacksize_enum();
             }
 
-            HPX_ASSERT(data.stacksize != threads::thread_stacksize_current);
+            HPX_ASSERT(data.stacksize != threads::thread_stacksize::current);
 
             if (data.run_now)
             {
@@ -214,7 +214,7 @@ namespace hpx { namespace threads { namespace policies {
                 holder_->add_to_thread_map(tid);
 
                 // push the new thread in the pending queue thread
-                if (data.initial_state == pending)
+                if (data.initial_state == thread_schedule_state::pending)
                     schedule_work(get_thread_id_data(tid), false);
 
                 // return the thread_id of the newly created thread
@@ -283,9 +283,12 @@ namespace hpx { namespace threads { namespace policies {
         }
 
         ///////////////////////////////////////////////////////////////////////
-        void on_start_thread(std::size_t num_thread) {}
-        void on_stop_thread(std::size_t num_thread) {}
-        void on_error(std::size_t num_thread, std::exception_ptr const& e) {}
+        void on_start_thread(std::size_t /* num_thread */) {}
+        void on_stop_thread(std::size_t /* num_thread */) {}
+        void on_error(
+            std::size_t /* num_thread */, std::exception_ptr const& /* e */)
+        {
+        }
 
         // pops all tasks off the queue, prints info and pushes them back on
         // just because we can't iterate over the queue/stack in general

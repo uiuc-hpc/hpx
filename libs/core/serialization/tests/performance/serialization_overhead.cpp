@@ -9,14 +9,13 @@
 #include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
 
+#include <hpx/config/endian.hpp>
 #include <hpx/iostream.hpp>
 #include <hpx/modules/format.hpp>
 #include <hpx/modules/serialization.hpp>
 #include <hpx/modules/testing.hpp>
 #include <hpx/serialization/detail/preprocess_container.hpp>
 #include <hpx/util/from_string.hpp>
-
-#include <boost/predef/other/endian.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -29,7 +28,7 @@
 #include <vector>
 
 // This function will never be called
-int test_function(hpx::serialization::serialize_buffer<double> const& b)
+int test_function(hpx::serialization::serialize_buffer<double> const&)
 {
     return 42;
 }
@@ -56,13 +55,8 @@ double benchmark_serialization(std::size_t data_size, std::size_t iterations,
         reinterpret_cast<std::uint64_t>(&test_function));
 
     // compose archive flags
-#if BOOST_ENDIAN_BIG_BYTE
-    std::string endian_out =
-        hpx::get_config_entry("hpx.parcel.endian_out", "big");
-#else
-    std::string endian_out =
-        hpx::get_config_entry("hpx.parcel.endian_out", "little");
-#endif
+    std::string endian_out = hpx::get_config_entry("hpx.parcel.endian_out",
+        hpx::endian::native == hpx::endian::big ? "big" : "little");
 
     unsigned int out_archive_flags = 0U;
     if (endian_out == "little")
@@ -108,14 +102,14 @@ double benchmark_serialization(std::size_t data_size, std::size_t iterations,
         outp = hpx::parcelset::parcel(
             hpx::parcelset::detail::create_parcel::call(std::move(dest),
                 std::move(addr), hpx::actions::typed_continuation<int>(here),
-                test_action(), hpx::threads::thread_priority_normal, buffer));
+                test_action(), hpx::threads::thread_priority::normal, buffer));
     }
     else
     {
         outp =
             hpx::parcelset::parcel(hpx::parcelset::detail::create_parcel::call(
                 std::move(dest), std::move(addr), test_action(),
-                hpx::threads::thread_priority_normal, buffer));
+                hpx::threads::thread_priority::normal, buffer));
     }
 
     outp.set_source_id(here);
@@ -222,6 +216,9 @@ int main(int argc, char* argv[])
         ;
     // clang-format on
 
-    return hpx::init(cmdline, argc, argv);
+    hpx::init_params init_args;
+    init_args.desc_cmdline = cmdline;
+
+    return hpx::init(argc, argv, init_args);
 }
 #endif

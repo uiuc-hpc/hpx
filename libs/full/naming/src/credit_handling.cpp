@@ -6,7 +6,6 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/assert.hpp>
 #include <hpx/async_base/launch_policy.hpp>
 #include <hpx/functional/bind.hpp>
@@ -113,7 +112,7 @@ namespace hpx { namespace naming {
     ///////////////////////////////////////////////////////////////////////////
     namespace detail {
 
-        void decrement_refcnt(gid_type* p)
+        void decrement_refcnt(id_type_impl* p)
         {
             // do nothing if it's too late in the game
             if (!get_runtime_ptr())
@@ -149,7 +148,7 @@ namespace hpx { namespace naming {
                 catch (hpx::exception const& e)
                 {
                     LTM_(error) << "Unhandled exception while executing "
-                                   "decrement_refcnt:"
+                                   "decrement_refcnt: "
                                 << e.what();
                 }
             }
@@ -622,4 +621,3 @@ namespace hpx { namespace naming {
         ar >> id.impl();
     }
 }}    // namespace hpx::naming
-#endif

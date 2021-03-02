@@ -4,8 +4,6 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <hpx/config.hpp>
-#if !defined(HPX_COMPUTE_DEVICE_CODE)
 #include <hpx/hpx_main.hpp>
 #include <hpx/iostream.hpp>
 #include <hpx/include/lcos.hpp>
@@ -38,8 +36,7 @@ int main()
 
     // Enumerate all suspended threads
     hpx::threads::enumerate_threads(
-        [](hpx::threads::thread_id_type id) -> bool
-        {
+        [](hpx::threads::thread_id_type id) -> bool {
             hpx::cout
                 << "thread "
                 << hpx::thread::id(id) << " is "
@@ -48,7 +45,7 @@ int main()
                 << std::endl;
             return true;        // always continue enumeration
         },
-        hpx::threads::suspended);
+        hpx::threads::thread_schedule_state::suspended);
 
     // Wait for all threads to reach this point.
     l.count_down_and_wait();
@@ -57,6 +54,3 @@ int main()
 
     return 0;
 }
-
-
-#endif
