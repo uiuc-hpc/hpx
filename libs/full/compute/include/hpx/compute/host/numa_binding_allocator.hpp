@@ -33,6 +33,8 @@
 #define NUMA_ALLOCATOR_LINUX
 #endif
 
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+
 // Can be used to enable debugging of the allocator page mapping
 //#define NUMA_BINDING_ALLOCATOR_INIT_MEMORY
 
