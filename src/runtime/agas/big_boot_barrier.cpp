@@ -671,7 +671,7 @@ void big_boot_barrier::add_locality_endpoints(std::uint32_t locality_id,
 ///////////////////////////////////////////////////////////////////////////////
 void big_boot_barrier::spin()
 {
-    DEBUG("Spin: Attempting MPI broadcast and gather");
+    /*DEBUG("Spin: Attempting MPI broadcast and gather");
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     int world_size;
@@ -688,7 +688,7 @@ void big_boot_barrier::spin()
         }
         free(results);
     }
-    DEBUG("spin: end of all to all comm test");
+    DEBUG("spin: end of all to all comm test");*/
 
     DEBUG("spin 1");
     std::unique_lock<std::mutex> lock(mtx);
