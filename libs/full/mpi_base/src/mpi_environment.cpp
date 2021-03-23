@@ -17,6 +17,8 @@
 #include <cstdlib>
 #include <string>
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+	
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace util {
 
@@ -94,6 +96,13 @@ namespace hpx { namespace util {
     int mpi_environment::init(
         int*, char***, const int required, const int minimal, int& provided)
     {
+
+#ifdef HPX_USE_LCI
+		DEBUG("LCI is enabled.");
+#else
+		DEBUG("No LCI");
+#endif
+
         has_called_init_ = false;
 
         // Check if MPI_Init has been called previously

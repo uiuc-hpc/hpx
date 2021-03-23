@@ -1212,6 +1212,11 @@ if(HPX_WITH_NETWORKING)
     hpx_add_config_define(HPX_HAVE_PARCELPORT_MPI)
   endif()
 
+  hpx_option(
+    HPX_USE_LCI BOOL "Enable LCI alongside MPI." OFF
+    CATEGORY "Parcelport" # TODO: make sure this doesn't turn MPI off
+  )
+
   # we have to decide here whether we want to have MPI futures
   hpx_option(
     HPX_WITH_ASYNC_MPI
