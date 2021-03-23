@@ -18,7 +18,10 @@
 #endif
 
 #include <mpi.h>
+
+#ifdef HPX_USE_LCI
 #include "lci.h"
+#endif
 
 #if defined(__clang__)
 #pragma clang diagnostic pop
