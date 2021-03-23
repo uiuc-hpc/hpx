@@ -1216,6 +1216,9 @@ if(HPX_WITH_NETWORKING)
     HPX_USE_LCI BOOL "Enable LCI alongside MPI." OFF
     CATEGORY "Parcelport" # TODO: make sure this doesn't turn MPI off
   )
+  if(HPX_USE_LCI)
+    hpx_add_config_define(HPX_USE_LCI)
+  endif()
 
   # we have to decide here whether we want to have MPI futures
   hpx_option(
