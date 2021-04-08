@@ -26,6 +26,10 @@
 #include <utility>
 #include <vector>
 
+//#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+#define DEBUG(...)
+//#undef HPX_USE_LCI
+
 namespace hpx { namespace parcelset { namespace policies { namespace mpi
 {
     struct sender;
@@ -192,6 +196,54 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return send_data();
         }
 
+#ifdef HPX_USE_LCI
+        bool is_comm_world(MPI_Comm comm) {
+            int result, error;
+            error = MPI_Comm_compare(comm, MPI_COMM_WORLD, &result);
+            return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
+        }
+
+        bool send_data()
+        {
+            HPX_ASSERT(state_ == sent_transmission_chunks);
+            if(!request_done()) return false;
+
+            if(!header_.piggy_back()) {
+                DEBUG("Rank %d: Starting send_data()", LCI_RANK);
+                util::mpi_environment::scoped_lock l;
+                int dst_index = dst_;
+                if (!is_comm_world(util::mpi_environment::communicator())) {
+                    MPI_Group g0, g1;
+                    MPI_Comm_group(MPI_COMM_WORLD, &g0);
+                    MPI_Comm_group(util::mpi_environment::communicator(), &g1);
+                    MPI_Group_translate_ranks(g1, 1, &dst_, g0, &dst_index);
+                }
+                if (static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
+                    DEBUG("Buffered message from rank %d: Data size = %d, dst_index = %d, tag_ = %d", LCI_RANK, static_cast<int>(buffer_.data_.size()), dst_index, tag_);
+                    while(LCI_sendbc(
+                                buffer_.data_.data(),
+                                static_cast<int>(buffer_.data_.size()),
+                                dst_index,
+                                tag_,
+                                util::mpi_environment::lci_endpoint()) != LCI_OK
+                         ) {LCI_progress(0,1); }
+                } else { // direct send
+                    DEBUG("Direct message from rank %d: Data size = %d, dst_index = %d, tag_ = %d", LCI_RANK, static_cast<int>(buffer_.data_.size()), dst_index, tag_);
+                    while(LCI_sendd(
+                                buffer_.data_.data(),
+                                static_cast<int>(buffer_.data_.size()),
+                                dst_index,
+                                tag_,
+                                util::mpi_environment::lci_endpoint(),
+                                &sync_) != LCI_OK
+                         ){ LCI_progress(0,1); }
+                    request_ptr_ = &sync_;
+                }
+            }
+            state_ = sent_data;
+            return send_chunks();
+        }
+#else
         bool send_data()
         {
             HPX_ASSERT(state_ == sent_transmission_chunks);
@@ -215,6 +267,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
             return send_chunks();
         }
+#endif
 
         bool send_chunks()
         {
@@ -267,6 +320,35 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return true;
         }
 
+#ifdef HPX_USE_LCI
+    bool request_done() {
+        if(request_ptr_ == nullptr) return true;
+
+        util::mpi_environment::scoped_try_lock l;
+        if(!l.locked) return false;
+
+        if(request_ptr_ == &sync_) {
+            if(LCI_one2one_test_empty(&sync_)) {
+                LCI_progress(0,1);
+                return false;
+            }
+            LCI_one2one_set_empty(&sync_);
+            request_ptr_ = nullptr;
+            return true;
+        }
+
+        int completed = 0;
+        int ret = 0;
+        ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
+        HPX_ASSERT(ret == MPI_SUCCESS);
+        if(completed) {
+            request_ptr_ = nullptr;
+            return true;
+        }
+        return false;
+    }
+#else
+
         bool request_done()
         {
             if(request_ptr_ == nullptr) return true;
@@ -286,6 +368,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             return false;
         }
+#endif
 
         connection_state state_;
         sender_type * sender_;
@@ -307,13 +390,19 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         header header_;
 
         MPI_Request request_;
+#ifdef HPX_USE_LCI
+        void *request_ptr_;
+        LCI_syncl_t sync_;
+#else
         MPI_Request *request_ptr_;
+#endif
         std::size_t chunks_idx_;
         char ack_;
 
         parcelset::parcelport* pp_;
 
         parcelset::locality there_;
+
     };
 }}}}
 

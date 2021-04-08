@@ -22,6 +22,8 @@
 
 #include <mpi.h>
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+
 namespace hpx { namespace mpi { namespace experimental {
     namespace detail {
 
