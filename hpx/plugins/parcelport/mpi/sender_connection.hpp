@@ -225,9 +225,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 static_cast<int>(buffer_.data_.size()),
                                 dst_index,
                                 tag_,
-                                util::mpi_environment::lci_endpoint()) != LCI_OK
-                         ) {LCI_progress(0,1); }
+                                util::mpi_environment::lci_endpoint()
+                          ) != LCI_OK ) {LCI_progress(0,1); }
                 } else { // direct send
+                    LCI_one2one_set_empty(&sync_);
                     DEBUG("Direct message from rank %d: Data size = %d, dst_index = %d, tag_ = %d", LCI_RANK, static_cast<int>(buffer_.data_.size()), dst_index, tag_);
                     while(LCI_sendd(
                                 buffer_.data_.data(),
@@ -235,8 +236,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 dst_index,
                                 tag_,
                                 util::mpi_environment::lci_endpoint(),
-                                &sync_) != LCI_OK
-                         ){ LCI_progress(0,1); }
+                                &sync_
+                          ) != LCI_OK ){ LCI_progress(0,1); }
                     request_ptr_ = &sync_;
                 }
             }
@@ -321,32 +322,27 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         }
 
 #ifdef HPX_USE_LCI
-    bool request_done() {
-        if(request_ptr_ == nullptr) return true;
+        bool request_done() {
+            if(request_ptr_ == nullptr) return true;
 
-        util::mpi_environment::scoped_try_lock l;
-        if(!l.locked) return false;
+            util::mpi_environment::scoped_try_lock l;
+            if(!l.locked) return false;
 
-        if(request_ptr_ == &sync_) {
-            if(LCI_one2one_test_empty(&sync_)) {
+            int completed = 0;
+            int ret = 0;
+            if(request_ptr_ == &sync_) {
                 LCI_progress(0,1);
-                return false;
+                completed = !LCI_one2one_test_empty(&sync_);
+            } else if (request_ptr_ == &request_) {
+                ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
+                HPX_ASSERT(ret == MPI_SUCCESS);
             }
-            LCI_one2one_set_empty(&sync_);
-            request_ptr_ = nullptr;
-            return true;
+            if(completed) {
+                request_ptr_ = nullptr;
+                return true;
+            }
+            return false;
         }
-
-        int completed = 0;
-        int ret = 0;
-        ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
-        HPX_ASSERT(ret == MPI_SUCCESS);
-        if(completed) {
-            request_ptr_ = nullptr;
-            return true;
-        }
-        return false;
-    }
 #else
 
         bool request_done()

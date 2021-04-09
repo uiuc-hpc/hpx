@@ -152,6 +152,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     MPI_Comm_group(util::mpi_environment::communicator(), &g1);
                     MPI_Group_translate_ranks(g1, 1, &src_, g0, &src_index);
                 }
+                LCI_one2one_set_empty(&sync_);
                 if (static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
                     DEBUG("receiving buffered data to %d from %d", LCI_RANK, src_index);
                     LCI_recvbc(
@@ -284,12 +285,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             int completed = 0;
             int ret = 0;
             if(request_ptr_ == &sync_) {
-                //DEBUG("Reciever checking LCI sync status");
                 LCI_progress(0,1);
                 completed = !LCI_one2one_test_empty(&sync_);
-                LCI_one2one_set_empty(&sync_);
             } else if (request_ptr_ == &request_) {
-                //DEBUG("Receiver checking MPI request status");
                 ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
