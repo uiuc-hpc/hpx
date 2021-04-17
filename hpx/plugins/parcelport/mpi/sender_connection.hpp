@@ -203,25 +203,28 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
         }
 
+        int get_dst_index() {
+            int index = dst_;
+            if (!is_comm_world(util::mpi_environment::communicator())) {
+                MPI_Group g0, g1;
+                MPI_Comm_group(MPI_COMM_WORLD, &g0);
+                MPI_Comm_group(util::mpi_environment::communicator(), &g1);
+                MPI_Group_translate_ranks(g1, 1, &dst_, g0, &index);
+            }
+            return index;
+
+        }
+
         bool send_data()
         {
             HPX_ASSERT(state_ == sent_transmission_chunks);
             if(!request_done()) return false;
 
             if(!header_.piggy_back()) {
-                //DEBUG("Rank %d: Starting send_data()", LCI_RANK);
                 util::mpi_environment::scoped_lock l;
-                int dst_index = dst_;
-                if (!is_comm_world(util::mpi_environment::communicator())) {
-                    MPI_Group g0, g1;
-                    MPI_Comm_group(MPI_COMM_WORLD, &g0);
-                    MPI_Comm_group(util::mpi_environment::communicator(), &g1);
-                    MPI_Group_translate_ranks(g1, 1, &dst_, g0, &dst_index);
-                }
+                int dst_index = get_dst_index();
                 if (false && static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
                     // Turned off using buffered messages because they fail when too many are sent in a row (need to debug in the future)
-                    //DEBUG("Buffered message from rank %d: Data size = %d, dst_index = %d, tag_ = %d", LCI_RANK, static_cast<int>(buffer_.data_.size()), dst_index, tag_);
-                    DEBUG("Sending buffered data from %d to %d with tag %d", LCI_RANK, dst_index, tag_);
                     while(LCI_sendbc(
                                 buffer_.data_.data(),
                                 static_cast<int>(buffer_.data_.size()),
@@ -229,10 +232,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 tag_,
                                 util::mpi_environment::lci_endpoint()
                           ) != LCI_OK ) {LCI_progress(0,1); }
-                    DEBUG("Rank %d sent to %d", LCI_RANK, dst_index);
                 } else { // direct send
                     LCI_one2one_set_empty(&sync_);
-                    //DEBUG("Direct message from rank %d: Data size = %d, dst_index = %d, tag_ = %d", LCI_RANK, static_cast<int>(buffer_.data_.size()), dst_index, tag_);
                     while(LCI_sendd(
                                 buffer_.data_.data(),
                                 static_cast<int>(buffer_.data_.size()),
@@ -243,11 +244,45 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                           ) != LCI_OK ){ LCI_progress(0,1); }
                     request_ptr_ = &sync_;
                 }
-                //DEBUG("Rank %d sent data to %d", LCI_RANK, dst_index);
             }
             state_ = sent_data;
             return send_chunks();
         }
+
+        bool send_chunks()
+        {
+            HPX_ASSERT(state_ == sent_data);
+
+            while(chunks_idx_ < buffer_.chunks_.size())
+            {
+                serialization::serialization_chunk& c = buffer_.chunks_[chunks_idx_];
+                if(c.type_ == serialization::chunk_type_pointer)
+                {
+                    if(!request_done()) return false;
+                    else
+                    {
+                        util::mpi_environment::scoped_lock l;
+                        LCI_one2one_set_empty(&sync_);
+                        while(LCI_sendd(
+                                const_cast<void *>(c.data_.cpos_),
+                                static_cast<int>(c.size_),
+                                get_dst_index(),
+                                tag_,
+                                util::mpi_environment::lci_endpoint(),
+                                &sync_
+                        ) != LCI_OK) { LCI_progress(0,1); }
+                        request_ptr_ = &sync_;
+                    }
+                 }
+
+                chunks_idx_++;
+            }
+
+            state_ = sent_chunks;
+
+            return done();
+        }
+
 #else
         bool send_data()
         {
@@ -272,11 +307,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
             return send_chunks();
         }
-#endif
 
         bool send_chunks()
         {
-            //DEBUG("Just checking if print out at beginning of send_chunks() changes behavior");
             HPX_ASSERT(state_ == sent_data);
 
             while(chunks_idx_ < buffer_.chunks_.size())
@@ -287,7 +320,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     if(!request_done()) return false;
                     else
                     {
-                        //DEBUG("Just checking if print out at beginning of send_chunks() changes behavior");
                         util::mpi_environment::scoped_lock l;
                         MPI_Isend(
                             const_cast<void *>(c.data_.cpos_)
@@ -307,14 +339,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
             state_ = sent_chunks;
 
-            //DEBUG("Rank %d sent chunks to %d", LCI_RANK, dst_);
             return done();
         }
+#endif
 
         bool done()
         {
             if(!request_done()) return false;
-            DEBUG("Starting send done()");
 
             error_code ec;
             handler_(ec);
