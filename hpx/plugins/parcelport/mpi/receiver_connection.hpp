@@ -21,8 +21,8 @@
 #include <utility>
 #include <vector>
 
-//#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-#define DEBUG(...)
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+//#define DEBUG(...)
 
 namespace hpx { namespace parcelset { namespace policies { namespace mpi
 {
@@ -143,8 +143,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 std::memcpy(&buffer_.data_[0], piggy_back, buffer_.data_.size());
             } else {
                 util::mpi_environment::scoped_lock l;
-                DEBUG("Rank %d: starting receive_data()", LCI_RANK);
-                if(request_ptr_ != nullptr) { DEBUG("Rank %d: request_ptr != nullptr", LCI_RANK); }
+                //DEBUG("Rank %d: starting receive_data()", LCI_RANK);
+                if(request_ptr_ != nullptr) { } //DEBUG("Rank %d: request_ptr != nullptr", LCI_RANK); }
                 int src_index = src_;
                 if (!is_comm_world(util::mpi_environment::communicator())) {
                     MPI_Group g0, g1;
@@ -153,8 +153,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     MPI_Group_translate_ranks(g1, 1, &src_, g0, &src_index);
                 }
                 LCI_one2one_set_empty(&sync_);
-                if (static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
-                    DEBUG("receiving buffered data to %d from %d", LCI_RANK, src_index);
+                if (false && static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
+                    // Turned off using buffered messages because they fail when too many are sent in a row (need to debug in the future)
+                    //DEBUG("receiving buffered data to %d from %d", LCI_RANK, src_index);
+                    DEBUG("Receiving buffered data to %d from %d with tag %d", LCI_RANK, src_index, tag_);
                     LCI_recvbc(
                             buffer_.data_.data(),
                             static_cast<int>(buffer_.data_.size()),
@@ -163,6 +165,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                             util::mpi_environment::lci_endpoint(),
                             &sync_
                     );
+                    //DEBUG("Rank %d received from %d", LCI_RANK, src_index);
                 } else {
                     LCI_recvd(
                             buffer_.data_.data(),
@@ -174,9 +177,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     );
                 }
                 request_ptr_ = &sync_;
+                //DEBUG("Rank %d received from %d", LCI_RANK, src_index);
             }
             state_ = rcvd_data;
-
             return receive_chunks(num_thread);
         }
 #else
@@ -216,7 +219,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             {
                 if(!request_done()) return false;
 
-                DEBUG("Starting receive_chunks() - past checking for request_done()");
                 std::size_t idx = chunks_idx_++;
                 std::size_t chunk_size = buffer_.transmission_chunks_[idx].second;
 
@@ -245,6 +247,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         bool send_release_tag(std::size_t num_thread = -1)
         {
             if(!request_done()) return false;
+            DEBUG("Starting send_release_tag()");
 
             performance_counters::parcels::data_point& data = buffer_.data_point_;
             data.time_ = timer_.elapsed_nanoseconds() - data.time_;
@@ -292,6 +295,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
+                if(request_ptr_ == &sync_) {
+                    DEBUG("Rank %d received from %d", LCI_RANK, src_);
+                }
                 request_ptr_ = nullptr;
                 return true;
             }
