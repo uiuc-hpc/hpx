@@ -134,7 +134,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             error = MPI_Comm_compare(comm, MPI_COMM_WORLD, &result);
             return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
         }
-
+        
         int get_src_index() {
             int index = src_;
             if(!is_comm_world(util::mpi_environment::communicator())) {
@@ -145,7 +145,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             return index;
         }
+#endif
 
+#ifdef HPX_USE_LCI_
         bool receive_data(std::size_t num_thread = -1) {
             if(!request_done()) return false;
 
@@ -181,7 +183,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             state_ = rcvd_data;
             return receive_chunks(num_thread);
         }
-
+#endif
+#ifdef HPX_USE_LCI
         bool receive_chunks(std::size_t num_thread = -1)
         {
             while(chunks_idx_ < buffer_.chunks_.size())
@@ -196,7 +199,18 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 {
                     util::mpi_environment::scoped_lock l;
                     LCI_one2one_set_empty(&sync_);
+                    /*MPI_Irecv(
+                        c.data()
+                      , static_cast<int>(c.size())
+                      , MPI_BYTE
+                      , src_
+                      , tag_
+                      , util::mpi_environment::communicator()
+                      , &request_
+                    );*/
+
                     // May eventually want to use buffered communication here, but using direct because it is more similar to MPI
+                    DEBUG("Starting receive of receive_chunks()");
                     LCI_recvd(
                         c.data(),
                         static_cast<int>(c.size()),
@@ -206,6 +220,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                         &sync_
                     );
                     request_ptr_ = &sync_;
+                    //request_ptr_ = &request_;
                 }
             }
 
@@ -214,7 +229,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return send_release_tag(num_thread);
         }
 
-#else
+#endif
+#ifdef HPX_USE_LCI
         bool receive_data(std::size_t num_thread = -1)
         {
             if(!request_done()) return false;
@@ -244,6 +260,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return receive_chunks(num_thread);
         }
         
+#endif
+#ifdef HPX_USE_LCI_
         bool receive_chunks(std::size_t num_thread = -1)
         {
             while(chunks_idx_ < buffer_.chunks_.size())

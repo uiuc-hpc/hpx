@@ -215,6 +215,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
         }
 
+#endif
+#ifdef HPX_USE_LCI_
         bool send_data()
         {
             HPX_ASSERT(state_ == sent_transmission_chunks);
@@ -249,6 +251,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return send_chunks();
         }
 
+#endif
+#ifdef HPX_USE_LCI
         bool send_chunks()
         {
             HPX_ASSERT(state_ == sent_data);
@@ -263,6 +267,18 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     {
                         util::mpi_environment::scoped_lock l;
                         LCI_one2one_set_empty(&sync_);
+                        // full
+                        /*MPI_Isend(
+                            const_cast<void *>(c.data_.cpos_)
+                          , static_cast<int>(c.size_)
+                          , MPI_BYTE
+                          , dst_
+                          , tag_
+                          , util::mpi_environment::communicator()
+                          , &request_
+                        );*/
+                        DEBUG("Starting send for send_chunks() on index %lu and tag %d, could use tag = %lu", chunks_idx_, tag_, tag_*100+chunks_idx_);
+                        int counter = 0;
                         while(LCI_sendd(
                                 const_cast<void *>(c.data_.cpos_),
                                 static_cast<int>(c.size_),
@@ -270,8 +286,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 tag_,
                                 util::mpi_environment::lci_endpoint(),
                                 &sync_
-                        ) != LCI_OK) { LCI_progress(0,1); }
+                        ) != LCI_OK) { LCI_progress(0,1); LCI_one2one_set_empty(&sync_); counter++; }
                         request_ptr_ = &sync_;
+                        //DEBUG("Counter = %d", counter);
+                        //request_ptr_ = &request_;
                     }
                  }
 
@@ -283,7 +301,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return done();
         }
 
-#else
+#endif
+#ifdef HPX_USE_LCI
         bool send_data()
         {
             HPX_ASSERT(state_ == sent_transmission_chunks);
@@ -307,6 +326,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
             return send_chunks();
         }
+#endif
+#ifdef HPX_USE_LCI_
 
         bool send_chunks()
         {
@@ -372,6 +393,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             if(request_ptr_ == &sync_) {
                 LCI_progress(0,1);
                 completed = !LCI_one2one_test_empty(&sync_);
+                LCI_one2one_set_empty(&sync_);
             } else if (request_ptr_ == &request_) {
                 ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
                 HPX_ASSERT(ret == MPI_SUCCESS);
