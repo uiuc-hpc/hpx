@@ -210,7 +210,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     );*/
 
                     // May eventually want to use buffered communication here, but using direct because it is more similar to MPI
-                    DEBUG("Starting receive of receive_chunks()");
+                    //DEBUG("Starting receive of receive_chunks()");
+                    DEBUG("Starting to receive chunk %lu with tag %d", chunks_idx_, tag_);
                     LCI_recvd(
                         c.data(),
                         static_cast<int>(c.size()),
@@ -275,6 +276,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 c.resize(chunk_size);
                 {
                     util::mpi_environment::scoped_lock l;
+                    DEBUG("Starting to receive chunk %lu with tag %d", chunks_idx_, tag_);
                     MPI_Irecv(
                         c.data()
                       , static_cast<int>(c.size())

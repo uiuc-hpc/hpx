@@ -342,6 +342,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     else
                     {
                         util::mpi_environment::scoped_lock l;
+                        DEBUG("Starting send for send_chunks() on index %lu and tag %d, could use tag = %lu", chunks_idx_, tag_, tag_*100+chunks_idx_);
                         MPI_Isend(
                             const_cast<void *>(c.data_.cpos_)
                           , static_cast<int>(c.size_)
@@ -355,6 +356,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     }
                  }
 
+                //DEBUG("Incrementing chunks_idx_ from %lu", chunks_idx_);
                 chunks_idx_++;
             }
 
@@ -399,6 +401,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
+                if(state_ == sent_chunks) {
+                    DEBUG("Completed communication of a chunk");
+                }
                 request_ptr_ = nullptr;
                 return true;
             }
