@@ -89,7 +89,50 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             return false;
         }
+#ifdef HPX_USE_LCI
+        bool receive_transmission_chunks(std::size_t num_thread = -1)
+        {
+            //DEBUG("Receiver: receiving transmission chunks, so there may be a new number of chunks");
+            // determine the size of the chunk buffer
+            std::size_t num_zero_copy_chunks =
+                static_cast<std::size_t>(
+                    static_cast<std::uint32_t>(buffer_.num_chunks_.first));
+            std::size_t num_non_zero_copy_chunks =
+                static_cast<std::size_t>(
+                    static_cast<std::uint32_t>(buffer_.num_chunks_.second));
+            buffer_.transmission_chunks_.resize(
+                num_zero_copy_chunks + num_non_zero_copy_chunks
+            );
+            if(num_zero_copy_chunks != 0)
+            {
+                DEBUG("Recever: number of chunks changing from %lu to %lu", buffer_.chunks_.size(), num_zero_copy_chunks);
+                buffer_.chunks_.resize(num_zero_copy_chunks);
+                {
+                    util::mpi_environment::scoped_lock l;
 
+                    // TODO: LCI recv
+                    LCI_one2one_set_empty(&sync_);
+                    // TODO: find out why this doesn't work
+                    LCI_recvd(
+                            buffer_.transmission_chunks_.data(),
+                            static_cast<int>(
+                                buffer_.transmission_chunks_.size()
+                                * sizeof(buffer_type::transmission_chunk_type)
+                            ),
+                            src_, // TODO: account for communicators
+                            tag_,
+                            util::mpi_environment::lci_endpoint(),
+                            &sync_
+                    );
+                    request_ptr_ = &sync_;
+                }
+            }
+
+            state_ = rcvd_transmission_chunks;
+
+            return receive_data(num_thread);
+        }
+#else
         bool receive_transmission_chunks(std::size_t num_thread = -1)
         {
             // determine the size of the chunk buffer
@@ -127,7 +170,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
             return receive_data(num_thread);
         }
-
+#endif
 #ifdef HPX_USE_LCI
         bool is_comm_world(MPI_Comm comm) {
             int result, error;
@@ -187,6 +230,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 #ifdef HPX_USE_LCI
         bool receive_chunks(std::size_t num_thread = -1)
         {
+            if(buffer_.chunks_.size() == 1 || true) {
             while(chunks_idx_ < buffer_.chunks_.size())
             {
                 if(!request_done()) return false;
@@ -211,12 +255,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
                     // May eventually want to use buffered communication here, but using direct because it is more similar to MPI
                     //DEBUG("Starting receive of receive_chunks()");
-                    DEBUG("Starting to receive chunk %lu with tag %d", chunks_idx_, tag_);
+                    DEBUG("Starting to receive chunk %lu with tag %d on thread %lu, using tag = %lu", chunks_idx_, tag_, num_thread, tag_*10+chunks_idx_);
                     LCI_recvd(
                         c.data(),
                         static_cast<int>(c.size()),
                         get_src_index(),
-                        tag_,
+                        //tag_,
+                        tag_*10+chunks_idx_, // TODO: do this in a way that won't cause problems with large numbers of chunks and many tags active
                         util::mpi_environment::lci_endpoint(),
                         &sync_
                     );
@@ -224,6 +269,31 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     //request_ptr_ = &request_;
                 }
             }
+            } else {
+            while(chunks_idx_ < buffer_.chunks_.size())
+            {
+                if(!request_done()) return false;
+
+                std::size_t idx = chunks_idx_++;
+                std::size_t chunk_size = buffer_.transmission_chunks_[idx].second;
+
+                data_type & c = buffer_.chunks_[idx];
+                c.resize(chunk_size);
+                {
+                    util::mpi_environment::scoped_lock l;
+                    DEBUG("Starting to receive chunk %lu with tag %d", chunks_idx_, tag_);
+                    MPI_Irecv(
+                        c.data()
+                      , static_cast<int>(c.size())
+                      , MPI_BYTE
+                      , src_
+                      , tag_
+                      , util::mpi_environment::communicator()
+                      , &request_
+                    );
+                    request_ptr_ = &request_;
+                }
+            } }
 
             state_ = rcvd_chunks;
 
@@ -346,6 +416,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
+                if(state_ == rcvd_data) {
+                    DEBUG("Received chunk with tag %d", tag_);
+                    LCI_PM_barrier();
+                    //lc_hash_dump(util::mpi_environment::lci_mt(), 1 << 16);
+
+                }
                 request_ptr_ = nullptr;
                 return true;
             }

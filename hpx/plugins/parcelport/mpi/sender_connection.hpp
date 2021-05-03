@@ -93,6 +93,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         template <typename Handler, typename ParcelPostprocess>
         void async_write(Handler && handler, ParcelPostprocess && parcel_postprocess)
         {
+            //DEBUG("Called async_write()");
             HPX_ASSERT(!handler_);
             HPX_ASSERT(!postprocess_handler_);
             HPX_ASSERT(!buffer_.data_.empty());
@@ -100,6 +101,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             request_ptr_ = nullptr;
             chunks_idx_ = 0;
             tag_ = acquire_tag(sender_);
+            DEBUG("async_write() tag = %d", tag_);
+            // TODO: find out if we need to change this tag because of LCI ordering
+            // NOTE: will this always give the same tag, or is there a way to get a new tag?
             header_ = header(buffer_, tag_);
             header_.assert_valid();
 
@@ -160,10 +164,45 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 request_ptr_ = &request_;
             }
 
+            DEBUG("Sender: header, number of chunks = %lu", buffer_.chunks_.size());
             state_ = sent_header;
             return send_transmission_chunks();
         }
+#ifdef HPX_USE_LCI
+        bool send_transmission_chunks()
+        {
+            HPX_ASSERT(state_ == sent_header);
+            HPX_ASSERT(request_ptr_ != nullptr);
+            if(!request_done()) return false;
 
+            HPX_ASSERT(request_ptr_ == nullptr);
+
+            std::vector<typename parcel_buffer_type::transmission_chunk_type>& chunks =
+                buffer_.transmission_chunks_;
+            if(!chunks.empty())
+            {
+                util::mpi_environment::scoped_lock l;
+                LCI_one2one_set_empty(&sync_);
+                // TODO: test that this change works
+                while(LCI_sendd(
+                            chunks.data(),
+                            static_cast<int>(
+                                chunks.size()
+                                 * sizeof(parcel_buffer_type::transmission_chunk_type)
+                            ),
+                            dst_, // TODO: account for other communicators
+                            tag_,
+                            util::mpi_environment::lci_endpoint(),
+                            &sync_
+                      ) != LCI_OK ){ LCI_progress(0,1); }
+
+                request_ptr_ = &sync_;
+            }
+
+            state_ = sent_transmission_chunks;
+            return send_data();
+        }
+#else
         bool send_transmission_chunks()
         {
             HPX_ASSERT(state_ == sent_header);
@@ -195,7 +234,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             state_ = sent_transmission_chunks;
             return send_data();
         }
-
+#endif
 #ifdef HPX_USE_LCI
         bool is_comm_world(MPI_Comm comm) {
             int result, error;
@@ -257,6 +296,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         {
             HPX_ASSERT(state_ == sent_data);
 
+            if(buffer_.chunks_.size() == 1 || true) {
             while(chunks_idx_ < buffer_.chunks_.size())
             {
                 serialization::serialization_chunk& c = buffer_.chunks_[chunks_idx_];
@@ -277,13 +317,15 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                           , util::mpi_environment::communicator()
                           , &request_
                         );*/
-                        DEBUG("Starting send for send_chunks() on index %lu and tag %d, could use tag = %lu", chunks_idx_, tag_, tag_*100+chunks_idx_);
+                        // TODO: find out why multiple messages can be sent with the same tag and same chunks_idx_ on the same thread. This doesn't appear to be a thread problem, though that may come in later. chunks_idx_ is being reset and then it is sending for the same index. 
+                        DEBUG("Starting send for send_chunks() on index %lu and tag %d, using tag = %lu", chunks_idx_, tag_, tag_*10+chunks_idx_);
                         int counter = 0;
                         while(LCI_sendd(
                                 const_cast<void *>(c.data_.cpos_),
                                 static_cast<int>(c.size_),
                                 get_dst_index(),
-                                tag_,
+                                //tag_,
+                                tag_*10+chunks_idx_, // TODO: modify the tag in a way that won't cause problems (this could have an issue)
                                 util::mpi_environment::lci_endpoint(),
                                 &sync_
                         ) != LCI_OK) { LCI_progress(0,1); LCI_one2one_set_empty(&sync_); counter++; }
@@ -295,6 +337,33 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 
                 chunks_idx_++;
             }
+            } else {
+            while(chunks_idx_ < buffer_.chunks_.size())
+            {
+                serialization::serialization_chunk& c = buffer_.chunks_[chunks_idx_];
+                if(c.type_ == serialization::chunk_type_pointer)
+                {
+                    if(!request_done()) return false;
+                    else
+                    {
+                        util::mpi_environment::scoped_lock l;
+                        DEBUG("Starting send for send_chunks() on index %lu and tag %d, could use tag = %lu", chunks_idx_, tag_, tag_*100+chunks_idx_);
+                        MPI_Isend(
+                            const_cast<void *>(c.data_.cpos_)
+                          , static_cast<int>(c.size_)
+                          , MPI_BYTE
+                          , dst_
+                          , tag_
+                          , util::mpi_environment::communicator()
+                          , &request_
+                        );
+                        request_ptr_ = &request_;
+                    }
+                 }
+
+                //DEBUG("Incrementing chunks_idx_ from %lu", chunks_idx_);
+                chunks_idx_++;
+            } }
 
             state_ = sent_chunks;
 
@@ -401,8 +470,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
-                if(state_ == sent_chunks) {
-                    DEBUG("Completed communication of a chunk");
+                if(state_ == sent_data) {
+                    DEBUG("Sender completed communication of a chunk: tag_ = %d, chunks_idx_ = %lu", tag_, chunks_idx_);
+                    LCI_PM_barrier();
                 }
                 request_ptr_ = nullptr;
                 return true;
