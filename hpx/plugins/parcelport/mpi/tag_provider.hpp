@@ -7,7 +7,6 @@
 #pragma once
 
 #include <hpx/config.hpp>
-
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)
 
 #include <hpx/assert.hpp>
@@ -15,6 +14,8 @@
 
 #include <deque>
 #include <mutex>
+
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 
 namespace hpx { namespace parcelset { namespace policies { namespace mpi
 {
@@ -50,7 +51,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             std::lock_guard<mutex_type> l(mtx_);
             HPX_ASSERT(tag < next_tag_);
 
-            free_tags_.push_back(tag);
+            //free_tags_.push_back(tag);
         }
 
         mutex_type mtx_;
