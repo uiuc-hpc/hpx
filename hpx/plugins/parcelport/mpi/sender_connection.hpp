@@ -553,7 +553,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 }
                             }
                         }
-                        ///*
+                        /*
                         MPI_Isend(
                             const_cast<void *>(c.data_.cpos_)
                           , static_cast<int>(c.size_)
@@ -563,7 +563,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                           , util::mpi_environment::communicator()
                           , &request_
                         );
-                        //*/
+                        */
                         /*while(LCI_sendd(
                                 const_cast<void *>(c.data_.cpos_),
                                 static_cast<int>(c.size_),

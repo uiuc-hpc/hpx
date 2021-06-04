@@ -291,7 +291,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     if(err != LCI_OK) {
                         DEBUG("receiver send_chunks() return error in LCI_progress");
                     }
-                    ///*
+                    /*
                     MPI_Irecv(
                         c.data()
                       , static_cast<int>(c.size())
@@ -301,13 +301,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                       , util::mpi_environment::communicator()
                       , &request_
                     );
-                    //*/
-                    // TODO: make a different buffer for receiving
-                    if(temp_buffer) free(temp_buffer);
-                    temp_buffer = (char*)malloc(c.size());
+                    */
+                    // make a different buffer for receiving
+                    //if(temp_buffer) free(temp_buffer);
+                    //temp_buffer = (char*)malloc(c.size());
                     err = LCI_recvd(
-                        temp_buffer,
-                        //c.data(),
+                        //temp_buffer,
+                        c.data(),
                         static_cast<int>(c.size()),
                         //get_src_index(),
                         src_,
@@ -489,7 +489,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     while(LCI_sendbc(&src_buf, sizeof(unsigned), src_, tag_, util::mpi_environment::lci_endpoint()) != LCI_OK)
                         LCI_progress(0,1);
                     */
-                    print_hash("Receiver",buffer_.chunks_[chunks_idx_-1].size(),(uint8_t*)temp_buffer,tag_,chunks_idx_);
+                    print_hash("Receiver",buffer_.chunks_[chunks_idx_-1].size(),(uint8_t*)buffer_.chunks_[chunks_idx_-1].data(),tag_,chunks_idx_);
+                    //print_hash("Receiver",buffer_.chunks_[chunks_idx_-1].size(),(uint8_t*)temp_buffer,tag_,chunks_idx_);
 
                     /*
                     uint8_t hash[9];
@@ -504,6 +505,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     DEBUG("Receiver:\tsrc=%d,\ttag_=%3d,\tchunks_idx_=%lu,\thash=%8s,\tsize=%7d,\taddr=%14p", src_, tag_, chunks_idx_-1, hash, static_cast<int>(buffer_.chunks_[chunks_idx_-1].size()), (void*)buffer_.chunks_[chunks_idx_-1].data());
                     */
 
+                    /*
                     int error_count = 0;
                     int error_len = 0;
                     int max_error_len = 0;
@@ -522,6 +524,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     }
                     if(error_len > max_error_len) { max_error_len = error_len; last_index = static_cast<int>(buffer_.chunks_[chunks_idx_-1].size()); }
                     DEBUG("error_count = %d out of %d, max consecutive = %d, ending at index %d", error_count, static_cast<int>(buffer_.chunks_[chunks_idx_-1].size()), max_error_len, last_index);
+                    */
+
                     //DEBUG("Receiver");
                     //DEBUG("Receiver sent confirmation to sender.");
 
