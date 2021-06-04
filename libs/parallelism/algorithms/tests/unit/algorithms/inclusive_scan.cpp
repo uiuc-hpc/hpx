@@ -13,12 +13,15 @@
 
 #include "inclusive_scan_tests.hpp"
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+
 ///////////////////////////////////////////////////////////////////////////////
 template <typename IteratorTag>
 void test_inclusive_scan1()
 {
     using namespace hpx::execution;
 
+    DEBUG("In test_inclusive_scan1()");
     test_inclusive_scan1(seq, IteratorTag());
     test_inclusive_scan1(par, IteratorTag());
     test_inclusive_scan1(par_unseq, IteratorTag());
@@ -39,6 +42,7 @@ void test_inclusive_scan2()
 {
     using namespace hpx::execution;
 
+    DEBUG("In test_inclusive_scan2()");
     test_inclusive_scan2(seq, IteratorTag());
     test_inclusive_scan2(par, IteratorTag());
     test_inclusive_scan2(par_unseq, IteratorTag());
@@ -59,6 +63,7 @@ void test_inclusive_scan3()
 {
     using namespace hpx::execution;
 
+    DEBUG("In test_inclusive_scan3()");
     test_inclusive_scan3(seq, IteratorTag());
     test_inclusive_scan3(par, IteratorTag());
     test_inclusive_scan3(par_unseq, IteratorTag());
@@ -69,6 +74,7 @@ void test_inclusive_scan3()
 
 void inclusive_scan_test3()
 {
+    DEBUG("In inclusive_scan_test3()");
     test_inclusive_scan3<std::random_access_iterator_tag>();
     test_inclusive_scan3<std::forward_iterator_tag>();
 }
@@ -79,6 +85,7 @@ void test_inclusive_scan_exception()
 {
     using namespace hpx::execution;
 
+    DEBUG("In test_inclusive_scan_exception()");
     // If the execution policy object is of type vector_execution_policy,
     // std::terminate shall be called. therefore we do not test exceptions
     // with a vector execution policy

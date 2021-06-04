@@ -33,6 +33,8 @@
 #include <utility>
 #include <vector>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+
 namespace hpx { namespace parallel { inline namespace v1 {
     ///////////////////////////////////////////////////////////////////////////
     // inclusive_scan
@@ -212,6 +214,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
         {
             using is_seq = hpx::is_sequenced_execution_policy<ExPolicy>;
 
+            DEBUG("Using inclusive_scan_() 1");
             return inclusive_scan<FwdIter2>().call(
                 std::forward<ExPolicy>(policy), is_seq(), first, last, dest,
                 std::forward<T>(init), std::forward<Op>(op));
@@ -225,6 +228,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
         {
             using is_seq = hpx::is_sequenced_execution_policy<ExPolicy>;
 
+            DEBUG("Using inclusive_scan_() 2");
             return inclusive_scan<FwdIter2>().call(
                 std::forward<ExPolicy>(policy), is_seq(), first, last, dest,
                 std::forward<Op>(op));
@@ -342,6 +346,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
     inclusive_scan(ExPolicy&& policy, FwdIter1 first, FwdIter1 last,
         FwdIter2 dest, Op&& op, T init)
     {
+        DEBUG("starting inclusive_scan()");
         static_assert((hpx::traits::is_forward_iterator<FwdIter1>::value),
             "Requires at least forward iterator.");
         static_assert((hpx::traits::is_forward_iterator<FwdIter2>::value),
@@ -349,6 +354,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
 
         typedef hpx::traits::is_segmented_iterator<FwdIter1> is_segmented;
 
+        DEBUG("Returning form inclusive_scan()");
         return detail::inclusive_scan_(std::forward<ExPolicy>(policy), first,
             last, dest, std::move(init), std::forward<Op>(op), is_segmented(),
             util::projection_identity{});

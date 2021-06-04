@@ -123,6 +123,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         {
             header h = rcv_header_;
             rcv_header_.reset();
+            DEBUG("Receiving header with size %d", rcv_header_.data_size_);
+            char hostname[256];
+            gethostname(hostname, sizeof(hostname));
+            DEBUG("PID %d on %s ready for attach\n", getpid(), hostname);
             MPI_Irecv(
                 rcv_header_.data()
               , rcv_header_.data_size_

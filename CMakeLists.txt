@@ -2029,6 +2029,9 @@ if(HPX_WITH_COMPILER_WARNINGS)
   endif()
 endif()
 
+# TODO: make sure this works for debugger, and take it out when done debugging
+hpx_add_compile_flag(-g3)
+
 # Configure compiler warnings as errors
 if(HPX_WITH_COMPILER_WARNINGS_AS_ERRORS)
   if(MSVC)

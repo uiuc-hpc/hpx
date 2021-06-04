@@ -22,6 +22,8 @@
 
 #include "test_utils.hpp"
 
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+
 ///////////////////////////////////////////////////////////////////////////////
 void inclusive_scan_benchmark()
 {
@@ -132,6 +134,7 @@ void test_inclusive_scan1_async(ExPolicy&& p, IteratorTag)
 template <typename ExPolicy, typename IteratorTag>
 void test_inclusive_scan2(ExPolicy policy, IteratorTag)
 {
+    DEBUG("Starting inclusive_scan2 test");
     static_assert(hpx::is_execution_policy<ExPolicy>::value,
         "hpx::is_execution_policy<ExPolicy>::value");
 

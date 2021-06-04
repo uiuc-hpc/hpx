@@ -141,6 +141,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
                 if(completed)// && status->MPI_ERROR != MPI_ERR_PENDING)
                 {
+                    DEBUG("Reciving next free tag = %d", next_free_tag_);
                     return get_next_free_tag();
                 }
             }
@@ -159,6 +160,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
               , util::mpi_environment::communicator()
               , &next_free_tag_request_
             );
+            DEBUG("Getting next free tag");
             return next_free;
         }
 

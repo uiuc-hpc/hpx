@@ -25,6 +25,8 @@
 #include <utility>
 #include <vector>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+
 namespace hpx { namespace parallel { inline namespace v1 {
     ///////////////////////////////////////////////////////////////////////////
     // segmented inclusive_scan
@@ -205,6 +207,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
             typedef typename hpx::traits::segmented_iterator_traits<
                 OutIter>::is_segmented_iterator is_out_seg;
 
+            DEBUG("segmented_inclusive_scan true");
             // check if OutIter is segmented in the same way as SegIter
             // NOLINTNEXTLINE(bugprone-branch-clone)
             if (is_segmented_the_same(first, last, dest, is_out_seg()))
@@ -234,6 +237,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
             typedef typename hpx::traits::segmented_iterator_traits<
                 OutIter>::is_segmented_iterator is_out_seg;
 
+            DEBUG("segmented_inclusive_scan false");
             // check if OutIter is segmented in the same way as SegIter
             // NOLINTNEXTLINE(bugprone-branch-clone)
             if (is_segmented_the_same(first, last, dest, is_out_seg()))
@@ -262,6 +266,8 @@ namespace hpx { namespace parallel { inline namespace v1 {
         {
             typedef hpx::is_sequenced_execution_policy<ExPolicy> is_seq;
 
+            // TODO: this is the one that is used
+            DEBUG("Using inclusive_scan_() segmented 1");
             if (first == last)
             {
                 return util::detail::algorithm_result<ExPolicy, OutIter>::get(
@@ -283,6 +289,7 @@ namespace hpx { namespace parallel { inline namespace v1 {
             typedef
                 typename std::iterator_traits<InIter>::value_type value_type;
 
+            DEBUG("Using inclusive_scan_() segmented 2");
             if (first == last)
             {
                 return util::detail::algorithm_result<ExPolicy, OutIter>::get(
