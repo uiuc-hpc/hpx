@@ -275,8 +275,20 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     //DEBUG("When receiving chunks, state_==rcvd_data=%d", state_==rcvd_data);
                     LCI_one2one_set_empty(&sync_);
                     //DEBUG("Receiver receiving to index = %lu, address = %p, size = %d", idx, (void*)c.data(), static_cast<int>(c.size()));
-                    //TODO try setting all of the data to 0 before we receive it
+                    //try setting all of the data to 0 before we receive it
                     memset(c.data(), 0, static_cast<int>(c.size()));
+
+                    /*
+                    if(temp_buffer) {
+                        DEBUG("ERROR: temp_buffer is already allocated when trying to send a chunk");
+                    } else {
+                        temp_buffer = (uint8_t*)calloc(c.size(), sizeof(uint8_t));
+                    }
+
+                    // print_hash("Data after sending", static_cast<int>(buffer_.data_.size()), (uint8_t*)buffer_.data_.data(), tag_, 0);
+                    print_hash("Chunk before receiving", static_cast<int>(c.size()), (uint8_t*)c.data(), tag_, chunks_idx_);
+                    */
+                    /*
                     for(unsigned i=0; i<c.size(); i++) {
                         if(c.data()[i] != 0) DEBUG("MEMSET ISSUE?");
                     }
@@ -286,6 +298,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                         hash[i] = NULL;
                     siphash((uint8_t*)c.data(), static_cast<int>(c.size()), k, hash, 8);
                     DEBUG("hash for 0 = %s", hash);
+                    */
                     // siphash((uint8_t*)buffer_.chunks_[chunks_idx_-1].data(), in_count, k, hash, out_size);
                     LCI_error_t err = LCI_progress(0,1);
                     if(err != LCI_OK) {
@@ -317,7 +330,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                         util::mpi_environment::lci_endpoint(),
                         &sync_
                     );
-                    // TODO: make sure that the temp_buffer has the same data as the regular buffer
                     if(err != LCI_OK) DEBUG("receiver send_chunks receive error");
                     //DEBUG("Receiver");
                     //chunk_tag_++;
@@ -441,7 +453,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return request_done();
         }
 
-#ifdef HPX_USE_LCI // LCI (and MPI) request_done()
+#if defined(HPX_USE_LCI_) // LCI (and MPI) request_done()
         bool request_done() {
             if(request_ptr_ == nullptr) return true;
 
@@ -472,7 +484,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 if(chunk_tag_==2) {
                     chunk_tag_ = 0;
                 //if(state_==rcvd_data) {
-                    // TODO: why is this not ever being called?
                     DEBUG("Receiver received LCI data for tag %d", tag_);
                     print_hash("Receiver data",buffer_.data_.size(),(uint8_t*)buffer_.data_.data(),tag_,0);
                 }
@@ -482,6 +493,11 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 }
                 if(true && chunk_tag_==1) {
                     chunk_tag_ = 0;
+                    // copy from temp_buffer into the real buffer
+                    print_hash("Receiver temp_buffer", buffer_.chunks_[chunks_idx_-1].size(), temp_buffer, tag_, chunks_idx_);
+                    memcpy(buffer_.chunks_[chunks_idx_-1].data(), temp_buffer, buffer_.chunks_[chunks_idx_-1].size());
+                    free(temp_buffer);
+                    temp_buffer = nullptr;
                     //DEBUG("Received with tag_=%d and chunks_idx_=%lu", tag_, chunks_idx_);
                     /*
                     unsigned src_buf = 1;
@@ -490,6 +506,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                         LCI_progress(0,1);
                     */
                     print_hash("Receiver",buffer_.chunks_[chunks_idx_-1].size(),(uint8_t*)buffer_.chunks_[chunks_idx_-1].data(),tag_,chunks_idx_);
+                    int zero_count = 0;
+                    for(size_t i=0; i<buffer_.chunks_[chunks_idx_-1].size(); i++) {
+                        if((uint8_t*)buffer_.chunks_[chunks_idx_-1].data()[i] == 0) {
+                            zero_count++;
+                        }
+                    }
+                    DEBUG("Zero count for tag %d = %d", tag_, zero_count);
                     //print_hash("Receiver",buffer_.chunks_[chunks_idx_-1].size(),(uint8_t*)temp_buffer,tag_,chunks_idx_);
 
                     /*
@@ -547,6 +570,45 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             return false;
         }
+#elif defined(HPX_USE_LCI) // LCI request_done() simplified
+        bool request_done()
+        {
+            if(request_ptr_ == nullptr) return true;
+
+            util::mpi_environment::scoped_try_lock l;
+
+            if(!l.locked) return false;
+
+            if(request_ptr_ == &request_) {
+                int completed = 0;
+                int ret = 0;
+                ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
+                HPX_ASSERT(ret == MPI_SUCCESS);
+                if(completed)
+                {
+                    request_ptr_ = nullptr;
+                    return true;
+                }
+                return false;
+            } else if(request_ptr_ == &sync_) {
+                int completed = 0;
+                completed = !LCI_one2one_test_empty(&sync_);
+                if(completed)
+                {
+                    LCI_one2one_set_empty(&sync_);
+                    request_ptr_ = nullptr;
+                    return true;
+                } else {
+                    LCI_progress(0,1);
+                }
+                return false;
+            } else {
+                DEBUG("ERROR: Bypassed the original request_ptr_ check and found it was NULL later");
+                return true;
+            }
+            return false;
+        }
+
 #else // MPI only request_done()
         bool request_done()
         {
@@ -581,7 +643,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         MPI_Request request_;
 #ifdef HPX_USE_LCI
         void* request_ptr_;
-        char* temp_buffer;
+        uint8_t* temp_buffer;
         LCI_syncl_t sync_;
         int chunk_tag_;
 #else

@@ -30,6 +30,11 @@
 //#define DEBUG(...)
 //#undef HPX_USE_LCI
 
+// only for debuggin purposes
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #ifndef SIPHASH_
 #define SIPHASH_
 #ifdef __cplusplus
@@ -337,6 +342,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                   , &request_
                 );
                 request_ptr_ = &request_;
+                chunk_tag_ = 0;
             }
 
             //DEBUG("Sender: header, number of chunks = %lu", buffer_.chunks_.size());
@@ -467,7 +473,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     print_hash("Sender data",buffer_.data_.size(),(uint8_t*)buffer_.data_.data(),tag_,0);
                 }
             }
-            chunk_tag_ = tag_*10+1;
+            //chunk_tag_ = tag_*10+1;
             state_ = sent_data;
             return send_chunks();
         }
@@ -487,6 +493,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     else
                     {
                         util::mpi_environment::scoped_lock l;
+                        DEBUG("Starting send_chunks()");
                         /*
                         DEBUG("MPI Send with tag_=%d and chunks_idx_=%lu", tag_, chunks_idx_);
                         if(!is_comm_world(util::mpi_environment::communicator())) {
@@ -553,6 +560,22 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 }
                             }
                         }
+
+                        // put the message out to a file
+                        if(false && static_cast<int>(c.size_) == 4000000) {
+                            std::string file_name = "test_msg" + std::to_string(tag_) + ".txt";
+                            if(true) {
+                                DEBUG("outputing to file %s", file_name.c_str());
+                                remove(file_name.c_str());
+                                FILE* outFile = fopen(file_name.c_str(), "w");
+                                DEBUG("%d", ((uint8_t*)c.data_.cpos_)[0]);
+                                for(int i=0; i<static_cast<int>(c.size_); i++) {
+                                    fprintf(outFile, "%d\n", ((uint8_t*)c.data_.cpos_)[i]);
+                                }
+                                fclose(outFile);
+                            }
+                        }
+
                         /*
                         MPI_Isend(
                             const_cast<void *>(c.data_.cpos_)
@@ -579,7 +602,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                             LCI_one2one_set_empty(&sync_);
                             DEBUG("Sender found not LCI_OK");
                         }*/
-                        chunk_tag_++;
+                        chunk_tag_ = 1;
+                        //chunk_tag_++;
                         request_ptr_ = &sync_;
                         if(true) {
                             //DEBUG("Sender waiting for confirmation");
@@ -641,7 +665,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             state_ = sent_data;
 
-            chunk_tag_ = tag_*10+1;
+            //chunk_tag_ = tag_*10+1;
             //DEBUG("Sender setting chunk_tag_ to %d", chunk_tag_);
 
             return send_chunks();
@@ -756,6 +780,28 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             if(completed) {
                 DEBUG("Sender completed communication, tag=%d", tag_);
+                // print_hash(const char* name, size_t in_count, uint8_t* data, int tag_, size_t chunks_idx_)
+                
+                if(state_ == sent_data) {
+                    print_hash("Data after sending", static_cast<int>(buffer_.data_.size()), (uint8_t*)buffer_.data_.data(), tag_, 0);
+                } else if(chunk_tag_ == 1) {
+                    int print_idx = 1;
+                    chunk_tag_ = 0;
+                    /*DEBUG("About to print the chunk after sending");
+                    int print_idx = 1;
+                    uint8_t hash[9];
+                    for(int i=0; i<9; i++)
+                        hash[i] = NULL;
+                    size_t in_count = buffer_.chunks_[print_idx].size_;
+                    size_t out_size = 8;
+                    const uint8_t k[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+                    siphash((uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, in_count, k, hash, out_size);
+                    // get hash value from data at buffer_.chunks_[chunks_idx_].data_.cpos_
+                    DEBUG("post-Sender:\tdst=%d,\ttag_=%3d,\tchunks_idx_=%d,\thash=%8s,\tsize=%7d,\taddr=%14p", dst_, tag_, print_idx, hash, static_cast<int>(buffer_.chunks_[print_idx].size_), (void*)buffer_.chunks_[print_idx].data_.cpos_);*/
+                    print_hash("Chunk after sending", static_cast<int>(buffer_.chunks_[print_idx].size_), (uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, tag_, print_idx);
+                    //print_hash("Chunk after sending", 20, (uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, tag_, print_idx);
+                }
+                
                 if(false && state_ == sent_data) {
                     //DEBUG("Sender completed communication of a chunk: tag_ = %d, chunks_idx_ = %lu", tag_, chunks_idx_);
                     // Instead of using a barrier, wait to receive from the receiver
