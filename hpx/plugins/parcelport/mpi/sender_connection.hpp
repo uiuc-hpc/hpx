@@ -493,45 +493,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     else
                     {
                         util::mpi_environment::scoped_lock l;
-                        DEBUG("Starting send_chunks()");
-                        /*
-                        DEBUG("MPI Send with tag_=%d and chunks_idx_=%lu", tag_, chunks_idx_);
-                        if(!is_comm_world(util::mpi_environment::communicator())) {
-                            DEBUG("Sender with tag_=%d has non-MPI_COMM_WORLD comm", tag_);
-                        }
-                        // TODO: print out the message that is being sent
-                        MPI_Isend(
-                            const_cast<void *>(c.data_.cpos_)
-                          , static_cast<int>(c.size_)
-                          , MPI_BYTE
-                          , dst_
-                          //, tag_
-                          , tag_*10+chunks_idx_+1
-                          , util::mpi_environment::communicator()
-                          , &request_
-                        );
-                        // TODO: create message hash
-                        unsigned prime = 101; // TODO: perhaps pick a different value
-                        unsigned hash = 0;
-                        DEBUG("Sender message: receiver %d, tag %d, message hash %u", dst_, tag_, hash);
-                        request_ptr_ = &request_;
-                        */
-                        ///*
-                        // TODO: could it be a problem with get_dst_index()? -- try without
-                        //DEBUG("LCI Send with tag=%d, chunk_tag_=%d, and chunks_idx_=%lu and num chunks=%lu",tag_, chunk_tag_, chunks_idx_, buffer_.chunks_.size());
-                        //DEBUG("When sending a chunk, state_==sent_data=%d", state_==sent_data);
-                        /*{
-                                volatile int i = 0;
-                                char hostname[256];
-                                gethostname(hostname, sizeof(hostname));
-                                printf("PID %d on %s ready for attach\n", getpid(), hostname);
-                                fflush(stdout);
-                                while (0 == i)
-                                    sleep(5);
-                        }*/
-
-                        //int small = LCI_BUFFERED_LENGTH > static_cast<int>(c.size_);
-                        //DEBUG("Could use buffered = %d", small);
                         LCI_error_t err = LCI_one2one_set_empty(&sync_);
                         if(err != LCI_OK) {
                             if(err == LCI_ERR_RETRY) DEBUG("send_chunks() set_empty returned LCI_ERR_RETRY");
@@ -561,39 +522,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                             }
                         }
 
-                        // put the message out to a file
-                        if(false && static_cast<int>(c.size_) == 4000000) {
-                            std::string file_name = "test_msg" + std::to_string(tag_) + ".txt";
-                            if(true) {
-                                DEBUG("outputing to file %s", file_name.c_str());
-                                remove(file_name.c_str());
-                                FILE* outFile = fopen(file_name.c_str(), "w");
-                                DEBUG("%d", ((uint8_t*)c.data_.cpos_)[0]);
-                                for(int i=0; i<static_cast<int>(c.size_); i++) {
-                                    fprintf(outFile, "%d\n", ((uint8_t*)c.data_.cpos_)[i]);
-                                }
-                                fclose(outFile);
-                            }
-                        }
-
-                        /*
-                        MPI_Isend(
-                            const_cast<void *>(c.data_.cpos_)
-                          , static_cast<int>(c.size_)
-                          , MPI_BYTE
-                          , dst_
-                          , tag_
-                          , util::mpi_environment::communicator()
-                          , &request_
-                        );
-                        */
                         /*while(LCI_sendd(
                                 const_cast<void *>(c.data_.cpos_),
                                 static_cast<int>(c.size_),
                                 //get_dst_index(),
                                 dst_,
                                 //tag_,
-                                tag_, // TODO: modify the tag in a way that won't cause problems (this could have an issue)
+                                tag_,
                                 //chunk_tag_,
                                 util::mpi_environment::lci_endpoint(),
                                 &sync_
@@ -603,33 +538,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                             DEBUG("Sender found not LCI_OK");
                         }*/
                         chunk_tag_ = 1;
-                        //chunk_tag_++;
                         request_ptr_ = &sync_;
                         if(true) {
-                            //DEBUG("Sender waiting for confirmation");
-                            /*unsigned dst_buf = 0;
-                            LCI_progress(0,1);
-                            LCI_one2one_set_empty(&sync_);
-                            LCI_recvbc(&dst_buf, sizeof(unsigned), dst_, tag_, util::mpi_environment::lci_endpoint(), &sync_);
-                            while(LCI_one2one_test_empty(&sync_))
-                                LCI_progress(0,1);
-                            */
-                            //LCI_one2one_set_empty(&sync_);
                             print_hash("Sender",buffer_.chunks_[chunks_idx_].size_,(uint8_t*)buffer_.chunks_[chunks_idx_].data_.cpos_,tag_,chunks_idx_);
-                            /*
-                            uint8_t hash[9];
-                            for(int i=0; i<9; i++)
-                                hash[i] = NULL;
-                            size_t in_count = buffer_.chunks_[chunks_idx_].size_;
-                            size_t out_size = 8;
-                            const uint8_t k[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-                            siphash((uint8_t*)buffer_.chunks_[chunks_idx_].data_.cpos_, in_count, k, hash, out_size);
-                            // get hash value from data at buffer_.chunks_[chunks_idx_].data_.cpos_
-                            DEBUG("Sender:\tdst=%d,\ttag_=%3d,\tchunks_idx_=%lu,\thash=%8s,\tsize=%7d,\taddr=%14p", dst_, tag_, chunks_idx_, hash, static_cast<int>(buffer_.chunks_[chunks_idx_].size_), (void*)buffer_.chunks_[chunks_idx_].data_.cpos_);
-                            //DEBUG("Sender received confirmation from receiver = %d.", dst_buf);
-                            */
                         }
-                        //*/
                     }
                  }
 
@@ -728,7 +640,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return true;
         }
 
-#ifdef HPX_USE_LCI
+#ifdef HPX_USE_LCI_
         bool request_done() {
             if(request_ptr_ == nullptr) return true;
 
@@ -822,6 +734,44 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     //DEBUG("Sender received confirmation from receiver = %d.", dst_buf);
                 }
                 request_ptr_ = nullptr;
+                return true;
+            }
+            return false;
+        }
+#elif defined(HPX_USE_LCI)
+        bool request_done()
+        {
+            if(request_ptr_ == nullptr) return true;
+
+            util::mpi_environment::scoped_try_lock l;
+
+            if(!l.locked) return false;
+
+            if(request_ptr_ == &request_) {
+                int completed = 0;
+                int ret = 0;
+                ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
+                HPX_ASSERT(ret == MPI_SUCCESS);
+                if(completed)
+                {
+                    request_ptr_ = nullptr;
+                    return true;
+                }
+                return false;
+            } else if(request_ptr_ == &sync_) {
+                int completed = 0;
+                completed = !LCI_one2one_test_empty(&sync_);
+                if(completed)
+                {
+                    LCI_one2one_set_empty(&sync_);
+                    request_ptr_ = nullptr;
+                    return true;
+                } else {
+                    LCI_progress(0,1);
+                }
+                return false;
+            } else {
+                DEBUG("ERROR: Bypassed the original request_ptr_ check and found it was NULL later");
                 return true;
             }
             return false;

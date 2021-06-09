@@ -23,6 +23,7 @@
 
 #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 //#define DEBUG(...)
+#include <unistd.h>
 
 namespace hpx { namespace parcelset { namespace policies { namespace mpi
 {
@@ -96,7 +97,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
 #ifdef HPX_USE_LCI // LCI version of receive_transmission_chunks()
         bool receive_transmission_chunks(std::size_t num_thread = -1)
         {
-            //DEBUG("Receiver: receiving transmission chunks, so there may be a new number of chunks");
             // determine the size of the chunk buffer
             std::size_t num_zero_copy_chunks =
                 static_cast<std::size_t>(
@@ -109,7 +109,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             );
             if(num_zero_copy_chunks != 0)
             {
-                //DEBUG("Recever: number of chunks changing from %lu to %lu", buffer_.chunks_.size(), num_zero_copy_chunks);
                 buffer_.chunks_.resize(num_zero_copy_chunks);
                 {
                     util::mpi_environment::scoped_lock l;
@@ -122,7 +121,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                             ),
                             src_, // TODO: account for communicators
                             tag_,
-                            //tag_*10,
                             util::mpi_environment::lci_endpoint(),
                             &sync_
                     );
@@ -153,7 +151,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 buffer_.chunks_.resize(num_zero_copy_chunks);
                 {
                     util::mpi_environment::scoped_lock l;
-                    // TODO: is the data in the transmission chunks related to the chunks?
                     DEBUG("MPI receiving transmission chunks tag=%d, num=%lu", tag_, num_zero_copy_chunks + num_non_zero_copy_chunks);
                     MPI_Irecv(
                         buffer_.transmission_chunks_.data()
@@ -251,92 +248,37 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 c.resize(chunk_size);
                 {
                     util::mpi_environment::scoped_lock l;
-                    /*
-                    DEBUG("MPI Receive with tag_=%d and chunks_idx_=%lu", tag_, chunks_idx_);
-                    if(!is_comm_world(util::mpi_environment::communicator())) {
-                            DEBUG("Receiver with tag_=%d has non-MPI_COMM_WORLD comm", tag_);
-                    }
-                    MPI_Irecv(
-                        c.data()
-                      , static_cast<int>(c.size())
-                      , MPI_BYTE
-                      , src_
-                      //, tag_
-                      , tag_*10+chunks_idx_+1 // TODO: test if this works
-                      , util::mpi_environment::communicator()
-                      , &request_
-                    );
-                    request_ptr_ = &request_;
-                    */
-
-                    ///*
                     // May eventually want to use buffered communication here, but using direct because it is more similar to MPI
-                    //DEBUG("LCI Receive with tag_=%d, chunk_tag_=%d and chunks_idx_=%lu and num chunks=%lu", tag_, chunk_tag_, chunks_idx_, buffer_.chunks_.size());
-                    //DEBUG("When receiving chunks, state_==rcvd_data=%d", state_==rcvd_data);
                     LCI_one2one_set_empty(&sync_);
-                    //DEBUG("Receiver receiving to index = %lu, address = %p, size = %d", idx, (void*)c.data(), static_cast<int>(c.size()));
                     //try setting all of the data to 0 before we receive it
                     memset(c.data(), 0, static_cast<int>(c.size()));
 
-                    /*
-                    if(temp_buffer) {
-                        DEBUG("ERROR: temp_buffer is already allocated when trying to send a chunk");
-                    } else {
-                        temp_buffer = (uint8_t*)calloc(c.size(), sizeof(uint8_t));
-                    }
+                    // make a temp buffer for receiving
+                    //if(temp_buffer) {
+                    //    DEBUG("ERROR: temp_buffer is already allocated when trying to send a chunk");
+                    //} else {
+                    //    temp_buffer = (uint8_t*)calloc(c.size(), sizeof(uint8_t));
+                    //}
 
-                    // print_hash("Data after sending", static_cast<int>(buffer_.data_.size()), (uint8_t*)buffer_.data_.data(), tag_, 0);
                     print_hash("Chunk before receiving", static_cast<int>(c.size()), (uint8_t*)c.data(), tag_, chunks_idx_);
-                    */
-                    /*
-                    for(unsigned i=0; i<c.size(); i++) {
-                        if(c.data()[i] != 0) DEBUG("MEMSET ISSUE?");
-                    }
-                    const uint8_t k[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-                    uint8_t hash[9];
-                    for(int i=0; i<9; i++)
-                        hash[i] = NULL;
-                    siphash((uint8_t*)c.data(), static_cast<int>(c.size()), k, hash, 8);
-                    DEBUG("hash for 0 = %s", hash);
-                    */
-                    // siphash((uint8_t*)buffer_.chunks_[chunks_idx_-1].data(), in_count, k, hash, out_size);
                     LCI_error_t err = LCI_progress(0,1);
                     if(err != LCI_OK) {
                         DEBUG("receiver send_chunks() return error in LCI_progress");
                     }
-                    /*
-                    MPI_Irecv(
-                        c.data()
-                      , static_cast<int>(c.size())
-                      , MPI_BYTE
-                      , src_
-                      , tag_
-                      , util::mpi_environment::communicator()
-                      , &request_
-                    );
-                    */
-                    // make a different buffer for receiving
-                    //if(temp_buffer) free(temp_buffer);
-                    //temp_buffer = (char*)malloc(c.size());
                     err = LCI_recvd(
                         //temp_buffer,
                         c.data(),
                         static_cast<int>(c.size()),
                         //get_src_index(),
                         src_,
-                        //tag_,
-                        tag_, // TODO: do this in a way that won't cause problems with large numbers of chunks and many tags active
-                        //chunk_tag_,
+                        tag_,
                         util::mpi_environment::lci_endpoint(),
                         &sync_
                     );
                     if(err != LCI_OK) DEBUG("receiver send_chunks receive error");
-                    //DEBUG("Receiver");
-                    //chunk_tag_++;
                     chunk_tag_ = 1;
                     DEBUG("Receiver receiving chunks with tag_=%d, length=%d", tag_, static_cast<int>(c.size()));
                     request_ptr_ = &sync_;
-                    //*/
                 }
             }
 
@@ -466,10 +408,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 if(err != LCI_OK) {
                     DEBUG("recevier request_done() LCI_progress failed");
                 }
-                completed = 1;
-                //int ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
-                //HPX_ASSERT(ret == MPI_SUCCESS);
-                //completed = completed && !LCI_one2one_test_empty(&sync_);
                 completed = !LCI_one2one_test_empty(&sync_);
                 if(completed) {
                     DEBUG("Receiver request: status=%d, rank=%d, tag=%d, len=%lu, type=%d", sync_.request.status, sync_.request.rank, sync_.request.tag, sync_.request.length, sync_.request.type);
@@ -480,10 +418,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
-                //if(true && ((state_ == rcvd_data && chunk_tag_ > 0) || state_ == rcvd_chunks)) {
                 if(chunk_tag_==2) {
                     chunk_tag_ = 0;
-                //if(state_==rcvd_data) {
                     DEBUG("Receiver received LCI data for tag %d", tag_);
                     print_hash("Receiver data",buffer_.data_.size(),(uint8_t*)buffer_.data_.data(),tag_,0);
                 }
@@ -492,12 +428,14 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     DEBUG("Receiver done");
                 }
                 if(true && chunk_tag_==1) {
+                    //sleep(5);
+                    //LCI_progress(0,1);
                     chunk_tag_ = 0;
                     // copy from temp_buffer into the real buffer
-                    print_hash("Receiver temp_buffer", buffer_.chunks_[chunks_idx_-1].size(), temp_buffer, tag_, chunks_idx_);
-                    memcpy(buffer_.chunks_[chunks_idx_-1].data(), temp_buffer, buffer_.chunks_[chunks_idx_-1].size());
-                    free(temp_buffer);
-                    temp_buffer = nullptr;
+                    //print_hash("Receiver temp_buffer", buffer_.chunks_[chunks_idx_-1].size(), temp_buffer, tag_, chunks_idx_);
+                    //memcpy(buffer_.chunks_[chunks_idx_-1].data(), temp_buffer, buffer_.chunks_[chunks_idx_-1].size());
+                    //free(temp_buffer);
+                    //temp_buffer = nullptr;
                     //DEBUG("Received with tag_=%d and chunks_idx_=%lu", tag_, chunks_idx_);
                     /*
                     unsigned src_buf = 1;
@@ -570,7 +508,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             }
             return false;
         }
-#elif defined(HPX_USE_LCI) // LCI request_done() simplified
+#elif defined(HPX_USE_LCI) // LCI request_done() simplified (no printing)
         bool request_done()
         {
             if(request_ptr_ == nullptr) return true;
