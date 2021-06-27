@@ -29,6 +29,8 @@
 #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 //#define DEBUG(...)
 //#undef HPX_USE_LCI
+#define MAX_PART 400000
+//#define LCI_CHUNK_PARTS
 
 // only for debuggin purposes
 #include <iostream>
@@ -193,14 +195,14 @@ int siphash(const uint8_t *in, const size_t inlen, const uint8_t *k,
     return 0;
 }
 
-void print_hash(const char* name, size_t in_count, uint8_t* data, int tag_, size_t chunks_idx_) {
+void print_hash(const char* name, size_t in_count, uint8_t* data, int tag_, size_t chunks_idx_, int my_rank=-1, int other_rank=-1) {
     uint8_t hash[9];
     for(int i=0; i<9; i++)
         hash[i] = NULL;
     size_t out_size = 8;
     const uint8_t k[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     siphash(data, in_count, k, hash, out_size);
-    DEBUG("%s:\ttag_=%3d,\tchunks_idx_=%lu,\thash=%8s,\tsize=%7d,\taddr=%14p", name, tag_, chunks_idx_, hash, static_cast<int>(in_count), (void*)data);
+    DEBUG("%s:\ttag_=%3d,\trank=%d,\tother rank=%d,\tchunks_idx_=%lu,\thash=%8s,\tsize=%7d,\taddr=%14p", name, tag_, my_rank, other_rank, chunks_idx_, hash, static_cast<int>(in_count), (void*)data);
 
 }
 #endif
@@ -255,6 +257,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
           , there_(parcelset::locality(locality(dst_)))
         {
             //DEBUG("Creating a new sender_connection");
+#ifdef HPX_USE_LCI
+            temp_buffer = nullptr;
+#endif
         }
 
         parcelset::locality const& destination() const
@@ -342,7 +347,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                   , &request_
                 );
                 request_ptr_ = &request_;
+#ifdef HPX_USE_LCI
                 chunk_tag_ = 0;
+#endif
             }
 
             //DEBUG("Sender: header, number of chunks = %lu", buffer_.chunks_.size());
@@ -470,11 +477,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                                 &sync_
                           ) != LCI_OK ){ LCI_progress(0,1); }
                     request_ptr_ = &sync_;
-                    print_hash("Sender data",buffer_.data_.size(),(uint8_t*)buffer_.data_.data(),tag_,0);
+                    print_hash("Sender data",buffer_.data_.size(),(uint8_t*)buffer_.data_.data(),tag_,0, LCI_RANK, dst_);
                 }
             }
             //chunk_tag_ = tag_*10+1;
             state_ = sent_data;
+            part_idx_ = 0;
+            part_count_ = 0;
             return send_chunks();
         }
 
@@ -489,9 +498,63 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 serialization::serialization_chunk& c = buffer_.chunks_[chunks_idx_];
                 if(c.type_ == serialization::chunk_type_pointer)
                 {
+#ifdef LCI_CHUNK_PARTS
+                    // TODO: finish implementing this without error
+                    // version that sends the chunks in smaller parts
+                    if(!request_done()) return false;
+                    if(part_count_ == 0) {
+                        part_count_ = c.size_/MAX_PART;
+                        if(c.size_%MAX_PART)
+                            part_count_++;
+                        part_idx_ = 0;
+                    }
+                    while(part_idx_ < part_count_) {
+                        if(!request_done()) return false;
+                        util::mpi_environment::scoped_lock l;
+                        LCI_one2one_set_empty(&sync_);
+                        std::size_t part_size = MAX_PART;
+                        if(part_idx_ == part_count_-1) {
+                            part_size = c.size_%MAX_PART;
+                        }
+                        uint8_t* send_ptr = &((uint8_t*)c.data_.cpos_)[part_idx_*MAX_PART];
+                        // TODO: I think something is wrong here and causing the segfault. I don't know what it is. Is there something wrong with the pointer that I'm using? I'm getting a double free or corruption error, so I don't think that's what it is 
+                        DEBUG("sending part %d of %d parts in a chunk, size = %lu out of %lu", part_idx_, part_count_, part_size, c.size_);
+                        //if(temp_buffer) free(temp_buffer);
+                        //temp_buffer = (uint8_t*)calloc(part_size+1, sizeof(uint8_t));
+                        //memcpy(temp_buffer, c.data_.cpos_+part_idx_*MAX_PART*sizeof(uint8_t), part_size*sizeof(uint8_t));
+                        //memcpy(temp_buffer, const_cast<uint8_t *>(c.data_.cpos_)[part_idx_*MAX_PART], part_size*sizeof(uint8_t));
+                        //memcpy(temp_buffer, (void*)((uint8_t*)c.data_.cpos_)[part_idx_*MAX_PART], part_size*sizeof(uint8_t));
+                        while(LCI_sendd(
+                                //(void*)((uint8_t*)const_cast<void*>(c.data_.cpos_))[part_idx_*MAX_PART],
+                                //const_cast<void*>(c.data_.cpos_),
+                                //(void*)&c.data_.cpos_[part_idx_*MAX_PART],
+                                //send_ptr,
+                                //temp_buffer,
+                                //const_cast<void *>(c.data_.cpos_),
+                                //const_cast<void*>(c.data_.cpos_+part_idx_*MAX_PART*sizeof(uint8_t)),
+                                //const_cast<uint8_t*>(&((const uint8_t*)c.data_.cpos_)[part_idx_*MAX_PART]),
+                                const_cast<uint8_t*>(send_ptr),
+                                part_size,
+                                dst_,
+                                tag_,
+                                util::mpi_environment::lci_endpoint(),
+                                &sync_
+                        ) != LCI_OK) {
+                            LCI_progress(0,1);
+                            LCI_one2one_set_empty(&sync_);
+                        }
+                        //DEBUG("sending part %d of %d parts in a chunk", part_idx_, part_count_);
+                        request_ptr_ = &sync_;
+                        part_idx_++;
+                    }
+#else
+                    //
+                    // version if we are sending the chunks as whole items
                     if(!request_done()) return false;
                     else
                     {
+
+                        // if c.size_ > threshold, then use MPI. otherwise can continue with MPI
                         util::mpi_environment::scoped_lock l;
                         LCI_error_t err = LCI_one2one_set_empty(&sync_);
                         if(err != LCI_OK) {
@@ -540,14 +603,16 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                         chunk_tag_ = 1;
                         request_ptr_ = &sync_;
                         if(true) {
-                            print_hash("Sender",buffer_.chunks_[chunks_idx_].size_,(uint8_t*)buffer_.chunks_[chunks_idx_].data_.cpos_,tag_,chunks_idx_);
+                            print_hash("Sender",buffer_.chunks_[chunks_idx_].size_,(uint8_t*)buffer_.chunks_[chunks_idx_].data_.cpos_,tag_,chunks_idx_, LCI_RANK, dst_);
                         }
                     }
+#endif
                  }
 
                 chunks_idx_++;
+                part_idx_ = 0;
+                part_count_ = 0;
             }
-
             state_ = sent_chunks;
 
             return done();
@@ -640,7 +705,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             return true;
         }
 
-#ifdef HPX_USE_LCI_
+#ifdef HPX_USE_LCI
         bool request_done() {
             if(request_ptr_ == nullptr) return true;
 
@@ -695,7 +760,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                 // print_hash(const char* name, size_t in_count, uint8_t* data, int tag_, size_t chunks_idx_)
                 
                 if(state_ == sent_data) {
-                    print_hash("Data after sending", static_cast<int>(buffer_.data_.size()), (uint8_t*)buffer_.data_.data(), tag_, 0);
+                    print_hash("Data after sending", static_cast<int>(buffer_.data_.size()), (uint8_t*)buffer_.data_.data(), tag_, 0, LCI_RANK, dst_);
                 } else if(chunk_tag_ == 1) {
                     int print_idx = 1;
                     chunk_tag_ = 0;
@@ -710,7 +775,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
                     siphash((uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, in_count, k, hash, out_size);
                     // get hash value from data at buffer_.chunks_[chunks_idx_].data_.cpos_
                     DEBUG("post-Sender:\tdst=%d,\ttag_=%3d,\tchunks_idx_=%d,\thash=%8s,\tsize=%7d,\taddr=%14p", dst_, tag_, print_idx, hash, static_cast<int>(buffer_.chunks_[print_idx].size_), (void*)buffer_.chunks_[print_idx].data_.cpos_);*/
-                    print_hash("Chunk after sending", static_cast<int>(buffer_.chunks_[print_idx].size_), (uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, tag_, print_idx);
+                    print_hash("Chunk after sending", static_cast<int>(buffer_.chunks_[print_idx].size_), (uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, tag_, print_idx, LCI_RANK, dst_);
+
                     //print_hash("Chunk after sending", 20, (uint8_t*)buffer_.chunks_[print_idx].data_.cpos_, tag_, print_idx);
                 }
                 
@@ -823,6 +889,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
         void *request_ptr_;
         LCI_syncl_t sync_;
         int chunk_tag_;
+        int part_count_;
+        int part_idx_;
+        uint8_t* temp_buffer;
 #else
         MPI_Request *request_ptr_;
 #endif
