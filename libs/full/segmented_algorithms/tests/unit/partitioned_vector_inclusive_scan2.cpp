@@ -339,7 +339,8 @@ template <typename T>
 void inclusive_scan_tests(std::vector<hpx::id_type>& localities)
 {
     DEBUG("inclusive_scan_tests() A");
-    std::size_t const length = 1000000;
+    std::size_t const length = 1000000; // original size
+    //std::size_t const length = 250000;
     //std::size_t const length = 100000;
 
     inclusive_scan_tests_with_policy<T>(length, hpx::container_layout);

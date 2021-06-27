@@ -17,6 +17,10 @@
 #include <cstddef>
 #include <vector>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+//#define DEBUG(...)
+//#include <unistd.h>
+
 ///////////////////////////////////////////////////////////////////////////////
 // The vector types to be used are defined in partitioned_vector module.
 // HPX_REGISTER_PARTITIONED_VECTOR(double);
@@ -60,6 +64,7 @@ void reduce_tests(std::vector<hpx::id_type>& localities)
     std::size_t const num = 10007;
     hpx::partitioned_vector<T> xvalues(
         num, T(1), hpx::container_layout(localities));
+    DEBUG("Size of the partitioned_vector = %lu", xvalues.size());
     reduce_tests(num, xvalues);
 }
 

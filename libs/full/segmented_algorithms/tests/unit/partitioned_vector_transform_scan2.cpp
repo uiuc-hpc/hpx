@@ -100,8 +100,11 @@ void transform_scan_tests(std::vector<hpx::id_type>& localities)
 {
     std::size_t const num = 12;
     hpx::partitioned_vector<T> xvalues(
-        num, T(1), hpx::container_layout(localities));
-    hpx::partitioned_vector<T> out(num, hpx::container_layout(localities));
+        num, T(1), hpx::container_layout(10, localities));
+    hpx::partitioned_vector<T> out(num, hpx::container_layout(10, localities));
+    //hpx::partitioned_vector<T> xvalues(
+    //    num, T(1), 10, hpx::colocating_distribution_policy);
+    //hpx::partitioned_vector<T> out(num, 10, hpx::colocating_distribution_policy);
     transform_scan_tests(num, xvalues, out);
 }
 

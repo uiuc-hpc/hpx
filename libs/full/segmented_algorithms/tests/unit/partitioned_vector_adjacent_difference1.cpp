@@ -17,6 +17,10 @@
 #include <cstddef>
 #include <vector>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+//#define DEBUG(...)
+//#include <unistd.h>
+
 ///////////////////////////////////////////////////////////////////////////////
 template <typename ExPolicy, typename T>
 void verify_values(
@@ -75,6 +79,8 @@ template <typename T>
 void adjacent_difference_tests(std::vector<hpx::id_type>& localities)
 {
     std::size_t const length = 12;
+
+    DEBUG("adjacent_difference_tests() with length = %lu", length);
 
     hpx::partitioned_vector<T> v(
         length, T(1), hpx::container_layout(localities));

@@ -51,7 +51,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace mpi
             std::lock_guard<mutex_type> l(mtx_);
             HPX_ASSERT(tag < next_tag_);
 
-            //free_tags_.push_back(tag);
+            free_tags_.push_back(tag);
         }
 
         mutex_type mtx_;
