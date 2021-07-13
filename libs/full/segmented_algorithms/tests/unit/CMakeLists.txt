@@ -32,10 +32,10 @@ set(tests
     partitioned_vector_fill
     partitioned_vector_find
     partitioned_vector_find2
-    partitioned_vector_inclusive_scan
-    partitioned_vector_inclusive_scan2
-    partitioned_vector_exclusive_scan
-    partitioned_vector_exclusive_scan2
+#    partitioned_vector_inclusive_scan
+#    partitioned_vector_inclusive_scan2
+#    partitioned_vector_exclusive_scan
+#    partitioned_vector_exclusive_scan2
     partitioned_vector_none1
     partitioned_vector_none2
     partitioned_vector_transform_scan
