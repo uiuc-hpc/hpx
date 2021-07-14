@@ -7,7 +7,7 @@
 set(tests mpi_ring_async_executor)
 
 set(mpi_ring_async_executor_PARAMETERS THREADS_PER_LOCALITY 4 LOCALITIES 2
-                                       RUNWRAPPER mpi
+                                       PARCELPORTS mpi
 )
 
 foreach(test ${tests})
@@ -21,7 +21,7 @@ foreach(test ${tests})
     ${test}_test INTERNAL_FLAGS
     SOURCES ${sources} ${${test}_FLAGS}
     EXCLUDE_FROM_ALL
-    DEPENDENCIES Mpi::mpi LCI::Shared
+    DEPENDENCIES Mpi::mpi
     FOLDER "Tests/Unit/Modules/Full/AsyncMPI"
   )
 

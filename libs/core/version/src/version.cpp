@@ -29,9 +29,29 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-#ifdef HPX_USE_LCI
-#include "lci.h" // LCI should be included before MPI
+// Intel MPI does not like to be included after stdio.h. As such, we include mpi.h
+// as soon as possible.
+#include <mpi.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif
+
+#endif
+
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-qual"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+
+#include "lci.h" // LCI should be included before MPI
 
 // Intel MPI does not like to be included after stdio.h. As such, we include mpi.h
 // as soon as possible.
@@ -113,6 +133,40 @@ namespace hpx {
         strm << ", unknown MPI version";
 #endif
         return strm.str();
+    }
+#endif
+
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
+#if (!defined(HPX_HAVE_NETWORKING) || !defined(HPX_HAVE_PARCELPORT_LCI)) && !defined(HPX_HAVE_MODULE_LCI_BASE)
+    std::string mpi_version()
+    {
+        std::ostringstream strm;
+
+        // add type and library version
+#if defined(OPEN_MPI)
+        strm << "OpenMPI V" << OMPI_MAJOR_VERSION << "." << OMPI_MINOR_VERSION
+             << "." << OMPI_RELEASE_VERSION;
+#elif defined(MPICH)
+        strm << "MPICH V" << MPICH_VERSION;
+#elif defined(MVAPICH2_VERSION)
+        strm << "MVAPICH2 V" << MVAPICH2_VERSION;
+#else
+        strm << "Unknown MPI";
+#endif
+        // add general MPI version
+#if defined(MPI_VERSION) && defined(MPI_SUBVERSION)
+        strm << ", MPI V" << MPI_VERSION << "." << MPI_SUBVERSION;
+#else
+        strm << ", unknown MPI version";
+#endif
+        return strm.str();
+    }
+#endif
+
+    std::string lci_version() {
+        // TODO: this still needs to be implemented. This is dependent on having a way to get it from LCI.
+        return "v1.7";
     }
 #endif
 
@@ -273,6 +327,10 @@ namespace hpx {
     defined(HPX_HAVE_MODULE_MPI_BASE)
                                                 "  MPI: {}\n"
 #endif
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
+                                                "  LCI: {}\n"
+#endif
                                                 "\n"
                                                 "Build:\n"
                                                 "  Type: {}\n"
@@ -284,6 +342,10 @@ namespace hpx {
 #if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)) ||      \
     defined(HPX_HAVE_MODULE_MPI_BASE)
             mpi_version(),
+#endif
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
+            lci_version(),
 #endif
             build_type(), build_date_time(), boost_platform(), boost_compiler(),
             boost_stdlib());

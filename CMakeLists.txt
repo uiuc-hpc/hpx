@@ -1213,11 +1213,11 @@ if(HPX_WITH_NETWORKING)
   endif()
 
   hpx_option(
-    HPX_USE_LCI BOOL "Enable LCI alongside MPI." OFF
-    CATEGORY "Parcelport" # TODO: make sure this doesn't turn MPI off
+    HPX_WITH_PARCELPORT_LCI BOOL "Enable the LCI based parcelport." OFF
+    CATEGORY "Parcelport"
   )
-  if(HPX_USE_LCI)
-    hpx_add_config_define(HPX_USE_LCI)
+  if(HPX_WITH_PARCELPORT_LCI)
+    hpx_add_config_define(HPX_HAVE_PARCELPORT_LCI)
   endif()
 
   # we have to decide here whether we want to have MPI futures
@@ -1227,6 +1227,15 @@ if(HPX_WITH_NETWORKING)
     "Enable support for returning futures from MPI asynchronous calls (default: ON if networking+MPI already enabled)"
     ${HPX_WITH_PARCELPORT_MPI}
     CATEGORY "MPI"
+  )
+
+  # we have to decide here whether we want to have LCI futures
+  hpx_option(
+    HPX_WITH_ASYNC_LCI
+    BOOL
+    "Enable support for returning futures from LCI asynchronous calls (default: ON if networking+LCI already enabled)"
+    ${HPX_WITH_PARCELPORT_LCI}
+    CATEGORY "LCI"
   )
 
   hpx_option(
@@ -1256,7 +1265,58 @@ else(HPX_WITH_NETWORKING)
     OFF
     CATEGORY "MPI"
   )
+  hpx_option(
+    HPX_WITH_ASYNC_LCI
+    BOOL
+    "Enable support for returning futures from LCI asynchronous calls (default: ON if networking+LCI already enabled)"
+    OFF
+    CATEGORY "LCI"
+  )
+
 endif(HPX_WITH_NETWORKING)
+
+if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI) OR HPX_WITH_ASYNC_LCI)
+  # lci parcelport settings
+  hpx_option(
+    HPX_WITH_PARCELPORT_LCI_ENV
+    STRING
+    "List of environment variables checked to detect LCI (default: MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK)."
+    "MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK"
+    CATEGORY "Parcelport"
+    ADVANCED
+  )
+
+  # This list is to detect whether we run inside an mpi environment. If one of
+  # those environment variables is set, the LCI parcelport is enabled by
+  # default. PMI_RANK: Intel MPI and MVAPICH2 OMPI_COMM_WORLD_SIZE: OpenMPI
+  # starting at version 1.3
+  if(HPX_WITH_PARCELPORT_LCI_ENV)
+    string(REPLACE ";" "," hpx_parcelport_lci_env_
+                   "${HPX_WITH_PARCELPORT_LCI_ENV}"
+    )
+    hpx_add_config_define(
+      HPX_HAVE_PARCELPORT_LCI_ENV "\"${hpx_parcelport_lci_env_}\""
+    )
+  endif()
+
+  # TODO: find out if this even applies to LCI
+  hpx_option(
+    HPX_WITH_PARCELPORT_LCI_MULTITHREADED BOOL
+    "Turn on LCI multithreading support (default: ON)." ON
+    CATEGORY "Parcelport"
+    ADVANCED
+  )
+  if(HPX_WITH_PARCELPORT_LCI_MULTITHREADED)
+    hpx_add_config_define(HPX_HAVE_PARCELPORT_LCI_MULTITHREADED)
+  endif()
+
+  if(MSVC) # TODO: remove this when LCI doesn't also need MPI
+    # FIXME: add OpenMPI specific flag here for now as the
+    # hpx_add_compile_flag() below does not add the extra options to the top
+    # level directory
+    hpx_add_config_define(OMPI_IMPORTS)
+  endif()
+endif()
 
 if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
   # mpi parcelport settings

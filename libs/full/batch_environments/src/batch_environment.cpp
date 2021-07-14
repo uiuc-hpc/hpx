@@ -25,7 +25,7 @@
 
 namespace hpx { namespace util {
     batch_environment::batch_environment(std::vector<std::string>& nodelist,
-        bool have_mpi, bool debug, bool enable)
+        bool have_mpi, bool have_lci, bool debug, bool enable)
       : agas_node_num_(0)
       , node_num_(-1)
       , num_threads_(-1)
@@ -53,7 +53,7 @@ namespace hpx { namespace util {
             node_num_ = slurm_env.node_num();
             return;
         }
-        batch_environments::pbs_environment pbs_env(nodelist, have_mpi, debug);
+        batch_environments::pbs_environment pbs_env(nodelist, have_mpi, have_lci, debug);
         if (pbs_env.valid())
         {
             batch_name_ = "PBS";

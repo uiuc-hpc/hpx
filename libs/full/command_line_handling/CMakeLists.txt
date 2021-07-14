@@ -28,6 +28,10 @@ if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
   set(MPI_DEPS hpx_mpi_base)
 endif()
 
+if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI) OR HPX_WITH_ASYNC_LCI)
+  set(LCI_DEPS hpx_lci_base)
+endif()
+
 include(HPX_AddModule)
 add_hpx_module(
   full command_line_handling
@@ -39,6 +43,6 @@ add_hpx_module(
   COMPAT_HEADERS ${command_line_handling_compat_headers}
   DEPENDENCIES hpx_core hpx_parallelism
   MODULE_DEPENDENCIES hpx_batch_environments hpx_program_options
-                      hpx_runtime_configuration ${MPI_DEPS}
+                      hpx_runtime_configuration ${MPI_DEPS} ${LCI_DEPS}
   CMAKE_SUBDIRS
 )

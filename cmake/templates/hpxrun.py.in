@@ -187,6 +187,13 @@ def run_mpi(cmd, localities, verbose):
         print('Executing command: ' + ' '.join(exec_cmd))
     subproc(exec_cmd)
 
+# Run for lci
+def run_lci(cmd, localities, verbose):
+    exec_cmd = ['srun', '--mpi=pmi2', '@MPIEXEC_NUMPROC_FLAG@', str(localities)] + cmd
+    if verbose:
+        print('Executing command: ' + ' '.join(exec_cmd))
+    subproc(exec_cmd)
+
 # Run with srun
 # This is executing srun with the '-n' option set to the number of localities
 def run_srun(cmd, localities, verbose):
@@ -210,6 +217,9 @@ def run(cmd, runwrapper, localities, nodes, verbose):
     if runwrapper == 'mpi':
         assert nodes is None, "nodes option only valid with tcp parcelport."
         run_mpi(cmd, localities, verbose)
+    if runwrapper == 'lci':
+        assert nodes is None, "nodes option only valid with tcp parcelport."
+        run_lci(cmd, localities, verbose)
     if runwrapper == 'srun':
         assert nodes is None, "nodes option only valid with tcp parcelport."
         run_srun(cmd, localities, verbose)
@@ -231,6 +241,7 @@ def build_cmd(options, args):
         select_parcelport = (lambda pp:
             ['--hpx:ini=hpx.parcel.mpi.priority=1000', '--hpx:ini=hpx.parcel.mpi.enable=1', '--hpx:ini=hpx.parcel.bootstrap=mpi'] if pp == 'mpi'
             else ['--hpx:ini=hpx.parcel.tcp.priority=1000', '--hpx:ini=hpx.parcel.tcp.enable=1'] if pp == 'tcp'
+            else ['--hpx:ini=hpx.parcel.lci.priority=1000', '--hpx:ini=hpx.parcel.lci.enable=1', '--hpx:ini=hpx.parcel.bootstrap=lci'] if pp == 'lci'
             else [])
         cmd += select_parcelport(options.parcelport)
 
@@ -266,14 +277,14 @@ def check_options(parser, options, args):
         print('Can not start less than one thread per locality', sys.stderr)
         sys.exit(1)
 
-    check_valid_parcelport = (lambda x: x == 'mpi' or x == 'tcp' or x == 'none');
+    check_valid_parcelport = (lambda x: x == 'mpi' or x == 'lci' or x == 'tcp' or x == 'none');
     if not check_valid_parcelport(options.parcelport):
         print('Error: Parcelport option not valid\n', sys.stderr)
         parser.print_help()
         sys.exit(1)
 
     check_valid_runwrapper = (lambda x:
-            x == 'none' or x == 'mpi' or x == 'srun' or x =='jsrun');
+            x == 'none' or x == 'mpi' or x == 'lci' or x == 'srun' or x =='jsrun');
     if not check_valid_runwrapper(options.runwrapper):
         print('Error: Runwrapper option not valid\n', sys.stderr)
         parser.print_help()
@@ -352,13 +363,13 @@ Used by the tcp parcelport only.
     parser.add_option('-p', '--parcelport'
       , action='store', type='string'
       , dest='parcelport', default=default_env('HPXRUN_PARCELPORT', 'tcp')
-      , help='Which parcelport to use (Options are: mpi, tcp) '
+      , help='Which parcelport to use (Options are: mpi, tcp, lci) '
              '(environment variable HPXRUN_PARCELPORT')
 
     parser.add_option('-r', '--runwrapper'
       , action='store', type='string'
       , dest='runwrapper', default=default_env('HPXRUN_RUNWRAPPER', 'none')
-      , help='Which runwrapper to use (Options are: none, mpi, srun, jsrun) '
+      , help='Which runwrapper to use (Options are: none, mpi, lci, srun, jsrun) '
              '(environment variable HPXRUN_RUNWRAPPER)')
 
     parser.add_option('-e', '--expected'

@@ -39,10 +39,6 @@ namespace hpx { namespace util {
 
         static MPI_Comm& communicator();
 
-#ifdef HPX_USE_LCI // declare lci_endpoint()
-        static LCI_endpoint_t& lci_endpoint();
-#endif
-
         static std::string get_processor_name();
 
         struct scoped_lock
@@ -75,13 +71,6 @@ namespace hpx { namespace util {
         static MPI_Comm communicator_;
 
         static int is_initialized_;
-
-#ifdef HPX_USE_LCI // declare prop, ep_
-        static bool lci_called_init_;
-        static LCI_PL_t prop_;
-        static LCI_MT_t mt_;
-        static LCI_endpoint_t ep_;
-#endif
 
     };
 }}    // namespace hpx::util

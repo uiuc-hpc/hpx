@@ -18,6 +18,7 @@ set(_hpx_full_modules
     async_cuda
     async_distributed
     async_mpi
+    async_lci
     batch_environments
     checkpoint
     checkpoint_base
@@ -31,6 +32,7 @@ set(_hpx_full_modules
     init_runtime
     lcos_distributed
     mpi_base
+    lci_base
     naming
     naming_base
     performance_counters

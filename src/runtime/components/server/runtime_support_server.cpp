@@ -14,6 +14,9 @@
 #ifdef HPX_HAVE_LIB_MPI_BASE
 #include <hpx/modules/mpi_base.hpp>
 #endif
+#ifdef HPX_HAVE_LIB_LCI_BASE
+#include <hpx/modules/lci_base.hpp>
+#endif
 #include <hpx/actions/continuation.hpp>
 #include <hpx/actions_base/plain_action.hpp>
 #include <hpx/async_combinators/wait_all.hpp>

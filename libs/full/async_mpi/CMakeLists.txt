@@ -18,8 +18,6 @@ endif()
 if(NOT TARGET Mpi::mpi)
   include(HPX_SetupMPI)
   setup_mpi()
-  include(HPX_SetupLCI)
-  setup_lci()
 endif()
 
 # Default location is $HPX_ROOT/libs/mpi/include

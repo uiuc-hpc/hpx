@@ -31,7 +31,7 @@ namespace hpx { namespace util {
         // the constructor tries to read initial values from a batch environment,
         // filling our map of nodes and thread counts
         batch_environment(std::vector<std::string>& nodelist,
-            bool have_mpi = false, bool debug = false, bool enable = true);
+            bool have_mpi = false, bool have_lci = false, bool debug = false, bool enable = true);
 
         // this function initializes the map of nodes from the given (space
         // separated) list of nodes

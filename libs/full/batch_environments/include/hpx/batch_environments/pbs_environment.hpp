@@ -18,7 +18,7 @@ namespace hpx { namespace util { namespace batch_environments {
     struct pbs_environment
     {
         HPX_EXPORT pbs_environment(
-            std::vector<std::string>& nodelist, bool have_mpi, bool debug);
+            std::vector<std::string>& nodelist, bool have_mpi, bool have_lci, bool debug);
 
         bool valid() const
         {
@@ -47,7 +47,7 @@ namespace hpx { namespace util { namespace batch_environments {
         bool valid_;
 
         HPX_EXPORT void read_nodefile(
-            std::vector<std::string>& nodelist, bool have_mpi, bool debug);
+            std::vector<std::string>& nodelist, bool have_mpi, bool have_lci, bool debug);
         HPX_EXPORT void read_nodelist(
             std::vector<std::string>& nodelist, bool debug);
     };

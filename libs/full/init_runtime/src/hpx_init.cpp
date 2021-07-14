@@ -58,6 +58,9 @@
 #ifdef HPX_HAVE_MODULE_MPI_BASE
 #include <hpx/modules/mpi_base.hpp>
 #endif
+#ifdef HPX_HAVE_MODULE_LCI_BASE
+#include <hpx/modules/lci_base.hpp>
+#endif
 #if defined(HPX_HAVE_DISTRIBUTED_RUNTIME)
 #include <hpx/actions_base/plain_action.hpp>
 #include <hpx/modules/async_distributed.hpp>

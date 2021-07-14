@@ -18,7 +18,6 @@
 #include <string>
 
 #define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
-#include "/home/elizabeth/LC/examples/comm_exp.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace util {
@@ -60,8 +59,12 @@ namespace hpx { namespace util {
         // - The parcelport is explicitly disabled
         // - The application is not run in an MPI environment
         // - The TCP parcelport is enabled and has higher priority
+        // - The LCI parcelport is enabled and has higher priority
         if (get_entry_as(cfg, "hpx.parcel.mpi.enable", 1) == 0 ||
             !detail::detect_mpi_environment(cfg, HPX_HAVE_PARCELPORT_MPI_ENV) ||
+            (get_entry_as(cfg, "hpx.parcel.lci.enable", 1) &&
+                (get_entry_as(cfg, "hpx.parcel.lci.priority", 1) >
+                    get_entry_as(cfg, "hpx.parcel.mpi.priority", 0))) ||
             (get_entry_as(cfg, "hpx.parcel.tcp.enable", 1) &&
                 (get_entry_as(cfg, "hpx.parcel.tcp.priority", 1) >
                     get_entry_as(cfg, "hpx.parcel.mpi.priority", 0))))
@@ -93,23 +96,12 @@ namespace hpx { namespace util {
 
     int mpi_environment::is_initialized_ = -1;
 
-#ifdef HPX_USE_LCI // declare ep_, prop
-    LCI_endpoint_t mpi_environment::ep_;
-    LCI_PL_t mpi_environment::prop_;
-    LCI_MT_t mpi_environment::mt_;
-    bool mpi_environment::lci_called_init_ = false;
-#endif
-
     ///////////////////////////////////////////////////////////////////////////
     int mpi_environment::init(
         int*, char***, const int required, const int minimal, int& provided)
     {
 
-#ifdef HPX_USE_LCI // DEBUG LCI enabled message
-        DEBUG("LCI is enabled.");
-#else
-        DEBUG("LCI disabled.");
-#endif
+        // DEBUG("MPI is enabled.");
 
         has_called_init_ = false;
 
@@ -136,25 +128,6 @@ namespace hpx { namespace util {
             }
             has_called_init_ = true;
         }
-
-#ifdef HPX_USE_LCI // initialize LCI
-        int lci_initialized = 0;
-        lci_called_init_ = false;
-        int lci_retval = LCI_initialized(&lci_initialized);
-        if(lci_retval != LCI_OK) {
-        DEBUG("LCI check init failed");
-                return lci_retval;
-        }
-        if(!lci_initialized) {
-                lci_retval = LCI_initialize(NULL, NULL);
-                if(lci_retval != LCI_OK) return lci_retval;
-                lci_called_init_ = true;
-        }
-        LCI_PL_create(&prop_);
-        LCI_MT_create(0, &mt_);
-        LCI_PL_set_mt(&mt_, &prop_);
-        LCI_endpoint_create(0, prop_, &ep_);
-#endif
 
         return retval;
     }
@@ -267,12 +240,6 @@ namespace hpx { namespace util {
     {
         if (enabled() && has_called_init())
         {
-#ifdef HPX_USE_LCI // LCI finalize
-            DEBUG("Rank %d starting finalize", LCI_RANK);
-            int lci_finalized = 0;
-            LCI_finalized(&lci_finalized);
-            if(!lci_finalized) LCI_finalize();
-#endif
             int is_finalized = 0;
             MPI_Finalized(&is_finalized);
             if (!is_finalized)
@@ -317,12 +284,6 @@ namespace hpx { namespace util {
     {
         return communicator_;
     }
-
-#ifdef HPX_USE_LCI // declare lci_endpoint()
-    LCI_endpoint_t& mpi_environment::lci_endpoint() {
-        return ep_;
-    }
-#endif
 
     mpi_environment::scoped_lock::scoped_lock()
     {

@@ -34,6 +34,10 @@ if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
   list(APPEND init_runtime_optional_module_dependencies hpx_mpi_base)
 endif()
 
+if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI) OR HPX_WITH_ASYNC_LCI)
+  list(APPEND init_runtime_optional_module_dependencies hpx_lci_base)
+endif()
+
 include(HPX_AddModule)
 add_hpx_module(
   full init_runtime
