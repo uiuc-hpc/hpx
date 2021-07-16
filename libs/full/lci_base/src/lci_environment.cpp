@@ -95,19 +95,17 @@ namespace hpx { namespace util {
     int lci_environment::is_initialized_ = -1;
 
     LCI_endpoint_t lci_environment::ep_;
-    //LCI_plist_t lci_environment::prop_;
-    //LCI_device_t lci_environment::dev_;
-    LCI_PL_t lci_environment::prop_;
-    LCI_MT_t lci_environment::mt_;
+    LCI_endpoint_t lci_environment::rt_ep_;
+    LCI_comp_t lci_environment::rt_cq_s_;
+    LCI_comp_t lci_environment::rt_cq_r_;
 
     ///////////////////////////////////////////////////////////////////////////
     int lci_environment::init(
         int*, char***, const int required, const int minimal, int& provided)
     {
 
-        // DEBUG("LCI is enabled."); // TODO: eventually we don't want this in here
 
-        has_called_init_ = false; // TODO: this is used. We should associate it with initializing LCI instead of MPI.
+        has_called_init_ = false;
 
         // Check if MPI_Init has been called previously
         int is_initialized = 0;
@@ -130,24 +128,26 @@ namespace hpx { namespace util {
                     "hpx::util::lci_environment::init",
                     "MPI doesn't provide minimal requested thread level");
             }
-            // DEBUG("Setting has_called_init_ to true for lci_environment");
             has_called_init_ = true;
         }
 
         int lci_initialized = 0;
         LCI_initialized(&lci_initialized);
         if(!lci_initialized) {
-                //LCI_error_t lci_retval = LCI_initialize();
-                LCI_error_t lci_retval = LCI_initialize(NULL, NULL);
+                LCI_error_t lci_retval = LCI_initialize();
                 if(lci_retval != LCI_OK) return lci_retval;
         }
-        //LCI_plist_create(&prop_);
-        LCI_PL_create(&prop_);
-        LCI_MT_create(0, &mt_);
-        LCI_PL_set_mt(&mt_, &prop_);
-        LCI_endpoint_create(0, prop_, &ep_);
-        //LCI_device_create(0, &dev_); // Do we need to create the device in some way?
-        //LCI_endpoint_init(&ep_, dev_, prop_);
+        LCI_plist_t plist_;
+        LCI_plist_create(&plist_);
+        LCI_plist_set_comp_type(plist_, LCI_PORT_COMMAND, LCI_COMPLETION_SYNC);
+        LCI_plist_set_comp_type(plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_SYNC);
+        LCI_endpoint_init(&ep_, LCI_UR_DEVICE, plist_);
+        LCI_plist_free(&plist_);
+
+        rt_ep_ = LCI_UR_ENDPOINT;
+        rt_cq_s_ = LCI_UR_CQ_REMOTE;
+        rt_cq_r_ = LCI_UR_CQ;
+        // LCI_queue_create(0, &rt_cq_);
 
         return retval;
     }
@@ -260,9 +260,9 @@ namespace hpx { namespace util {
     {
         if (enabled() && has_called_init())
         {
-            int lci_finalized = 0;
-            LCI_finalized(&lci_finalized);
-            if(!lci_finalized) LCI_finalize();
+            int lci_init = 0;
+            LCI_initialized(&lci_init);
+            if(lci_init) LCI_finalize();
             int is_finalized = 0;
             MPI_Finalized(&is_finalized);
             if (!is_finalized)
@@ -310,6 +310,18 @@ namespace hpx { namespace util {
 
     LCI_endpoint_t& lci_environment::lci_endpoint() {
         return ep_;
+    }
+
+    LCI_endpoint_t& lci_environment::rt_endpoint() {
+        return rt_ep_;
+    }
+
+    LCI_comp_t& lci_environment::rt_queue() {
+        return rt_cq_r_;
+    }
+
+    LCI_comp_t& lci_environment::rt_queue_sender() {
+        return rt_cq_s_;
     }
 
     lci_environment::scoped_lock::scoped_lock()

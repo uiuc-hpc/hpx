@@ -20,8 +20,6 @@
 
 #include <hpx/config/warnings_prefix.hpp>
 
-#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-
 namespace hpx { namespace util {
     struct HPX_EXPORT lci_environment
     {
@@ -42,6 +40,14 @@ namespace hpx { namespace util {
         static MPI_Comm& communicator();
 
         static LCI_endpoint_t& lci_endpoint();
+
+        static LCI_endpoint_t& rt_endpoint();
+
+        // LCI completion queue for receiving release tags
+        static LCI_comp_t& rt_queue();
+
+        // LCI completion queue for sending release tags
+        static LCI_comp_t& rt_queue_sender();
 
         static std::string get_processor_name();
 
@@ -76,11 +82,10 @@ namespace hpx { namespace util {
 
         static int is_initialized_;
 
-        //static LCI_plist_t prop_;
-        //static LCI_device_t dev_;
-        static LCI_PL_t prop_;
-        static LCI_MT_t mt_;
         static LCI_endpoint_t ep_;
+        static LCI_endpoint_t rt_ep_;
+        static LCI_comp_t rt_cq_s_;
+        static LCI_comp_t rt_cq_r_;
 
     };
 }}    // namespace hpx::util

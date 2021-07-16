@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-//#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+// #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 #define DEBUG(...)
 
 namespace hpx { namespace parcelset { namespace policies { namespace lci
@@ -68,6 +68,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             buffer_.data_.resize(static_cast<std::size_t>(header_.size()));
             buffer_.num_chunks_ = header_.num_chunks();
+
+            DEBUG("Creating receiver sync");
+            LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
         }
 
         bool receive(std::size_t num_thread = -1)
@@ -96,7 +99,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
         }
         
-        int get_src_index() {
+        int get_src_rank() {
             int index = src_;
             if(!is_comm_world(util::lci_environment::communicator())) {
                 MPI_Group g0, g1;
@@ -124,18 +127,24 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 buffer_.chunks_.resize(num_zero_copy_chunks);
                 {
                     util::lci_environment::scoped_lock l;
-                    LCI_one2one_set_empty(&sync_);
-                    LCI_recvd(
-                            buffer_.transmission_chunks_.data(),
-                            static_cast<int>(
-                                buffer_.transmission_chunks_.size()
-                                * sizeof(buffer_type::transmission_chunk_type)
-                            ),
-                            get_src_index(),
-                            tag_,
-                            util::lci_environment::lci_endpoint(),
-                            &sync_
-                    );
+
+                    lbuf_.address = buffer_.transmission_chunks_.data();
+                    LCI_memory_register(
+                        LCI_UR_DEVICE, 
+                        lbuf_.address, 
+                        static_cast<int>(buffer_.transmission_chunks_.size() * sizeof(buffer_type::transmission_chunk_type)), 
+                        &lbuf_.segment);
+                    lbuf_.length = static_cast<int>(buffer_.transmission_chunks_.size() * sizeof(buffer_type::transmission_chunk_type));
+                    while(LCI_recvl(
+                        util::lci_environment::lci_endpoint(),
+                        lbuf_,
+                        get_src_rank(),
+                        tag_,
+                        sync_,
+                        NULL
+                    ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                    DEBUG("Rank %d: receiving transmission chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -153,28 +162,20 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 std::memcpy(&buffer_.data_[0], piggy_back, buffer_.data_.size());
             } else {
                 util::lci_environment::scoped_lock l;
-                LCI_one2one_set_empty(&sync_);
-                if (false && static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
-                    // Turned off using buffered messages because they fail when too many are sent in a row (need to debug in the future)
-                    // TODO: now that I know more about it, I am guessing it is due to not returning the bbuffers to the pool
-                    LCI_recvbc(
-                            buffer_.data_.data(),
-                            static_cast<int>(buffer_.data_.size()),
-                            get_src_index(),
-                            tag_,
-                            util::lci_environment::lci_endpoint(),
-                            &sync_
-                    );
-                } else {
-                    LCI_recvd(
-                            buffer_.data_.data(),
-                            static_cast<int>(buffer_.data_.size()),
-                            get_src_index(),
-                            tag_,
-                            util::lci_environment::lci_endpoint(),
-                            &sync_
-                    );
-                }
+
+                lbuf_.address = buffer_.data_.data();
+                LCI_memory_register(LCI_UR_DEVICE, lbuf_.address, static_cast<int>(buffer_.data_.size()), &lbuf_.segment);
+                lbuf_.length = static_cast<int>(buffer_.data_.size());
+                while(LCI_recvl(
+                    util::lci_environment::lci_endpoint(),
+                    lbuf_,
+                    get_src_rank(),
+                    tag_,
+                    sync_,
+                    NULL
+                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                DEBUG("Rank %d: receiving data with tag %d from %d", LCI_RANK, tag_, get_src_rank());
                 request_ptr_ = &sync_;
             }
             state_ = rcvd_data;
@@ -195,19 +196,24 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 c.resize(chunk_size);
                 {
                     util::lci_environment::scoped_lock l;
-                    // May eventually want to use buffered communication here, but using direct because it is more similar to MPI
-                    LCI_one2one_set_empty(&sync_);
-                    // can set all of the data to 0 before we receive it
-                    memset(c.data(), 0, static_cast<int>(c.size()));
 
-                    LCI_recvd(
-                        c.data(),
+                    lbuf_.address = c.data();
+                    LCI_memory_register(
+                        LCI_UR_DEVICE,
+                        lbuf_.address,
                         static_cast<int>(c.size()),
-                        get_src_index(),
-                        tag_,
+                        &lbuf_.segment);
+                    lbuf_.length = static_cast<int>(c.size());
+                    while(LCI_recvl(
                         util::lci_environment::lci_endpoint(),
-                        &sync_
-                    );
+                        lbuf_,
+                        get_src_rank(),
+                        tag_,
+                        sync_,
+                        NULL
+                    ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                    DEBUG("Rank %d: receiving chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -225,10 +231,14 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             int completed = 0;
             if(request_ptr_ == &sync_) {
-                LCI_progress(0,1);
-                completed = !LCI_one2one_test_empty(&sync_);
+                // DEBUG("Checking receiver LCI comm complete"); // confirmed that this is called many times. The failure to ever receive is not due to not checking for a message.
+                LCI_progress(LCI_UR_DEVICE);
+                completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
+                // completed = (LCI_sync_test(sync_, NULL) != LCI_ERR_RETRY);
                 if(completed) {
-                    LCI_one2one_set_empty(&sync_);
+                    DEBUG("Rank %d: received message.", LCI_RANK);
+                    // TODO: this will need to be conditional on it receiving a long/direct message
+                    LCI_memory_deregister(&lbuf_.segment);
                 }
             } else if (request_ptr_ == &request_) {
                 int ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
@@ -241,7 +251,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return false;
         }
 
-        bool send_release_tag(std::size_t num_thread = -1) // TODO: modify to use LCI
+        bool send_release_tag(std::size_t num_thread = -1)
         {
             if(!request_done()) return false;
 
@@ -250,16 +260,14 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             {
                 util::lci_environment::scoped_lock l;
-                MPI_Isend(
-                    &tag_
-                  , 1
-                  , MPI_INT
-                  , src_
-                  , 1
-                  , util::lci_environment::communicator()
-                  , &request_
-                );
-                request_ptr_ = &request_;
+                short_rt_ = tag_;
+                while(LCI_puts(
+                    util::lci_environment::rt_endpoint(),
+                    short_rt_,
+                    get_src_rank(),
+                    1,
+                    NULL
+                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
             }
 
             decode_parcels(pp_, std::move(buffer_), num_thread);
@@ -285,7 +293,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         MPI_Request request_;
         void* request_ptr_;
-        LCI_syncl_t sync_;
+        LCI_comp_t sync_;
+        LCI_lbuffer_t lbuf_;
+        LCI_short_t short_rt_;
         std::size_t chunks_idx_;
 
         Parcelport & pp_;

@@ -36,14 +36,11 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         using mutex_type = hpx::lcos::local::spinlock;
 
         sender()
-          : next_free_tag_request_((MPI_Request)(-1))
-          , next_free_tag_(-1)
         {
         }
 
         void run()
         {
-            get_next_free_tag();
         }
 
         connection_ptr create_connection(int dest, parcelset::parcelport* pp)
@@ -131,43 +128,26 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         int next_free_tag_locked()
         {
             util::lci_environment::scoped_try_lock l;
-
             if(l.locked)
             {
-                MPI_Status status;
-                int completed = 0;
-                int ret = 0;
-                ret = MPI_Test(&next_free_tag_request_, &completed, &status);
-                HPX_ASSERT(ret == MPI_SUCCESS);
-                if(completed)// && status->MPI_ERROR != MPI_ERR_PENDING)
-                {
-                    return get_next_free_tag();
+                LCI_error_t ret = LCI_queue_pop(
+                                    util::lci_environment::rt_queue(), 
+                                    &next_free_tag_request_);
+                if(ret == LCI_OK) {
+                    return next_free_tag_request_.data.immediate;
+                } else {
+                    LCI_progress(LCI_UR_DEVICE);
                 }
             }
             return -1;
-        }
-
-        int get_next_free_tag()
-        {
-            int next_free = next_free_tag_;
-            MPI_Irecv(
-                &next_free_tag_
-              , 1
-              , MPI_INT
-              , MPI_ANY_SOURCE
-              , 1
-              , util::lci_environment::communicator()
-              , &next_free_tag_request_
-            );
-            return next_free;
         }
 
         mutex_type connections_mtx_;
         connection_list connections_;
 
         mutex_type next_free_tag_mtx_;
-        MPI_Request next_free_tag_request_;
-        int next_free_tag_;
+
+        LCI_request_t next_free_tag_request_;
     };
 
 

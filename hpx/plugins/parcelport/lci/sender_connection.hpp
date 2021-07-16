@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-//#define DEBUG(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+// #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 #define DEBUG(...)
 
 namespace hpx { namespace parcelset { namespace policies { namespace lci
@@ -78,6 +78,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
           , pp_(pp)
           , there_(parcelset::locality(locality(dst_)))
         {
+            DEBUG("Creating sender sync");
+            LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
         }
 
         parcelset::locality const& destination() const
@@ -169,7 +171,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
         }
 
-        int get_dst_index() {
+        int get_dst_rank() {
             int index = dst_;
             if (!is_comm_world(util::lci_environment::communicator())) {
                 MPI_Group g0, g1;
@@ -193,19 +195,27 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             if(!chunks.empty())
             {
                 util::lci_environment::scoped_lock l;
-                LCI_one2one_set_empty(&sync_);
-                while(LCI_sendd(
-                            chunks.data(),
-                            static_cast<int>(
-                                chunks.size()
-                                 * sizeof(parcel_buffer_type::transmission_chunk_type)
-                            ),
-                            get_dst_index(),
-                            tag_,
-                            util::lci_environment::lci_endpoint(),
-                            &sync_
-                      ) != LCI_OK ){ LCI_progress(0,1); }
 
+                DEBUG("Rank %d: calling send_transmission_chunks()", LCI_RANK);
+
+                lbuf_.address = chunks.data();
+                LCI_memory_register(
+                    LCI_UR_DEVICE, 
+                    lbuf_.address, 
+                    static_cast<int>(chunks.size() 
+                        * sizeof(parcel_buffer_type::transmission_chunk_type)), 
+                    &lbuf_.segment);
+                lbuf_.length = static_cast<int>(chunks.size() * sizeof(parcel_buffer_type::transmission_chunk_type));
+                while(LCI_sendl(
+                    util::lci_environment::lci_endpoint(),
+                    lbuf_,
+                    get_dst_rank(),
+                    tag_,
+                    sync_,
+                    NULL
+                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                DEBUG("Rank %d: Sent transmission chunk", LCI_RANK);
                 request_ptr_ = &sync_;
             }
 
@@ -220,27 +230,27 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             if(!header_.piggy_back()) {
                 util::lci_environment::scoped_lock l;
-                if (false && static_cast<int>(buffer_.data_.size()) < LCI_BUFFERED_LENGTH) {
-                    // Turned off using buffered messages because they fail when too many are sent in a row (need to debug in the future)
-                    while(LCI_sendbc(
-                                buffer_.data_.data(),
-                                static_cast<int>(buffer_.data_.size()),
-                                get_dst_index(),
-                                tag_,
-                                util::lci_environment::lci_endpoint()
-                          ) != LCI_OK ) {LCI_progress(0,1); }
-                } else { // direct send
-                    LCI_one2one_set_empty(&sync_);
-                    while(LCI_sendd(
-                                buffer_.data_.data(),
-                                static_cast<int>(buffer_.data_.size()),
-                                get_dst_index(),
-                                tag_,
-                                util::lci_environment::lci_endpoint(),
-                                &sync_
-                          ) != LCI_OK ){ LCI_progress(0,1); }
-                    request_ptr_ = &sync_;
-                }
+
+                DEBUG("Rank %d: calling send_data()", LCI_RANK);
+
+                lbuf_.address = buffer_.data_.data();
+                LCI_memory_register(
+                    LCI_UR_DEVICE, 
+                    lbuf_.address, 
+                    static_cast<int>(buffer_.data_.size()), 
+                    &lbuf_.segment);
+                lbuf_.length = static_cast<int>(buffer_.data_.size());
+                while(LCI_sendl(
+                    util::lci_environment::lci_endpoint(),
+                    lbuf_,
+                    get_dst_rank(),
+                    tag_,
+                    sync_,
+                    NULL
+                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                DEBUG("Rank %d: Sent data with tag %d to %d", LCI_RANK, tag_, get_dst_rank());
+                request_ptr_ = &sync_;
             }
             state_ = sent_data;
             return send_chunks();
@@ -259,18 +269,26 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     else
                     {
                         util::lci_environment::scoped_lock l;
-                        LCI_one2one_set_empty(&sync_);
-                        while(LCI_sendd(
-                                const_cast<void *>(c.data_.cpos_),
-                                static_cast<int>(c.size_),
-                                get_dst_index(),
-                                tag_,
-                                util::lci_environment::lci_endpoint(),
-                                &sync_
-                        ) != LCI_OK) { 
-                            LCI_progress(0,1);
-                        }
 
+                        DEBUG("Rank %d: calling send_chunks()", LCI_RANK);
+
+                        lbuf_.address = const_cast<void *>(c.data_.cpos_);
+                        LCI_memory_register(
+                            LCI_UR_DEVICE,
+                            lbuf_.address,
+                            static_cast<int>(c.size_),
+                            &lbuf_.segment);
+                        lbuf_.length = static_cast<int>(c.size_);
+                        while(LCI_sendl(
+                            util::lci_environment::lci_endpoint(),
+                            lbuf_,
+                            get_dst_rank(),
+                            tag_,
+                            sync_,
+                            NULL
+                        ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+
+                        DEBUG("Rank %d: Sent chunk", LCI_RANK);
                         request_ptr_ = &sync_;
                     }
                  }
@@ -290,10 +308,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             int completed = 0;
             if(request_ptr_ == &sync_) {
-                LCI_progress(0,1);
-                completed = !LCI_one2one_test_empty(&sync_);
+                LCI_progress(LCI_UR_DEVICE);
+                completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
                 if(completed) {
-                    LCI_one2one_set_empty(&sync_);
+                    DEBUG("Rank %d: Sender message completed.", LCI_RANK);
+                    // TODO: this will need to be conditional on it receiving a long/direct message
+                    LCI_memory_deregister(&lbuf_.segment);
                 }
             } else if (request_ptr_ == &request_) {
                 int ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
@@ -344,7 +364,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         MPI_Request request_;
         void *request_ptr_;
-        LCI_syncl_t sync_;
+        LCI_comp_t sync_;
+        LCI_lbuffer_t lbuf_;
         std::size_t chunks_idx_;
         char ack_;
 

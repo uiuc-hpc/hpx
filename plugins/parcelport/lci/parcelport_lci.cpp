@@ -151,8 +151,7 @@ namespace hpx { namespace parcelset
                             "lci::parcelport::do_stop");
                 }
                 stopped_ = true;
-                LCI_PM_barrier();
-                //LCI_barrier();
+                LCI_barrier();
             }
 
             /// Return the name of this locality
