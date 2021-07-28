@@ -21,8 +21,8 @@
 #include <utility>
 #include <vector>
 
-// #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-#define DEBUG(...)
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+// #define DEBUG(...)
 
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
@@ -69,7 +69,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             buffer_.data_.resize(static_cast<std::size_t>(header_.size()));
             buffer_.num_chunks_ = header_.num_chunks();
 
-            DEBUG("Creating receiver sync");
+            // DEBUG("Creating receiver sync");
             LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
         }
 
@@ -144,7 +144,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                         NULL
                     ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                    DEBUG("Rank %d: receiving transmission chunk", LCI_RANK);
+                    // DEBUG("Rank %d: receiving transmission chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -175,7 +175,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                DEBUG("Rank %d: receiving data with tag %d from %d", LCI_RANK, tag_, get_src_rank());
+                // DEBUG("Rank %d: receiving data with tag %d from %d", LCI_RANK, tag_, get_src_rank());
                 request_ptr_ = &sync_;
             }
             state_ = rcvd_data;
@@ -213,7 +213,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                         NULL
                     ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                    DEBUG("Rank %d: receiving chunk", LCI_RANK);
+                    // DEBUG("Rank %d: receiving chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -236,7 +236,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
                 // completed = (LCI_sync_test(sync_, NULL) != LCI_ERR_RETRY);
                 if(completed) {
-                    DEBUG("Rank %d: received message.", LCI_RANK);
+                    // DEBUG("Rank %d: received message.", LCI_RANK);
                     // TODO: this will need to be conditional on it receiving a long/direct message
                     LCI_memory_deregister(&lbuf_.segment);
                 }
@@ -268,6 +268,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     1,
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+                // DEBUG("Rank %d: sent release tag %d", LCI_RANK, tag_);
             }
 
             decode_parcels(pp_, std::move(buffer_), num_thread);

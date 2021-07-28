@@ -43,11 +43,11 @@ namespace hpx { namespace util {
 
         static LCI_endpoint_t& rt_endpoint();
 
-        // LCI completion queue for receiving release tags
+        static LCI_endpoint_t& h_endpoint();
+
         static LCI_comp_t& rt_queue();
 
-        // LCI completion queue for sending release tags
-        static LCI_comp_t& rt_queue_sender();
+        static LCI_comp_t& h_queue();
 
         static std::string get_processor_name();
 
@@ -84,7 +84,9 @@ namespace hpx { namespace util {
 
         static LCI_endpoint_t ep_;
         static LCI_endpoint_t rt_ep_;
+        static LCI_endpoint_t h_ep_;
         static LCI_comp_t rt_cq_r_;
+        static LCI_comp_t h_cq_r_;
 
     };
 }}    // namespace hpx::util

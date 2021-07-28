@@ -25,6 +25,8 @@
 #include <mutex>
 #include <utility>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
     struct sender
@@ -122,6 +124,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             {
                 HPX_ASSERT(next_free > 1);
                 tag_provider_.release(next_free);
+                // DEBUG("Released tag %d on rank %d", next_free, LCI_RANK);
             }
         }
 

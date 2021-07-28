@@ -18,7 +18,7 @@
 #include <string>
 
 #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-
+// #define DEBUG(...)
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace util {
@@ -100,6 +100,8 @@ namespace hpx { namespace util {
     LCI_endpoint_t lci_environment::ep_;
     LCI_endpoint_t lci_environment::rt_ep_;
     LCI_comp_t lci_environment::rt_cq_r_;
+    LCI_endpoint_t lci_environment::h_ep_;
+    LCI_comp_t lci_environment::h_cq_r_;
 
     ///////////////////////////////////////////////////////////////////////////
     int lci_environment::init(
@@ -139,6 +141,8 @@ namespace hpx { namespace util {
                 LCI_error_t lci_retval = LCI_initialize();
                 if(lci_retval != LCI_OK) return lci_retval;
         }
+
+        // create main endpoint for pt2pt msgs
         LCI_plist_t plist_;
         LCI_plist_create(&plist_);
         LCI_plist_set_comp_type(plist_, LCI_PORT_COMMAND, LCI_COMPLETION_SYNC);
@@ -146,9 +150,20 @@ namespace hpx { namespace util {
         LCI_endpoint_init(&ep_, LCI_UR_DEVICE, plist_);
         LCI_plist_free(&plist_);
 
+        // set endpoint for release tag msgs
         rt_ep_ = LCI_UR_ENDPOINT;
         rt_cq_r_ = LCI_UR_CQ;
-        // LCI_queue_create(0, &rt_cq_);
+
+        // create endpoint for header msgs
+        LCI_plist_t h_plist_;
+        LCI_plist_create(&h_plist_);
+        LCI_queue_create(LCI_UR_DEVICE, &h_cq_r_);
+        LCI_plist_set_comp_type(h_plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_QUEUE);
+        LCI_plist_set_comp_type(h_plist_, LCI_PORT_COMMAND, LCI_COMPLETION_QUEUE);
+        LCI_plist_set_default_comp(h_plist_, h_cq_r_);
+        LCI_endpoint_init(&h_ep_, LCI_UR_DEVICE, h_plist_);
+        LCI_plist_free(&h_plist_);
+        // DEBUG("Rank %d: Init lci env", LCI_RANK);
 
         return retval;
     }
@@ -319,6 +334,14 @@ namespace hpx { namespace util {
 
     LCI_comp_t& lci_environment::rt_queue() {
         return rt_cq_r_;
+    }
+
+    LCI_endpoint_t& lci_environment::h_endpoint() {
+        return h_ep_;
+    }
+
+    LCI_comp_t& lci_environment::h_queue() {
+        return h_cq_r_;
     }
 
     lci_environment::scoped_lock::scoped_lock()

@@ -25,6 +25,9 @@
 #include <set>
 #include <utility>
 
+// #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+#define DEBUG(...)
+
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
     template <typename Parcelport>
@@ -45,10 +48,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         {}
 
         void run()
-        {
-            util::lci_environment::scoped_lock l;
-            new_header();
-        }
+        {}
 
         bool background_work()
         {
@@ -100,40 +100,30 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             if(l.locked)
             {
-                MPI_Status status;
-                if(request_done_locked(hdr_request_, &status))
-                {
-                    header h = new_header();
+                LCI_error_t ret = LCI_queue_pop(util::lci_environment::h_queue(), &next_header_request_);
+                if(ret == LCI_OK) {
+                    // TODO: add the header from medium buffer. Make sure we're getting the right data here
+                    header h = *(header*)(next_header_request_.data.mbuffer.address);
+                    h.assert_valid();
+                    // DEBUG("Rank %d: LCI header was valid, first byte: %c", LCI_RANK, h.data()[0]);
                     l.unlock();
                     header_lock.unlock();
+                    // DEBUG("Rank %d: accepting a header from rank %d, buffer size %lu", LCI_RANK, next_header_request_.rank, next_header_request_.data.mbuffer.length);
                     res.reset(
                         new connection_type(
-                            status.MPI_SOURCE
-                          , h
-                          , pp_
+                            next_header_request_.rank,
+                            h,
+                            pp_
                         )
                     );
+                    LCI_mbuffer_free(next_header_request_.data.mbuffer);
                     return res;
                 }
             }
             return res;
         }
 
-        header new_header()
-        {
-            header h = rcv_header_;
-            rcv_header_.reset();
-            MPI_Irecv(
-                rcv_header_.data()
-              , rcv_header_.data_size_
-              , MPI_BYTE
-              , MPI_ANY_SOURCE
-              , 0
-              , util::lci_environment::communicator()
-              , &hdr_request_
-            );
-            return h;
-        }
+        LCI_request_t next_header_request_;
 
         Parcelport & pp_;
 
