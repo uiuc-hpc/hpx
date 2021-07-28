@@ -17,6 +17,9 @@
 #include <cstdlib>
 #include <string>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+
+
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace util {
 
@@ -96,7 +99,6 @@ namespace hpx { namespace util {
 
     LCI_endpoint_t lci_environment::ep_;
     LCI_endpoint_t lci_environment::rt_ep_;
-    LCI_comp_t lci_environment::rt_cq_s_;
     LCI_comp_t lci_environment::rt_cq_r_;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -145,7 +147,6 @@ namespace hpx { namespace util {
         LCI_plist_free(&plist_);
 
         rt_ep_ = LCI_UR_ENDPOINT;
-        rt_cq_s_ = LCI_UR_CQ_REMOTE;
         rt_cq_r_ = LCI_UR_CQ;
         // LCI_queue_create(0, &rt_cq_);
 
@@ -318,10 +319,6 @@ namespace hpx { namespace util {
 
     LCI_comp_t& lci_environment::rt_queue() {
         return rt_cq_r_;
-    }
-
-    LCI_comp_t& lci_environment::rt_queue_sender() {
-        return rt_cq_s_;
     }
 
     lci_environment::scoped_lock::scoped_lock()

@@ -260,7 +260,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             {
                 util::lci_environment::scoped_lock l;
-                short_rt_ = tag_;
+                *(int*)&short_rt_ = tag_;
                 while(LCI_puts(
                     util::lci_environment::rt_endpoint(),
                     short_rt_,

@@ -134,7 +134,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                                     util::lci_environment::rt_queue(), 
                                     &next_free_tag_request_);
                 if(ret == LCI_OK) {
-                    return next_free_tag_request_.data.immediate;
+                    return *(int*)&next_free_tag_request_.data.immediate;
                 } else {
                     LCI_progress(LCI_UR_DEVICE);
                 }

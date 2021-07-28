@@ -84,7 +84,6 @@ namespace hpx { namespace util {
 
         static LCI_endpoint_t ep_;
         static LCI_endpoint_t rt_ep_;
-        static LCI_comp_t rt_cq_s_;
         static LCI_comp_t rt_cq_r_;
 
     };
