@@ -26,9 +26,6 @@
 #include <utility>
 #include <vector>
 
-#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-// #define DEBUG(...)
-
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
     struct sender;
@@ -71,7 +68,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
           , sender_(s)
           , tag_(-1)
           , dst_(dst)
-          , request_(MPI_REQUEST_NULL)
           , request_ptr_(nullptr)
           , chunks_idx_(0)
           , ack_(0)
@@ -158,28 +154,14 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     0,
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
-                // DEBUG("Sent header from %d to %d, size %d, first byte is %c", LCI_RANK, get_dst_rank(), header_.data_size_, header_.data()[0]);
             }
 
             state_ = sent_header;
             return send_transmission_chunks();
         }
 
-        bool is_comm_world(MPI_Comm comm) {
-            int result, error;
-            error = MPI_Comm_compare(comm, MPI_COMM_WORLD, &result);
-            return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
-        }
-
         int get_dst_rank() {
-            int index = dst_;
-            if (!is_comm_world(util::lci_environment::communicator())) {
-                MPI_Group g0, g1;
-                MPI_Comm_group(MPI_COMM_WORLD, &g0);
-                MPI_Comm_group(util::lci_environment::communicator(), &g1);
-                MPI_Group_translate_ranks(g1, 1, &dst_, g0, &index);
-            }
-            return index;
+            return dst_;
         }
 
         bool send_transmission_chunks()
@@ -195,8 +177,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             if(!chunks.empty())
             {
                 util::lci_environment::scoped_lock l;
-
-                // DEBUG("Rank %d: calling send_transmission_chunks()", LCI_RANK);
 
                 lbuf_.address = chunks.data();
                 LCI_memory_register(
@@ -215,7 +195,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                // DEBUG("Rank %d: Sent transmission chunk", LCI_RANK);
                 request_ptr_ = &sync_;
             }
 
@@ -230,8 +209,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             if(!header_.piggy_back()) {
                 util::lci_environment::scoped_lock l;
-
-                // DEBUG("Rank %d: calling send_data()", LCI_RANK);
 
                 lbuf_.address = buffer_.data_.data();
                 LCI_memory_register(
@@ -249,7 +226,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                // DEBUG("Rank %d: Sent data with tag %d to %d", LCI_RANK, tag_, get_dst_rank());
                 request_ptr_ = &sync_;
             }
             state_ = sent_data;
@@ -270,8 +246,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     {
                         util::lci_environment::scoped_lock l;
 
-                        // DEBUG("Rank %d: calling send_chunks()", LCI_RANK);
-
                         lbuf_.address = const_cast<void *>(c.data_.cpos_);
                         LCI_memory_register(
                             LCI_UR_DEVICE,
@@ -288,7 +262,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                             NULL
                         ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                        // DEBUG("Rank %d: Sent chunk", LCI_RANK);
                         request_ptr_ = &sync_;
                     }
                  }
@@ -307,17 +280,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             if(!l.locked) return false;
 
             int completed = 0;
-            if(request_ptr_ == &sync_) {
+            if(request_ptr_ == &sync_) { // TODO: can we do this unconditionally?
                 LCI_progress(LCI_UR_DEVICE);
                 completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
                 if(completed) {
-                    // DEBUG("Rank %d: Sender message completed.", LCI_RANK);
-                    // TODO: this will need to be conditional on it receiving a long/direct message
                     LCI_memory_deregister(&lbuf_.segment);
                 }
-            } else if (request_ptr_ == &request_) {
-                int ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
-                HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {                
                 request_ptr_ = nullptr;
@@ -362,7 +330,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         header header_;
 
-        MPI_Request request_;
         void *request_ptr_;
         LCI_comp_t sync_;
         LCI_lbuffer_t lbuf_;

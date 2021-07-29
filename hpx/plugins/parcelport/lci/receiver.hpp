@@ -25,9 +25,6 @@
 #include <set>
 #include <utility>
 
-// #define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-#define DEBUG(...)
-
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
     template <typename Parcelport>
@@ -44,7 +41,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         receiver(Parcelport& pp)
           : pp_(pp)
-          , hdr_request_(0)
         {}
 
         void run()
@@ -102,13 +98,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             {
                 LCI_error_t ret = LCI_queue_pop(util::lci_environment::h_queue(), &next_header_request_);
                 if(ret == LCI_OK) {
-                    // TODO: add the header from medium buffer. Make sure we're getting the right data here
                     header h = *(header*)(next_header_request_.data.mbuffer.address);
                     h.assert_valid();
-                    // DEBUG("Rank %d: LCI header was valid, first byte: %c", LCI_RANK, h.data()[0]);
                     l.unlock();
                     header_lock.unlock();
-                    // DEBUG("Rank %d: accepting a header from rank %d, buffer size %lu", LCI_RANK, next_header_request_.rank, next_header_request_.data.mbuffer.length);
                     res.reset(
                         new connection_type(
                             next_header_request_.rank,
@@ -128,7 +121,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         Parcelport & pp_;
 
         mutex_type headers_mtx_;
-        MPI_Request hdr_request_;
         header rcv_header_;
 
         mutex_type handles_header_mtx_;
@@ -136,19 +128,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         mutex_type connections_mtx_;
         connection_list connections_;
-
-        bool request_done_locked(MPI_Request & r, MPI_Status *status)
-        {
-            int completed = 0;
-            int ret = 0;
-            ret = MPI_Test(&r, &completed, status);
-            HPX_ASSERT(ret == MPI_SUCCESS);
-            if(completed)
-            {
-                return true;
-            }
-            return false;
-        }
     };
 
 }}}}

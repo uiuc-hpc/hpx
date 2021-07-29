@@ -21,9 +21,6 @@
 #include <utility>
 #include <vector>
 
-#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
-// #define DEBUG(...)
-
 namespace hpx { namespace parcelset { namespace policies { namespace lci
 {
     template <typename Parcelport>
@@ -55,7 +52,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
           , src_(src)
           , tag_(h.tag())
           , header_(h)
-          , request_(MPI_REQUEST_NULL)
           , request_ptr_(nullptr)
           , chunks_idx_(0)
           , pp_(pp)
@@ -69,7 +65,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             buffer_.data_.resize(static_cast<std::size_t>(header_.size()));
             buffer_.num_chunks_ = header_.num_chunks();
 
-            // DEBUG("Creating receiver sync");
             LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
         }
 
@@ -92,22 +87,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             }
             return false;
         }
-
-        bool is_comm_world(MPI_Comm comm) {
-            int result, error;
-            error = MPI_Comm_compare(comm, MPI_COMM_WORLD, &result);
-            return error == MPI_SUCCESS && (result == MPI_CONGRUENT || result == MPI_IDENT); // identical objects or identical constituents and rank order
-        }
         
         int get_src_rank() {
-            int index = src_;
-            if(!is_comm_world(util::lci_environment::communicator())) {
-                MPI_Group g0, g1;
-                MPI_Comm_group(MPI_COMM_WORLD, &g0);
-                MPI_Comm_group(util::lci_environment::communicator(), &g1);
-                MPI_Group_translate_ranks(g1, 1, &src_, g0, &index);
-            }
-            return index;
+            return src_;
         }
 
         bool receive_transmission_chunks(std::size_t num_thread = -1)
@@ -144,7 +126,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                         NULL
                     ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                    // DEBUG("Rank %d: receiving transmission chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -175,7 +156,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                // DEBUG("Rank %d: receiving data with tag %d from %d", LCI_RANK, tag_, get_src_rank());
                 request_ptr_ = &sync_;
             }
             state_ = rcvd_data;
@@ -213,7 +193,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                         NULL
                     ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
 
-                    // DEBUG("Rank %d: receiving chunk", LCI_RANK);
                     request_ptr_ = &sync_;
                 }
             }
@@ -230,19 +209,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             if(!l.locked) return false;
 
             int completed = 0;
-            if(request_ptr_ == &sync_) {
-                // DEBUG("Checking receiver LCI comm complete"); // confirmed that this is called many times. The failure to ever receive is not due to not checking for a message.
+            if(request_ptr_ == &sync_) { // TODO: can I just do this unconditionally, or is it possible that the ptr is still null?
                 LCI_progress(LCI_UR_DEVICE);
                 completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
-                // completed = (LCI_sync_test(sync_, NULL) != LCI_ERR_RETRY);
                 if(completed) {
-                    // DEBUG("Rank %d: received message.", LCI_RANK);
-                    // TODO: this will need to be conditional on it receiving a long/direct message
                     LCI_memory_deregister(&lbuf_.segment);
                 }
-            } else if (request_ptr_ == &request_) {
-                int ret = MPI_Test(&request_, &completed, MPI_STATUS_IGNORE);
-                HPX_ASSERT(ret == MPI_SUCCESS);
             }
             if(completed) {
                 request_ptr_ = nullptr;
@@ -268,7 +240,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     1,
                     NULL
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
-                // DEBUG("Rank %d: sent release tag %d", LCI_RANK, tag_);
             }
 
             decode_parcels(pp_, std::move(buffer_), num_thread);
@@ -292,7 +263,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         header header_;
         buffer_type buffer_;
 
-        MPI_Request request_;
         void* request_ptr_;
         LCI_comp_t sync_;
         LCI_lbuffer_t lbuf_;
