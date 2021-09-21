@@ -17,3 +17,6 @@ packages
 .vscode
 .ccls-cache
 .clangd
+
+.idea
+cmake-build*
