@@ -15,6 +15,7 @@ module load boost
 module load hwloc
 module load openmpi
 module load papi
+module load python
 export CC=gcc
 export CXX=g++
 

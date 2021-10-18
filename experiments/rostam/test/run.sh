@@ -5,7 +5,10 @@ set -e
 # import the the script containing common functions
 source ../../include/scripts.sh
 
-TASKS=("build_test.slurm")
+LCI_ROOT=$(realpath "${LCI_ROOT:-../../external/lci-install}")
+export LCI_ROOT=${LCI_ROOT}
+
+TASKS=("test.slurm")
 sbatch_path=$(realpath "${sbatch_path:-.}")
 build_path=$(realpath "${exe_path:-init/build/}")
 

@@ -82,7 +82,7 @@ function(add_hpx_test category name)
 
   # cmake-format: off
   set(cmd
-      "${PYTHON_EXECUTABLE}"
+      "${find}"
       "${_script_location}/bin/hpxrun.py"
       ${_exe}
         "-e" "${expected}"
@@ -141,6 +141,30 @@ function(add_hpx_test category name)
         if(${name}_TIMEOUT)
           set_tests_properties(
             "${_full_name}" PROPERTIES TIMEOUT ${${name}_TIMEOUT}
+          )
+        endif()
+      endif()
+    endif()
+    if(HPX_WITH_PARCELPORT_LCI)
+      set(_add_test FALSE)
+      if(DEFINED ${name}_PARCELPORTS)
+        set(PP_FOUND -1)
+        list(FIND ${name}_PARCELPORTS "lci" PP_FOUND)
+        if(NOT PP_FOUND EQUAL -1)
+          set(_add_test TRUE)
+        endif()
+      else()
+        set(_add_test TRUE)
+      endif()
+      if(_add_test)
+        set(_full_name "${category}.distributed.lci.${name}")
+        add_test(NAME "${_full_name}" COMMAND ${cmd} "-p" "lci" "-r" "mpi"
+                ${args}
+                )
+        set_tests_properties("${_full_name}" PROPERTIES RUN_SERIAL TRUE)
+        if(${name}_TIMEOUT)
+          set_tests_properties(
+                  "${_full_name}" PROPERTIES TIMEOUT ${${name}_TIMEOUT}
           )
         endif()
       endif()

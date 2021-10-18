@@ -5,7 +5,7 @@ set -e
 # import the the script containing common functions
 source ../../include/scripts.sh
 
-# get the ibvBench source path via environment variable or default value
+# get the HPX source path via environment variable or default value
 HPX_SOURCE_PATH=$(realpath "${HPX_SOURCE_PATH:-../../../}")
 
 if [[ -f "${HPX_SOURCE_PATH}/libs/full/include/include/hpx/hpx.hpp" ]]; then
@@ -28,6 +28,7 @@ module load boost
 module load hwloc
 module load openmpi
 module load papi
+module load python
 export CC=gcc
 export CXX=g++
 
@@ -37,7 +38,7 @@ record_env
 mkdir -p log
 mv *.log log
 
-# build FB
+# build HPX
 mkdir -p build
 cd build
 echo "Running cmake..."

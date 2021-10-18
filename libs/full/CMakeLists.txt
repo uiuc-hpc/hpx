@@ -35,6 +35,7 @@ set(_hpx_full_modules
     include_local
     init_runtime
     init_runtime_local
+    lci_base
     lcos_distributed
     mpi_base
     naming

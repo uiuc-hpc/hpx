@@ -7,7 +7,7 @@
 
 #include <hpx/config.hpp>
 
-#include <hpx/modules/mpi_base.hpp>
+#include <hpx/modules/lci_base.hpp>
 #include <hpx/modules/runtime_configuration.hpp>
 #include <hpx/modules/util.hpp>
 
@@ -17,25 +17,28 @@
 #include <cstdlib>
 #include <string>
 
+#define DEBUG(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
+// #define DEBUG(...)
+
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx { namespace util {
 
     namespace detail {
 
-        bool detect_mpi_environment(
+        bool detect_lci_environment(
             util::runtime_configuration const& cfg, char const* default_env)
         {
 #if defined(__bgq__)
             // If running on BG/Q, we can safely assume to always run in an
-            // MPI environment
+            // LCI environment
             return true;
 #else
-            std::string mpi_environment_strings =
-                cfg.get_entry("hpx.parcel.mpi.env", default_env);
+            std::string lci_environment_strings =
+                cfg.get_entry("hpx.parcel.lci.env", default_env);
 
             typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
             boost::char_separator<char> sep(";,: ");
-            tokenizer tokens(mpi_environment_strings, sep);
+            tokenizer tokens(lci_environment_strings, sep);
             for (tokenizer::iterator it = tokens.begin(); it != tokens.end();
                  ++it)
             {
@@ -48,55 +51,64 @@ namespace hpx { namespace util {
         }
     }    // namespace detail
 
-    bool mpi_environment::check_mpi_environment(
+    bool lci_environment::check_lci_environment(
         util::runtime_configuration const& cfg)
-    {
-#if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)
-        // We disable the MPI parcelport if any of these hold:
+    { // TODO: this should be returning false when we're using the MPI environment
+#if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
+        // We disable the LCI parcelport if any of these hold:
         //
         // - The parcelport is explicitly disabled
-        // - The application is not run in an MPI environment
+        // - The application is not run in an LCI environment
         // - The TCP parcelport is enabled and has higher priority
-        if (get_entry_as(cfg, "hpx.parcel.mpi.enable", 1) == 0 ||
-            !detail::detect_mpi_environment(cfg, HPX_HAVE_PARCELPORT_MPI_ENV) ||
+        // - The MPI parcelport is enabled and has higher priority
+        if (get_entry_as(cfg, "hpx.parcel.lci.enable", 1) == 0 ||
+            !detail::detect_lci_environment(cfg, HPX_HAVE_PARCELPORT_LCI_ENV) ||
             (get_entry_as(cfg, "hpx.parcel.tcp.enable", 1) &&
                 (get_entry_as(cfg, "hpx.parcel.tcp.priority", 1) >
-                    get_entry_as(cfg, "hpx.parcel.mpi.priority", 0))) ||
-            (get_entry_as(cfg, "hpx.parcel.lci.enable", 1) &&
-             (get_entry_as(cfg, "hpx.parcel.lci.priority", 1) >
-              get_entry_as(cfg, "hpx.parcel.mpi.priority", 0))))
+                    get_entry_as(cfg, "hpx.parcel.lci.priority", 0))) ||
+            (get_entry_as(cfg, "hpx.parcel.mpi.enable", 1) &&
+             (get_entry_as(cfg, "hpx.parcel.mpi.priority", 1) >
+              get_entry_as(cfg, "hpx.parcel.lci.priority", 0))))
         {
             return false;
         }
 
         return true;
-#elif defined(HPX_HAVE_MODULE_MPI_BASE)
-        // if MPI futures are enabled while networking is off we need to
+#elif defined(HPX_HAVE_MODULE_LCI_BASE)
+        // if LCI futures are enabled while networking is off we need to
         // check whether we were run using mpirun
-        return detail::detect_mpi_environment(cfg, HPX_HAVE_PARCELPORT_MPI_ENV);
+        return detail::detect_lci_environment(cfg, HPX_HAVE_PARCELPORT_LCI_ENV);
 #else
         return false;
 #endif
     }
 }}    // namespace hpx::util
 
-#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)) ||      \
-    defined(HPX_HAVE_MODULE_MPI_BASE)
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
 
 namespace hpx { namespace util {
 
-    mpi_environment::mutex_type mpi_environment::mtx_;
-    bool mpi_environment::enabled_ = false;
-    bool mpi_environment::has_called_init_ = false;
-    int mpi_environment::provided_threading_flag_ = MPI_THREAD_SINGLE;
-    MPI_Comm mpi_environment::communicator_ = MPI_COMM_NULL;
+    lci_environment::mutex_type lci_environment::mtx_;
+    bool lci_environment::enabled_ = false;
+    bool lci_environment::has_called_init_ = false;
+    int lci_environment::provided_threading_flag_ = MPI_THREAD_SINGLE;
+    MPI_Comm lci_environment::communicator_ = MPI_COMM_NULL;
 
-    int mpi_environment::is_initialized_ = -1;
+    int lci_environment::is_initialized_ = -1;
+
+    LCI_endpoint_t lci_environment::ep_;
+    LCI_endpoint_t lci_environment::rt_ep_;
+    LCI_comp_t lci_environment::rt_cq_r_;
+    LCI_endpoint_t lci_environment::h_ep_;
+    LCI_comp_t lci_environment::h_cq_r_;
 
     ///////////////////////////////////////////////////////////////////////////
-    int mpi_environment::init(
+    int lci_environment::init(
         int*, char***, const int required, const int minimal, int& provided)
     {
+
+
         has_called_init_ = false;
 
         // Check if MPI_Init has been called previously
@@ -117,16 +129,47 @@ namespace hpx { namespace util {
             if (provided < minimal)
             {
                 HPX_THROW_EXCEPTION(invalid_status,
-                    "hpx::util::mpi_environment::init",
+                    "hpx::util::lci_environment::init",
                     "MPI doesn't provide minimal requested thread level");
             }
             has_called_init_ = true;
         }
+
+        int lci_initialized = 0;
+        LCI_initialized(&lci_initialized);
+        if(!lci_initialized) {
+                LCI_error_t lci_retval = LCI_initialize();
+                if(lci_retval != LCI_OK) return lci_retval;
+        }
+
+        // create main endpoint for pt2pt msgs
+        LCI_plist_t plist_;
+        LCI_plist_create(&plist_);
+        LCI_plist_set_comp_type(plist_, LCI_PORT_COMMAND, LCI_COMPLETION_SYNC);
+        LCI_plist_set_comp_type(plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_SYNC);
+        LCI_endpoint_init(&ep_, LCI_UR_DEVICE, plist_);
+        LCI_plist_free(&plist_);
+
+        // set endpoint for release tag msgs
+        rt_ep_ = LCI_UR_ENDPOINT;
+        rt_cq_r_ = LCI_UR_CQ;
+
+        // create endpoint for header msgs
+        LCI_plist_t h_plist_;
+        LCI_plist_create(&h_plist_);
+        LCI_queue_create(LCI_UR_DEVICE, &h_cq_r_);
+        LCI_plist_set_comp_type(h_plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_QUEUE);
+        LCI_plist_set_comp_type(h_plist_, LCI_PORT_COMMAND, LCI_COMPLETION_QUEUE);
+        LCI_plist_set_default_comp(h_plist_, h_cq_r_);
+        LCI_endpoint_init(&h_ep_, LCI_UR_DEVICE, h_plist_);
+        LCI_plist_free(&h_plist_);
+        // DEBUG("Rank %d: Init lci env", LCI_RANK);
+
         return retval;
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    void mpi_environment::init(
+    void lci_environment::init(
         int* argc, char*** argv, util::runtime_configuration& rtcfg)
     {
         if (enabled_)
@@ -135,21 +178,21 @@ namespace hpx { namespace util {
         int this_rank = -1;
         has_called_init_ = false;
 
-        // We assume to use the MPI parcelport if it is not explicitly disabled
-        enabled_ = check_mpi_environment(rtcfg);
+        // We assume to use the LCI parcelport if it is not explicitly disabled
+        enabled_ = check_lci_environment(rtcfg);
         if (!enabled_)
         {
-            rtcfg.add_entry("hpx.parcel.mpi.enable", "0");
+            rtcfg.add_entry("hpx.parcel.lci.enable", "0");
             return;
         }
 
-        rtcfg.add_entry("hpx.parcel.bootstrap", "mpi");
+        rtcfg.add_entry("hpx.parcel.bootstrap", "lci");
 
         int required = MPI_THREAD_SINGLE;
         int minimal = MPI_THREAD_SINGLE;
-#if defined(HPX_HAVE_PARCELPORT_MPI_MULTITHREADED)
+#if defined(HPX_HAVE_PARCELPORT_LCI_MULTITHREADED)
         required =
-            (get_entry_as(rtcfg, "hpx.parcel.mpi.multithreaded", 1) != 0) ?
+            (get_entry_as(rtcfg, "hpx.parcel.lci.multithreaded", 1) != 0) ?
             MPI_THREAD_MULTIPLE :
             MPI_THREAD_SINGLE;
 
@@ -164,8 +207,8 @@ namespace hpx { namespace util {
             init(argc, argv, required, minimal, provided_threading_flag_);
         if (MPI_SUCCESS != retval && MPI_ERR_OTHER != retval)
         {
-            // explicitly disable mpi if not run by mpirun
-            rtcfg.add_entry("hpx.parcel.mpi.enable", "0");
+            // explicitly disable lci if not run by mpirun
+            rtcfg.add_entry("hpx.parcel.lci.enable", "0");
 
             enabled_ = false;
 
@@ -174,7 +217,7 @@ namespace hpx { namespace util {
             MPI_Error_string(retval, message, &msglen);
             message[msglen] = '\0';
 
-            std::string msg("mpi_environment::init: MPI_Init_thread failed: ");
+            std::string msg("lci_environment::init: MPI_Init_thread failed: ");
             msg = msg + message + ".";
             throw std::runtime_error(msg.c_str());
         }
@@ -183,8 +226,8 @@ namespace hpx { namespace util {
 
         if (provided_threading_flag_ < MPI_THREAD_SERIALIZED)
         {
-            // explicitly disable mpi if not run by mpirun
-            rtcfg.add_entry("hpx.parcel.mpi.multithreaded", "0");
+            // explicitly disable lci if not run by mpirun
+            rtcfg.add_entry("hpx.parcel.lci.multithreaded", "0");
         }
 
         if (provided_threading_flag_ == MPI_THREAD_FUNNELED)
@@ -192,10 +235,10 @@ namespace hpx { namespace util {
             enabled_ = false;
             has_called_init_ = false;
             throw std::runtime_error(
-                "mpi_environment::init: MPI_Init_thread: "
+                "lci_environment::init: MPI_Init_thread: "
                 "The underlying MPI implementation only supports "
                 "MPI_THREAD_FUNNELED. This mode is not supported by HPX. "
-                "Please pass -Ihpx.parcel.mpi.multithreaded=0 to explicitly "
+                "Please pass -Ihpx.parcel.lci.multithreaded=0 to explicitly "
                 "disable MPI multi-threading.");
         }
 
@@ -216,12 +259,12 @@ namespace hpx { namespace util {
         rtcfg.mode_ = hpx::runtime_mode::local;
 #endif
 
-        rtcfg.add_entry("hpx.parcel.mpi.rank", std::to_string(this_rank));
-        rtcfg.add_entry("hpx.parcel.mpi.processorname", get_processor_name());
+        rtcfg.add_entry("hpx.parcel.lci.rank", std::to_string(this_rank));
+        rtcfg.add_entry("hpx.parcel.lci.processorname", get_processor_name());
     }
 
-    std::string mpi_environment::get_processor_name()
-    {
+    std::string lci_environment::get_processor_name()
+    { // TODO: find out how to do with with LCI and if it's necessary for LCI implementation
         char name[MPI_MAX_PROCESSOR_NAME + 1] = {'\0'};
         int len = 0;
         MPI_Get_processor_name(name, &len);
@@ -229,10 +272,13 @@ namespace hpx { namespace util {
         return name;
     }
 
-    void mpi_environment::finalize()
+    void lci_environment::finalize()
     {
         if (enabled() && has_called_init())
         {
+            int lci_init = 0;
+            LCI_initialized(&lci_init);
+            if(lci_init) LCI_finalize();
             int is_finalized = 0;
             MPI_Finalized(&is_finalized);
             if (!is_finalized)
@@ -242,61 +288,81 @@ namespace hpx { namespace util {
         }
     }
 
-    bool mpi_environment::enabled()
+    bool lci_environment::enabled()
     {
         return enabled_;
     }
 
-    bool mpi_environment::multi_threaded()
-    {
+    bool lci_environment::multi_threaded()
+    { // TODO: find out how to do with with LCI
         return provided_threading_flag_ >= MPI_THREAD_SERIALIZED;
     }
 
-    bool mpi_environment::has_called_init()
+    bool lci_environment::has_called_init()
     {
         return has_called_init_;
     }
 
-    int mpi_environment::size()
+    int lci_environment::size()
     {
         int res(-1);
         if (enabled())
-            MPI_Comm_size(communicator(), &res);
+            res = LCI_NUM_PROCESSES;
         return res;
     }
 
-    int mpi_environment::rank()
+    int lci_environment::rank()
     {
         int res(-1);
         if (enabled())
-            MPI_Comm_rank(communicator(), &res);
+            res = LCI_RANK;
         return res;
     }
 
-    MPI_Comm& mpi_environment::communicator()
+    MPI_Comm& lci_environment::communicator()
     {
         return communicator_;
     }
 
-    mpi_environment::scoped_lock::scoped_lock()
+    LCI_endpoint_t& lci_environment::lci_endpoint() {
+        return ep_;
+    }
+
+    LCI_endpoint_t& lci_environment::rt_endpoint() {
+        return rt_ep_;
+    }
+
+    LCI_comp_t& lci_environment::rt_queue() {
+        return rt_cq_r_;
+    }
+
+    LCI_endpoint_t& lci_environment::h_endpoint() {
+        return h_ep_;
+    }
+
+    LCI_comp_t& lci_environment::h_queue() {
+        return h_cq_r_;
+    }
+
+    lci_environment::scoped_lock::scoped_lock()
     {
         if (!multi_threaded())
             mtx_.lock();
     }
 
-    mpi_environment::scoped_lock::~scoped_lock()
+    lci_environment::scoped_lock::~scoped_lock()
     {
         if (!multi_threaded())
             mtx_.unlock();
     }
 
-    void mpi_environment::scoped_lock::unlock()
+    void lci_environment::scoped_lock::unlock()
     {
         if (!multi_threaded())
             mtx_.unlock();
     }
 
-    mpi_environment::scoped_try_lock::scoped_try_lock()
+    lci_environment::scoped_try_lock::scoped_try_lock()
       : locked(true)
     {
         if (!multi_threaded())
@@ -305,13 +371,13 @@ namespace hpx { namespace util {
         }
     }
 
-    mpi_environment::scoped_try_lock::~scoped_try_lock()
+    lci_environment::scoped_try_lock::~scoped_try_lock()
     {
         if (!multi_threaded() && locked)
             mtx_.unlock();
     }
 
-    void mpi_environment::scoped_try_lock::unlock()
+    void lci_environment::scoped_try_lock::unlock()
     {
         if (!multi_threaded() && locked)
         {
