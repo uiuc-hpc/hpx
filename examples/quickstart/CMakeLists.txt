@@ -50,7 +50,6 @@ if(HPX_WITH_DISTRIBUTED_RUNTIME)
       hello_world_1
       hello_world_2
       hello_world_distributed
-      hello_world_distributed_dbg
       interest_calculator
       interval_timer
       invoke_function
@@ -73,7 +72,7 @@ endif()
 
 # TODO: These examples currently fail. Disabled until they are fixed.
 set(disabled_tests error_handling fibonacci_await non_atomic_rma shared_mutex
-                   zerocopy_rdma hello_world_distributed_dbg
+                   zerocopy_rdma
 )
 
 set(1d_wave_equation_FLAGS COMPONENT_DEPENDENCIES iostreams)
@@ -95,12 +94,8 @@ if(HPX_HAVE_COMPRESSION_SNAPPY AND SNAPPY_FOUND)
   set(hello_world_distributed_FLAGS COMPONENT_DEPENDENCIES iostreams
                                     DEPENDENCIES compress_snappy
   )
-  set(hello_world_distributed_dbg_FLAGS COMPONENT_DEPENDENCIES iostreams
-          DEPENDENCIES compress_snappy
-          )
 else()
   set(hello_world_distributed_FLAGS COMPONENT_DEPENDENCIES iostreams)
-  set(hello_world_distributed_dbg_FLAGS COMPONENT_DEPENDENCIES iostreams)
 endif()
 set(interval_timer_FLAGS COMPONENT_DEPENDENCIES iostreams)
 set(local_channel_FLAGS COMPONENT_DEPENDENCIES iostreams)
@@ -133,7 +128,6 @@ set(error_handling_PARAMETERS THREADS_PER_LOCALITY 4)
 set(hello_world_1_PARAMETERS THREADS_PER_LOCALITY 4)
 set(hello_world_2_PARAMETERS THREADS_PER_LOCALITY 4)
 set(hello_world_distributed_PARAMETERS THREADS_PER_LOCALITY 4)
-set(hello_world_distributed_dbg_PARAMETERS THREADS_PER_LOCALITY 4)
 set(interval_timer_PARAMETERS THREADS_PER_LOCALITY 4)
 set(local_channel_PARAMETERS THREADS_PER_LOCALITY 4)
 set(sierpinski_PARAMETERS THREADS_PER_LOCALITY 4)

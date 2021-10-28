@@ -238,7 +238,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     short_rt_,
                     get_src_rank(),
                     1,
-                    NULL
+                    LCI_DEFAULT_COMP_REMOTE
                 ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
             }
 

@@ -96,6 +96,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             if(l.locked)
             {
+                LCI_request_t next_header_request_;
                 LCI_error_t ret = LCI_queue_pop(util::lci_environment::h_queue(), &next_header_request_);
                 if(ret == LCI_OK) {
                     header h = *(header*)(next_header_request_.data.mbuffer.address);
@@ -111,12 +112,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     );
                     LCI_mbuffer_free(next_header_request_.data.mbuffer);
                     return res;
+                } else {
+                    LCI_progress(LCI_UR_DEVICE);
                 }
             }
             return res;
         }
-
-        LCI_request_t next_header_request_;
 
         Parcelport & pp_;
 
