@@ -145,15 +145,19 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 HPX_ASSERT(state_ == initialized);
                 HPX_ASSERT(request_ptr_ == nullptr);
                 HPX_ASSERT(LCI_MEDIUM_SIZE >= header_.data_size_);
+                LCI_mbuffer_t medium_header_;
                 medium_header_.length = header_.data_size_;
                 medium_header_.address = header_.data();
-                while(LCI_putma(
+                if (LCI_putma(
                     util::lci_environment::h_endpoint(),
                     medium_header_,
                     get_dst_rank(),
                     0,
                     LCI_DEFAULT_COMP_REMOTE
-                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+                ) != LCI_OK) {
+                    LCI_progress(LCI_UR_DEVICE);
+                    return false;
+                }
             }
 
             state_ = sent_header;
@@ -177,22 +181,21 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             {
                 util::lci_environment::scoped_lock l;
 
+                LCI_lbuffer_t lbuf_;
                 lbuf_.address = chunks.data();
-                LCI_memory_register(
-                    LCI_UR_DEVICE, 
-                    lbuf_.address, 
-                    static_cast<int>(chunks.size() 
-                        * sizeof(parcel_buffer_type::transmission_chunk_type)), 
-                    &lbuf_.segment);
                 lbuf_.length = static_cast<int>(chunks.size() * sizeof(parcel_buffer_type::transmission_chunk_type));
-                while(LCI_sendl(
+                lbuf_.segment = LCI_SEGMENT_ALL;
+                if (LCI_sendl(
                     util::lci_environment::lci_endpoint(),
                     lbuf_,
                     get_dst_rank(),
                     tag_,
                     sync_,
                     NULL
-                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+                ) != LCI_OK) {
+                    LCI_progress(LCI_UR_DEVICE);
+                    return false;
+                }
 
                 request_ptr_ = &sync_;
             }
@@ -209,21 +212,21 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             if(!header_.piggy_back()) {
                 util::lci_environment::scoped_lock l;
 
+                LCI_lbuffer_t lbuf_;
                 lbuf_.address = buffer_.data_.data();
-                LCI_memory_register(
-                    LCI_UR_DEVICE, 
-                    lbuf_.address, 
-                    static_cast<int>(buffer_.data_.size()), 
-                    &lbuf_.segment);
                 lbuf_.length = static_cast<int>(buffer_.data_.size());
-                while(LCI_sendl(
+                lbuf_.segment = LCI_SEGMENT_ALL;
+                if (LCI_sendl(
                     util::lci_environment::lci_endpoint(),
                     lbuf_,
                     get_dst_rank(),
                     tag_,
                     sync_,
                     NULL
-                ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
+                ) != LCI_OK) {
+                    LCI_progress(LCI_UR_DEVICE);
+                    return false;
+                }
 
                 request_ptr_ = &sync_;
             }
@@ -245,22 +248,21 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                     {
                         util::lci_environment::scoped_lock l;
 
+                        LCI_lbuffer_t lbuf_;
                         lbuf_.address = const_cast<void *>(c.data_.cpos_);
-                        LCI_memory_register(
-                            LCI_UR_DEVICE,
-                            lbuf_.address,
-                            static_cast<int>(c.size_),
-                            &lbuf_.segment);
                         lbuf_.length = static_cast<int>(c.size_);
-                        while(LCI_sendl(
+                        lbuf_.segment = LCI_SEGMENT_ALL;
+                        if (LCI_sendl(
                             util::lci_environment::lci_endpoint(),
                             lbuf_,
                             get_dst_rank(),
                             tag_,
                             sync_,
                             NULL
-                        ) != LCI_OK) { LCI_progress(LCI_UR_DEVICE); }
-
+                        ) != LCI_OK) {
+                            LCI_progress(LCI_UR_DEVICE);
+                            return false;
+                        }
                         request_ptr_ = &sync_;
                     }
                  }
@@ -274,23 +276,18 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         bool request_done() {
             if(request_ptr_ == nullptr) return true;
+            HPX_ASSERT(request_ptr_ == &sync_);
 
-            util::lci_environment::scoped_try_lock l;
-            if(!l.locked) return false;
-
-            int completed = 0;
-            if(request_ptr_ == &sync_) { // TODO: can we do this unconditionally?
-                LCI_progress(LCI_UR_DEVICE);
-                completed = (LCI_sync_test(sync_, NULL) == LCI_OK);
-                if(completed) {
-                    LCI_memory_deregister(&lbuf_.segment);
-                }
-            }
-            if(completed) {                
+            LCI_error_t ret = LCI_sync_test(sync_, NULL);
+            if (ret == LCI_OK) {
                 request_ptr_ = nullptr;
                 return true;
+            } else {
+                util::lci_environment::scoped_try_lock l;
+                if(!l.locked) return false;
+                LCI_progress(LCI_UR_DEVICE);
+                return false;
             }
-            return false;
         }
 
         bool done()
@@ -331,9 +328,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         void *request_ptr_;
         LCI_comp_t sync_;
-        LCI_lbuffer_t lbuf_;
         std::size_t chunks_idx_;
-        LCI_mbuffer_t medium_header_;
         char ack_;
 
         parcelset::parcelport* pp_;

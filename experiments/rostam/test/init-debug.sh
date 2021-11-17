@@ -7,7 +7,7 @@ source ../../include/scripts.sh
 
 # get the HPX source path via environment variable or default value
 HPX_SOURCE_PATH=$(realpath "${HPX_SOURCE_PATH:-../../../}")
-LCI_ROOT=$(realpath "${LCI_ROOT:-../../external/lci-install}")
+LCI_ROOT=$(realpath "${LCI_ROOT:-../../external/lci-install-dbg}")
 export LCI_ROOT=${LCI_ROOT}
 
 if [[ -f "${HPX_SOURCE_PATH}/libs/full/include/include/hpx/hpx.hpp" ]]; then

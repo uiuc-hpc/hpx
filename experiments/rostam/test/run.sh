@@ -5,7 +5,7 @@ set -e
 # import the the script containing common functions
 source ../../include/scripts.sh
 
-LCI_ROOT=$(realpath "${LCI_ROOT:-../../external/lci-install}")
+LCI_ROOT=$(realpath "${LCI_ROOT:-../../external/lci-install-dbg}")
 export LCI_ROOT=${LCI_ROOT}
 
 TASKS=("test.slurm")
