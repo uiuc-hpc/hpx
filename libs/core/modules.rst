@@ -53,6 +53,7 @@ Core modules
    /libs/core/lcos_local/docs/index.rst
    /libs/core/logging/docs/index.rst
    /libs/core/memory/docs/index.rst
+   /libs/core/lci_base/docs/index.rst
    /libs/core/mpi_base/docs/index.rst
    /libs/core/pack_traversal/docs/index.rst
    /libs/core/plugin/docs/index.rst

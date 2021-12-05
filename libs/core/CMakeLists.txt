@@ -50,6 +50,7 @@ set(_hpx_core_modules
     lcos_local
     logging
     memory
+    lci_base
     mpi_base
     pack_traversal
     plugin

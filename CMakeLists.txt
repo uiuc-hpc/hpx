@@ -1102,6 +1102,14 @@ if(HPX_WITH_NETWORKING)
     hpx_add_config_define(HPX_HAVE_PARCELPORT_MPI)
   endif()
 
+  hpx_option(
+    HPX_WITH_PARCELPORT_LCI BOOL "Enable the LCI based parcelport." OFF
+    CATEGORY "Parcelport"
+  )
+  if(HPX_WITH_PARCELPORT_LCI)
+    hpx_add_config_define(HPX_HAVE_PARCELPORT_LCI)
+  endif()
+
   # we have to decide here whether we want to have MPI futures
   hpx_option(
     HPX_WITH_ASYNC_MPI
@@ -1179,6 +1187,31 @@ if((HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_MPI) OR HPX_WITH_ASYNC_MPI)
     # hpx_add_compile_flag() below does not add the extra options to the top
     # level directory
     hpx_add_config_define(OMPI_IMPORTS)
+  endif()
+endif()
+
+if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
+  # mpi parcelport settings
+  hpx_option(
+          HPX_WITH_PARCELPORT_LCI_ENV
+          STRING
+          "List of environment variables checked to detect LCI (default: MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK)."
+          "MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK"
+          CATEGORY "Parcelport"
+          ADVANCED
+  )
+
+  # This list is to detect whether we run inside an lci environment. If one of
+  # those environment variables is set, the LCI parcelport is enabled by
+  # default. PMI_RANK: Intel MPI and MVAPICH2 OMPI_COMM_WORLD_SIZE: OpenMPI
+  # starting at version 1.3
+  if(HPX_WITH_PARCELPORT_LCI_ENV)
+    string(REPLACE ";" "," hpx_parcelport_lci_env_
+            "${HPX_WITH_PARCELPORT_LCI_ENV}"
+            )
+    hpx_add_config_define(
+            HPX_HAVE_PARCELPORT_LCI_ENV "\"${hpx_parcelport_lci_env_}\""
+    )
   endif()
 endif()
 
@@ -2012,6 +2045,7 @@ add_hpx_library_headers_noglob(hpx_external)
 # Setup plugins (set here cause if we include it inside plugins, it will not be
 # defined in src/CMakeLists.txt where we call add_static_parcelports)
 include(HPX_SetupMPI) # must come before APEX
+include(HPX_SetupLCI) # must come before APEX
 
 # Setup packages and subprojects
 include(HPX_SetupHIP)
