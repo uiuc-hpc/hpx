@@ -29,6 +29,7 @@ set(_hpx_full_modules
     executors_distributed
     include
     init_runtime
+    lci_base
     lcos_distributed
     naming
     naming_base

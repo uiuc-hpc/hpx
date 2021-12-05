@@ -590,6 +590,15 @@ if(HPX_WITH_NETWORKING)
   endif()
 
   hpx_option(
+    HPX_WITH_PARCELPORT_LCI BOOL "Enable the LCI based parcelport." OFF
+    CATEGORY "Parcelport"
+  )
+  if(HPX_WITH_PARCELPORT_LCI)
+    hpx_add_config_define(HPX_HAVE_PARCELPORT_LCI)
+  endif()
+
+  # we have to decide here whether we want to have MPI futures
+  hpx_option(
     HPX_WITH_PARCELPORT_TCP BOOL "Enable the TCP based parcelport." ON
     CATEGORY "Parcelport"
   )
@@ -608,7 +617,32 @@ if(HPX_WITH_NETWORKING)
   endif()
 endif(HPX_WITH_NETWORKING)
 
-# External libraries/frameworks used by some of the examples and benchmarks
+if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
+  # mpi parcelport settings
+  hpx_option(
+          HPX_WITH_PARCELPORT_LCI_ENV
+          STRING
+          "List of environment variables checked to detect LCI (default: MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK)."
+          "MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK"
+          CATEGORY "Parcelport"
+          ADVANCED
+  )
+
+  # This list is to detect whether we run inside an lci environment. If one of
+  # those environment variables is set, the LCI parcelport is enabled by
+  # default. PMI_RANK: Intel MPI and MVAPICH2 OMPI_COMM_WORLD_SIZE: OpenMPI
+  # starting at version 1.3
+  if(HPX_WITH_PARCELPORT_LCI_ENV)
+    string(REPLACE ";" "," hpx_parcelport_lci_env_
+            "${HPX_WITH_PARCELPORT_LCI_ENV}"
+            )
+    hpx_add_config_define(
+            HPX_HAVE_PARCELPORT_LCI_ENV "\"${hpx_parcelport_lci_env_}\""
+    )
+  endif()
+endif()
+
+# External libraries/frameworks used by sme of the examples and benchmarks
 hpx_option(
   HPX_WITH_EXAMPLES_HDF5 BOOL
   "Enable examples requiring HDF5 support (default: OFF)." OFF
@@ -1097,6 +1131,10 @@ include(HPX_SetupBoostIostreams)
 # reset external source lists
 add_hpx_library_sources_noglob(hpx_external)
 add_hpx_library_headers_noglob(hpx_external)
+
+# Setup plugins (set here cause if we include it inside plugins, it will not be
+# defined in src/CMakeLists.txt where we call add_static_parcelports)
+include(HPX_SetupLCI)
 
 # Setup packages and subprojects
 include(HPX_SetupApex)

@@ -10,13 +10,20 @@ set(version_headers hpx/version.hpp)
 
 set(version_sources version.cpp)
 
+if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
+  include(HPX_SetupLCI)
+  set(additional_dependencies Mpi::mpi LCI::Shared)
+endif()
+
 include(HPX_AddModule)
 add_hpx_module(
   full version
   GLOBAL_HEADER_GEN OFF
   SOURCES ${version_sources}
   HEADERS ${version_headers}
-  MODULE_DEPENDENCIES hpx_config
+  MODULE_DEPENDENCIES hpx_config hpx_config_registry hpx_format hpx_prefix
+  DEPENDENCIES Hwloc::hwloc ${additional_dependencies}
+  MODULE_DEPENDENCIES hpx_config hpx_format hpx_prefix
 )
 
 target_include_directories(

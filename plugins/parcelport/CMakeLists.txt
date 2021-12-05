@@ -8,7 +8,7 @@
 set(parcelport_plugins)
 
 if(HPX_WITH_NETWORKING)
-  set(parcelport_plugins ${parcelport_plugins})
+  set(parcelport_plugins ${parcelport_plugins} lci)
 endif()
 
 foreach(type ${parcelport_plugins})
