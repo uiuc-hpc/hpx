@@ -16,6 +16,9 @@
 #if defined(HPX_HAVE_MODULE_MPI_BASE)
 #include <hpx/modules/mpi_base.hpp>
 #endif
+#if defined(HPX_HAVE_MODULE_LCI_BASE)
+#include <hpx/modules/lci_base.hpp>
+#endif
 #include <hpx/modules/program_options.hpp>
 #include <hpx/modules/runtime_configuration.hpp>
 #include <hpx/modules/topology.hpp>
@@ -1606,6 +1609,17 @@ namespace hpx { namespace util {
             rtcfg_.reconfigure(cfg);
         }
 
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
+    defined(HPX_HAVE_MODULE_LCI_BASE)
+        // getting localities from MPI environment (support mpirun)
+        if (util::lci_environment::check_lci_environment(rtcfg_))
+        {
+            util::lci_environment::init(&argc, &argv, rtcfg_);
+            num_localities_ =
+                static_cast<std::size_t>(util::lci_environment::size());
+            node_ = static_cast<std::size_t>(util::lci_environment::rank());
+        }
+#endif
 #if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)) ||      \
     defined(HPX_HAVE_MODULE_MPI_BASE)
         // getting localities from MPI environment (support mpirun)

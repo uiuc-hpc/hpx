@@ -8,7 +8,7 @@
 set(parcelport_plugins)
 
 if(HPX_WITH_NETWORKING)
-  set(parcelport_plugins ${parcelport_plugins} libfabric mpi tcp)
+  set(parcelport_plugins ${parcelport_plugins} libfabric mpi tcp lci)
 endif()
 
 set(HPX_STATIC_PARCELPORT_PLUGINS
