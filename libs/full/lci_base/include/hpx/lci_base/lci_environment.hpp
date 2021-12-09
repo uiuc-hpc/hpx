@@ -25,19 +25,14 @@ namespace hpx { namespace util {
     {
         static bool check_lci_environment(runtime_configuration const& cfg);
 
-        static int init(int* argc, char*** argv, const int required,
-            const int minimal, int& provided);
+        static LCI_error_t init_lci();
         static void init(int* argc, char*** argv, runtime_configuration& cfg);
         static void finalize();
 
         static bool enabled();
-        static bool multi_threaded();
-        static bool has_called_init();
 
         static int rank();
         static int size();
-
-        static MPI_Comm& communicator();
 
         static LCI_endpoint_t& lci_endpoint();
 
@@ -74,14 +69,7 @@ namespace hpx { namespace util {
 
     private:
         static mutex_type mtx_;
-
         static bool enabled_;
-        static bool has_called_init_;
-        static int provided_threading_flag_;
-        static MPI_Comm communicator_;
-
-        static int is_initialized_;
-
         static LCI_endpoint_t ep_;
         static LCI_endpoint_t rt_ep_;
         static LCI_endpoint_t h_ep_;

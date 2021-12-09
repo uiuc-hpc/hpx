@@ -288,7 +288,6 @@ namespace hpx { namespace traits
                         "ALPS_APP_PE"
                     "}\n"
 #endif
-                "multithreaded = ${HPX_HAVE_PARCELPORT_LCI_MULTITHREADED:0}\n"
                 "max_connections = ${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
                 ;
         }
