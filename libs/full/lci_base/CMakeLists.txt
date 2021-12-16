@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
   # setup LCI, if necessary
   include(HPX_SetupLCI)
-  set(additional_dependencies Mpi::mpi LCI::Shared)
+  set(additional_dependencies Mpi::mpi LCI::LCI)
 else()
   return()
 endif()

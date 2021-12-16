@@ -41,7 +41,7 @@ endif()
 # ##############################################################################
 # project metadata
 # ##############################################################################
-project(HPX CXX)
+project(HPX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -586,6 +586,20 @@ if(HPX_WITH_NETWORKING)
   if(HPX_WITH_PARCELPORT_LCI)
     hpx_add_config_define(HPX_HAVE_PARCELPORT_LCI)
   endif()
+  # Options for automatically fetching LCI
+  hpx_option(
+    HPX_WITH_FETCH_LCI
+    BOOL
+    "Use FetchContent to fetch LCI. By default an installed LCI will be used. (default: OFF)"
+    OFF
+    CATEGORY "Build Targets"
+    ADVANCED
+  )
+  hpx_option(
+    HPX_WITH_LCI_TAG STRING "LCI repository tag or branch" "749f18d16149277f22d1fd07bd1c40d570d046cb" # v1.7-fetchcontent
+    CATEGORY "Build Targets"
+    ADVANCED
+  )
 
   # we have to decide here whether we want to have MPI futures
   hpx_option(
