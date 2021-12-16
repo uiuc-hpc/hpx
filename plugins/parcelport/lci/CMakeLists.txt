@@ -25,7 +25,7 @@ if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
       "${PROJECT_SOURCE_DIR}/hpx/plugins/parcelport/lci/sender_connection.hpp"
       "${PROJECT_SOURCE_DIR}/hpx/plugins/parcelport/lci/tag_provider.hpp"
           DEPENDENCIES hpx_actions hpx_command_line_handling hpx_core
-          hpx_dependencies_boost Mpi::mpi LCI::Shared
+          hpx_dependencies_boost Mpi::mpi LCI::LCI
     INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
     FOLDER "Core/Plugins/Parcelport/LCI"
   )

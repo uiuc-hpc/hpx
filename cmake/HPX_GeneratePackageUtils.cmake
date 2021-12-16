@@ -413,6 +413,7 @@ function(hpx_generate_pkgconfig_from_target target template is_build)
 
   string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
 
+  message("I am going to write file " ${OUTPUT_DIR}/${template}_${build_type}.pc)
   configure_file(
     cmake/templates/${template}.pc.in
     ${OUTPUT_DIR}${template}_${build_type}.pc.in @ONLY ESCAPE_QUOTES

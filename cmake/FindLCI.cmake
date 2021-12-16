@@ -7,7 +7,7 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-if(NOT TARGET LCI::Shared)
+if(NOT TARGET LCI::LCI)
   find_package(PkgConfig QUIET)
   pkg_check_modules(PC_LCI QUIET LCI)
 
@@ -69,12 +69,8 @@ if(NOT TARGET LCI::Shared)
 
   mark_as_advanced(LCI_ROOT LCI_LIBRARY LCI_INCLUDE_DIR)
 
-  add_library(LCI::Shared INTERFACE IMPORTED)
-  target_include_directories(LCI::Shared SYSTEM INTERFACE ${LCI_INCLUDE_DIR})
-  target_link_libraries(LCI::Shared INTERFACE ${LCI_LIBRARY})
-
-  add_library(LCI::Static INTERFACE IMPORTED)
-  target_include_directories(LCI::Static SYSTEM INTERFACE ${LCI_INCLUDE_DIR})
-  target_link_libraries(LCI::Static INTERFACE ${LCI_LIBRARY})
+  add_library(LCI::LCI INTERFACE IMPORTED)
+  target_include_directories(LCI::LCI SYSTEM INTERFACE ${LCI_INCLUDE_DIR})
+  target_link_libraries(LCI::LCI INTERFACE ${LCI_LIBRARY})
 endif()
 

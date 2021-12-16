@@ -12,7 +12,7 @@ set(version_sources version.cpp)
 
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
   include(HPX_SetupLCI)
-  set(additional_dependencies Mpi::mpi LCI::Shared)
+  set(additional_dependencies Mpi::mpi LCI::LCI)
 endif()
 
 include(HPX_AddModule)
