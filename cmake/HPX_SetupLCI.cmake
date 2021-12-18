@@ -45,6 +45,8 @@ macro(setup_lci)
               TARGETS LCI
               EXPORT HPXLCITarget
               COMPONENT core
+              LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+              ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
 
       install(
@@ -65,6 +67,11 @@ macro(setup_lci)
               EXPORT HPXLCITarget
               NAMESPACE LCI::
               FILE HPXLCITarget.cmake
+              DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${HPX_PACKAGE_NAME}
+      )
+
+      install(
+              FILES "${lci_SOURCE_DIR}/cmake_modules/FindFabric.cmake"
               DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${HPX_PACKAGE_NAME}
       )
     endif()
