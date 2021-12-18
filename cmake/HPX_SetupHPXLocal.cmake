@@ -176,8 +176,8 @@ elseif(NOT TARGET HPX::hpx_local AND NOT HPX_FIND_PACKAGE)
     )
   endif()
 
-  # The MPI parcelport forces HPXLocal to be built using MPI support.
-  if(HPX_WITH_PARCELPORT_MPI)
+  # The MPI and LCI parcelports force HPXLocal to be built using MPI support.
+  if(HPX_WITH_PARCELPORT_MPI OR HPX_WITH_PARCELPORT_LCI)
     set(HPXLocal_WITH_ASYNC_MPI
         ON
         CACHE BOOL "" FORCE

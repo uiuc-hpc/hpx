@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020 The STE||AR-Group
+# Copyright (c) 2019-2021 The STE||AR-Group
 #
 # SPDX-License-Identifier: BSL-1.0
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -29,12 +29,12 @@ set(lci_base_sources lci_environment.cpp)
 
 include(HPX_AddModule)
 add_hpx_module(
-  core lci_base
+  full lci_base
   GLOBAL_HEADER_GEN ON
   SOURCES ${lci_base_sources}
   HEADERS ${lci_base_headers}
   COMPAT_HEADERS ${lci_base_compat_headers}
-  MODULE_DEPENDENCIES hpx_runtime_configuration hpx_util
-  DEPENDENCIES ${additional_dependencies}
+  MODULE_DEPENDENCIES hpx_config hpx_runtime_configuration hpx_util
+  DEPENDENCIES HPX::hpx_local ${additional_dependencies}
   CMAKE_SUBDIRS examples tests
 )

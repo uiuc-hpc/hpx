@@ -24,6 +24,10 @@ set(command_line_handling_sources
     parse_command_line.cpp
 )
 
+if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
+  set(additional_dependencies hpx_lci_base)
+endif()
+
 include(HPX_AddModule)
 add_hpx_module(
   full command_line_handling
@@ -32,6 +36,6 @@ add_hpx_module(
   HEADERS ${command_line_handling_headers}
   COMPAT_HEADERS ${command_line_handling_compat_headers}
   MODULE_DEPENDENCIES hpx_config hpx_version
-  DEPENDENCIES HPX::hpx_local
+  DEPENDENCIES HPX::hpx_local ${additional_dependencies}
   CMAKE_SUBDIRS tests
 )
