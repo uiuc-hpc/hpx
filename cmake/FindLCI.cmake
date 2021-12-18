@@ -12,22 +12,16 @@ if(NOT TARGET LCI::LCI)
   pkg_check_modules(PC_LCI QUIET LCI)
 
   find_path(
-          LCI_INCLUDE_DIR lci.h
-          HINTS ${LCI_ROOT} 
-                ENV LCI_ROOT 
-                ${PC_LCI_INCLUDEDIR}
-                ${PC_LCI_INCLUDE_DIRS}
-          PATH_SUFFIXES include
+    LCI_INCLUDE_DIR lci.h
+    HINTS ${LCI_ROOT} ENV LCI_ROOT ${PC_LCI_INCLUDEDIR} ${PC_LCI_INCLUDE_DIRS}
+    PATH_SUFFIXES include
   )
 
   find_library(
-          LCI_LIBRARY
-	      NAMES lci LCI
-          HINTS ${LCI_ROOT} 
-                ENV LCI_ROOT
-                ${PC_LCI_LIBDIR}
-                ${PC_LCI_LIBRARY_DIRS}
-          PATH_SUFFIXES lib lib64
+    LCI_LIBRARY
+    NAMES lci LCI
+    HINTS ${LCI_ROOT} ENV LCI_ROOT ${PC_LCI_LIBDIR} ${PC_LCI_LIBRARY_DIRS}
+    PATH_SUFFIXES lib lib64
   )
 
   # Set LCI_ROOT in case the other hints are used
@@ -51,14 +45,12 @@ if(NOT TARGET LCI::LCI)
   set(LCI_LIBRARIES ${LCI_LIBRARY})
   set(LCI_INCLUDE_DIRS ${LCI_INCLUDE_DIR})
 
-  find_package_handle_standard_args(
-          LCI DEFAULT_MSG LCI_LIBRARY LCI_INCLUDE_DIR
-  )
+  find_package_handle_standard_args(LCI DEFAULT_MSG LCI_LIBRARY LCI_INCLUDE_DIR)
 
   get_property(
-          _type
-          CACHE LCI_ROOT
-          PROPERTY TYPE
+    _type
+    CACHE LCI_ROOT
+    PROPERTY TYPE
   )
   if(_type)
     set_property(CACHE LCI_ROOT PROPERTY ADVANCED 1)
@@ -73,4 +65,3 @@ if(NOT TARGET LCI::LCI)
   target_include_directories(LCI::LCI SYSTEM INTERFACE ${LCI_INCLUDE_DIR})
   target_link_libraries(LCI::LCI INTERFACE ${LCI_LIBRARY})
 endif()
-

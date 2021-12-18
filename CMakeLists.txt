@@ -596,7 +596,8 @@ if(HPX_WITH_NETWORKING)
     ADVANCED
   )
   hpx_option(
-    HPX_WITH_LCI_TAG STRING "LCI repository tag or branch" "1f41859bbf64fbf1f0a262af5f05ebaeb556d28e" # v1.7-fetchcontent
+    HPX_WITH_LCI_TAG STRING "LCI repository tag or branch"
+    "1f41859bbf64fbf1f0a262af5f05ebaeb556d28e" # v1.7-fetchcontent
     CATEGORY "Build Targets"
     ADVANCED
   )
@@ -633,12 +634,12 @@ endif()
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
   # mpi parcelport settings
   hpx_option(
-          HPX_WITH_PARCELPORT_LCI_ENV
-          STRING
-          "List of environment variables checked to detect LCI (default: MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK)."
-          "MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK"
-          CATEGORY "Parcelport"
-          ADVANCED
+    HPX_WITH_PARCELPORT_LCI_ENV
+    STRING
+    "List of environment variables checked to detect LCI (default: MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK;PALS_NODEID)."
+    "MV2_COMM_WORLD_RANK;PMI_RANK;OMPI_COMM_WORLD_SIZE;ALPS_APP_PE;PMIX_RANK;PALS_NODEID"
+    CATEGORY "Parcelport"
+    ADVANCED
   )
 
   # This list is to detect whether we run inside an lci environment. If one of
@@ -647,10 +648,10 @@ if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
   # starting at version 1.3
   if(HPX_WITH_PARCELPORT_LCI_ENV)
     string(REPLACE ";" "," hpx_parcelport_lci_env_
-            "${HPX_WITH_PARCELPORT_LCI_ENV}"
-            )
+                   "${HPX_WITH_PARCELPORT_LCI_ENV}"
+    )
     hpx_add_config_define(
-            HPX_HAVE_PARCELPORT_LCI_ENV "\"${hpx_parcelport_lci_env_}\""
+      HPX_HAVE_PARCELPORT_LCI_ENV "\"${hpx_parcelport_lci_env_}\""
     )
   endif()
 endif()
@@ -1160,6 +1161,7 @@ endif()
 if(APPLE
    OR MSVC
    OR HPXLocal_WITH_GPU_SUPPORT
+   OR HPX_WITH_PARCELPORT_LCI
 )
   set(HPX_WITH_PKGCONFIG
       OFF

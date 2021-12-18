@@ -11,6 +11,7 @@ include(HPX_AddLibrary)
 # Decide whether to use the LCI based parcelport
 # ##############################################################################
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
+  setup_lci()
   hpx_debug("add_parcelport_lci_module")
   include(HPX_AddParcelport)
   add_parcelport(
@@ -24,8 +25,8 @@ if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
       "${PROJECT_SOURCE_DIR}/hpx/plugins/parcelport/lci/sender.hpp"
       "${PROJECT_SOURCE_DIR}/hpx/plugins/parcelport/lci/sender_connection.hpp"
       "${PROJECT_SOURCE_DIR}/hpx/plugins/parcelport/lci/tag_provider.hpp"
-          DEPENDENCIES hpx_actions hpx_command_line_handling hpx_core
-          hpx_dependencies_boost Mpi::mpi LCI::LCI
+    DEPENDENCIES hpx_actions hpx_command_line_handling hpx_config hpx_lci_base
+                 hpx_dependencies_boost Mpi::mpi LCI::LCI
     INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
     FOLDER "Core/Plugins/Parcelport/LCI"
   )
