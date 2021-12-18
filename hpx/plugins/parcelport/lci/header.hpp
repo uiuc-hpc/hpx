@@ -21,29 +21,29 @@
 #include <cstring>
 #include <utility>
 
-namespace hpx { namespace parcelset { namespace policies { namespace lci
-{
+namespace hpx { namespace parcelset { namespace policies { namespace lci {
     struct header
     {
         typedef int value_type;
         enum data_pos
         {
-            pos_tag              = 0 * sizeof(value_type),
-            pos_size             = 1 * sizeof(value_type),
-            pos_numbytes         = 2 * sizeof(value_type),
-            pos_numchunks_first  = 3 * sizeof(value_type),
+            pos_tag = 0 * sizeof(value_type),
+            pos_size = 1 * sizeof(value_type),
+            pos_numbytes = 2 * sizeof(value_type),
+            pos_numchunks_first = 3 * sizeof(value_type),
             pos_numchunks_second = 4 * sizeof(value_type),
-            pos_piggy_back_flag  = 5 * sizeof(value_type),
-            pos_piggy_back_data  = 5 * sizeof(value_type) + 1
+            pos_piggy_back_flag = 5 * sizeof(value_type),
+            pos_piggy_back_data = 5 * sizeof(value_type) + 1
         };
 
         static int const data_size_ = 512;
 
         template <typename Buffer>
-        header(Buffer const & buffer, int tag)
+        header(Buffer const& buffer, int tag)
         {
             std::int64_t size = static_cast<std::int64_t>(buffer.size_);
-            std::int64_t numbytes = static_cast<std::int64_t>(buffer.data_size_);
+            std::int64_t numbytes =
+                static_cast<std::int64_t>(buffer.data_size_);
 
             HPX_ASSERT(size <= (std::numeric_limits<value_type>::max)());
             HPX_ASSERT(numbytes <= (std::numeric_limits<value_type>::max)());
@@ -51,11 +51,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             set<pos_tag>(tag);
             set<pos_size>(static_cast<value_type>(size));
             set<pos_numbytes>(static_cast<value_type>(numbytes));
-            set<pos_numchunks_first>(static_cast<value_type>(buffer.num_chunks_.first));
-            set<pos_numchunks_second>(static_cast<value_type>
-                (buffer.num_chunks_.second));
+            set<pos_numchunks_first>(
+                static_cast<value_type>(buffer.num_chunks_.first));
+            set<pos_numchunks_second>(
+                static_cast<value_type>(buffer.num_chunks_.second));
 
-            if(buffer.data_.size() <= (data_size_ - pos_piggy_back_data))
+            if (buffer.data_.size() <= (data_size_ - pos_piggy_back_data))
             {
                 data_[pos_piggy_back_flag] = 1;
                 std::memcpy(&data_[pos_piggy_back_data], &buffer.data_[0],
@@ -92,7 +93,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             HPX_ASSERT(num_chunks().second != -1);
         }
 
-        char *data()
+        char* data()
         {
             return &data_[0];
         }
@@ -114,13 +115,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         std::pair<value_type, value_type> num_chunks() const
         {
-            return std::make_pair(get<pos_numchunks_first>(),
-                get<pos_numchunks_second>());
+            return std::make_pair(
+                get<pos_numchunks_first>(), get<pos_numchunks_second>());
         }
 
-        char * piggy_back()
+        char* piggy_back()
         {
-            if(data_[pos_piggy_back_flag])
+            if (data_[pos_piggy_back_flag])
                 return &data_[pos_piggy_back_data];
             return nullptr;
         }
@@ -129,7 +130,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         std::array<char, data_size_> data_;
 
         template <std::size_t Pos, typename T>
-        void set(T const & t)
+        void set(T const& t)
         {
             std::memcpy(&data_[Pos], &t, sizeof(t));
         }
@@ -142,7 +143,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return res;
         }
     };
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-

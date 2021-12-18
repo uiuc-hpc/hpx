@@ -11,22 +11,22 @@
 #if defined(HPX_HAVE_NETWORKING)
 #include <hpx/plugin/traits/plugin_config_data.hpp>
 
+#include <hpx/command_line_handling/command_line_handling.hpp>
 #include <hpx/modules/lci_base.hpp>
 #include <hpx/plugins/parcelport_factory.hpp>
-#include <hpx/command_line_handling/command_line_handling.hpp>
 
 // parcelport
-#include <hpx/runtime_distributed.hpp>
 #include <hpx/runtime/parcelset/locality.hpp>
 #include <hpx/runtime/parcelset/parcelport_impl.hpp>
+#include <hpx/runtime_distributed.hpp>
 
-#include <hpx/synchronization/spinlock.hpp>
 #include <hpx/synchronization/condition_variable.hpp>
+#include <hpx/synchronization/spinlock.hpp>
 
-#include <hpx/plugins/parcelport/lci/locality.hpp>
 #include <hpx/plugins/parcelport/lci/header.hpp>
-#include <hpx/plugins/parcelport/lci/sender.hpp>
+#include <hpx/plugins/parcelport/lci/locality.hpp>
 #include <hpx/plugins/parcelport/lci/receiver.hpp>
+#include <hpx/plugins/parcelport/lci/sender.hpp>
 
 #include <hpx/execution_base/this_thread.hpp>
 #include <hpx/functional/bind.hpp>
@@ -43,77 +43,75 @@
 
 #include <hpx/config/warnings_prefix.hpp>
 
-namespace hpx { namespace parcelset
-{
-    namespace policies { namespace lci
-    {
+namespace hpx { namespace parcelset {
+    namespace policies { namespace lci {
         class HPX_EXPORT parcelport;
-    }}
+    }}    // namespace policies::lci
 
     template <>
     struct connection_handler_traits<policies::lci::parcelport>
     {
         typedef policies::lci::sender_connection connection_type;
-        typedef std::true_type  send_early_parcel;
-        typedef std::true_type  do_background_work;
+        typedef std::true_type send_early_parcel;
+        typedef std::true_type do_background_work;
         typedef std::false_type send_immediate_parcels;
 
-        static const char * type()
+        static const char* type()
         {
             return "lci";
         }
 
-        static const char * pool_name()
+        static const char* pool_name()
         {
             return "parcel-pool-lci";
         }
 
-        static const char * pool_name_postfix()
+        static const char* pool_name_postfix()
         {
             return "-lci";
         }
     };
 
-    namespace policies { namespace lci
-    {
-        int acquire_tag(sender * s)
+    namespace policies { namespace lci {
+        int acquire_tag(sender* s)
         {
             return s->acquire_tag();
         }
 
-        void add_connection(sender * s, std::shared_ptr<sender_connection> const &ptr)
+        void add_connection(
+            sender* s, std::shared_ptr<sender_connection> const& ptr)
         {
             s->add(ptr);
         }
 
-        class HPX_EXPORT parcelport
-          : public parcelport_impl<parcelport>
+        class HPX_EXPORT parcelport : public parcelport_impl<parcelport>
         {
             typedef parcelport_impl<parcelport> base_type;
 
             static parcelset::locality here()
             {
-                return
-                    parcelset::locality(
-                        locality(
-                            util::lci_environment::enabled() ?
-                            util::lci_environment::rank() : -1
-                        )
-                    );
+                return parcelset::locality(
+                    locality(util::lci_environment::enabled() ?
+                            util::lci_environment::rank() :
+                            -1));
             }
 
-            static std::size_t max_connections(util::runtime_configuration const& ini)
+            static std::size_t max_connections(
+                util::runtime_configuration const& ini)
             {
-                return hpx::util::get_entry_as<std::size_t>(
-                    ini, "hpx.parcel.lci.max_connections", HPX_PARCEL_MAX_CONNECTIONS);
+                return hpx::util::get_entry_as<std::size_t>(ini,
+                    "hpx.parcel.lci.max_connections",
+                    HPX_PARCEL_MAX_CONNECTIONS);
             }
+
         public:
             parcelport(util::runtime_configuration const& ini,
                 threads::policies::callback_notifier const& notifier)
               : base_type(ini, here(), notifier)
               , stopped_(false)
               , receiver_(*this)
-            {}
+            {
+            }
 
             ~parcelport()
             {
@@ -125,13 +123,10 @@ namespace hpx { namespace parcelset
             {
                 receiver_.run();
                 sender_.run();
-                for(std::size_t i = 0; i != io_service_pool_.size(); ++i)
+                for (std::size_t i = 0; i != io_service_pool_.size(); ++i)
                 {
                     io_service_pool_.get_io_service(int(i)).post(
-                        hpx::util::bind(
-                            &parcelport::io_service_work, this
-                        )
-                    );
+                        hpx::util::bind(&parcelport::io_service_work, this));
                 }
                 return true;
             }
@@ -139,9 +134,9 @@ namespace hpx { namespace parcelset
             /// Stop the handling of connections.
             void do_stop()
             {
-                while(do_background_work(0, parcelport_background_mode_all))
+                while (do_background_work(0, parcelport_background_mode_all))
                 {
-                    if(threads::get_self_ptr())
+                    if (threads::get_self_ptr())
                         hpx::this_thread::suspend(
                             hpx::threads::thread_schedule_state::pending,
                             "lci::parcelport::do_stop");
@@ -205,11 +200,11 @@ namespace hpx { namespace parcelset
             {
                 std::size_t k = 0;
                 // We only execute work on the IO service while HPX is starting
-                while(hpx::is_starting())
+                while (hpx::is_starting())
                 {
                     bool has_work = sender_.background_work();
                     has_work = receiver_.background_work() || has_work;
-                    if(has_work)
+                    if (has_work)
                     {
                         k = 0;
                     }
@@ -218,36 +213,33 @@ namespace hpx { namespace parcelset
                         ++k;
                         util::detail::yield_k(k,
                             "hpx::parcelset::policies::lci::parcelport::"
-                                "io_service_work");
+                            "io_service_work");
                     }
                 }
             }
 
-            void early_write_handler(
-                std::error_code const& ec, parcel const & p)
+            void early_write_handler(std::error_code const& ec, parcel const& p)
             {
-                if (ec) {
+                if (ec)
+                {
                     // all errors during early parcel handling are fatal
-                    std::exception_ptr exception =
-                        hpx::detail::get_exception(hpx::exception(ec),
-                            "lci::early_write_handler", __FILE__, __LINE__,
-                            "error while handling early parcel: " +
-                                ec.message() + "(" +
-                                std::to_string(ec.value()) +
-                                ")" + parcelset::dump_parcel(p));
+                    std::exception_ptr exception = hpx::detail::get_exception(
+                        hpx::exception(ec), "lci::early_write_handler",
+                        __FILE__, __LINE__,
+                        "error while handling early parcel: " + ec.message() +
+                            "(" + std::to_string(ec.value()) + ")" +
+                            parcelset::dump_parcel(p));
 
                     hpx::report_error(exception);
                 }
             }
-
         };
-    }}
-}}
+    }}    // namespace policies::lci
+}}        // namespace hpx::parcelset
 
 #include <hpx/config/warnings_suffix.hpp>
 
-namespace hpx { namespace traits
-{
+namespace hpx { namespace traits {
     // Inject additional configuration data into the factory registry for this
     // type. This information ends up in the system wide configuration database
     // under the plugin specific section:
@@ -263,7 +255,8 @@ namespace hpx { namespace traits
         {
             return "50";
         }
-        static void init(int *argc, char ***argv, util::command_line_handling &cfg)
+        static void init(
+            int* argc, char*** argv, util::command_line_handling& cfg)
         {
             util::lci_environment::init(argc, argv, cfg.rtcfg_);
             cfg.num_localities_ =
@@ -279,23 +272,23 @@ namespace hpx { namespace traits
         static char const* call()
         {
             return
-                // TODO: change these for LCI
+            // TODO: change these for LCI
 #if defined(HPX_HAVE_PARCELPORT_LCI_ENV)
-                "env = ${HPX_HAVE_PARCELPORT_LCI_ENV:" HPX_HAVE_PARCELPORT_LCI_ENV "}\n"
+                "env = "
+                "${HPX_HAVE_PARCELPORT_LCI_ENV:" HPX_HAVE_PARCELPORT_LCI_ENV
+                "}\n"
 #else
                 "env = ${HPX_HAVE_PARCELPORT_LCI_ENV:"
-                        "MV2_COMM_WORLD_RANK,PMIX_RANK,PMI_RANK,LCI_COMM_WORLD_SIZE,"
-                        "ALPS_APP_PE"
-                    "}\n"
+                "MV2_COMM_WORLD_RANK,PMIX_RANK,PMI_RANK,LCI_COMM_WORLD_SIZE,"
+                "ALPS_APP_PE"
+                "}\n"
 #endif
-                "max_connections = ${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
-                ;
+                "max_connections = "
+                "${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n";
         }
     };
-}}
+}}    // namespace hpx::traits
 
-HPX_REGISTER_PARCELPORT(
-    hpx::parcelset::policies::lci::parcelport,
-    lci)
+HPX_REGISTER_PARCELPORT(hpx::parcelset::policies::lci::parcelport, lci)
 
 #endif

@@ -26,40 +26,35 @@
 #include <utility>
 #include <vector>
 
-namespace hpx { namespace parcelset { namespace policies { namespace lci
-{
+namespace hpx { namespace parcelset { namespace policies { namespace lci {
     struct sender;
     struct sender_connection;
 
-    int acquire_tag(sender *);
-    void add_connection(sender *, std::shared_ptr<sender_connection> const&);
+    int acquire_tag(sender*);
+    void add_connection(sender*, std::shared_ptr<sender_connection> const&);
 
     struct sender_connection
-      : parcelset::parcelport_connection<
-            sender_connection
-          , std::vector<char>
-        >
+      : parcelset::parcelport_connection<sender_connection, std::vector<char>>
     {
     private:
         typedef sender sender_type;
 
-        typedef util::function_nonser<
-            void(std::error_code const&, parcel const&)
-        > write_handler_type;
+        typedef util::function_nonser<void(
+            std::error_code const&, parcel const&)>
+            write_handler_type;
 
         typedef std::vector<char> data_type;
 
         enum connection_state
         {
-            initialized
-          , sent_header
-          , sent_transmission_chunks
-          , sent_data
-          , sent_chunks
+            initialized,
+            sent_header,
+            sent_transmission_chunks,
+            sent_data,
+            sent_chunks
         };
 
-        typedef
-            parcelset::parcelport_connection<sender_connection, data_type>
+        typedef parcelset::parcelport_connection<sender_connection, data_type>
             base_type;
 
     public:
@@ -87,12 +82,14 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         }
 
         template <typename Handler, typename ParcelPostprocess>
-        void async_write(Handler && handler, ParcelPostprocess && parcel_postprocess)
+        void async_write(
+            Handler&& handler, ParcelPostprocess&& parcel_postprocess)
         {
             HPX_ASSERT(!handler_);
             HPX_ASSERT(!postprocess_handler_);
             HPX_ASSERT(!buffer_.data_.empty());
-            buffer_.data_point_.time_ = hpx::chrono::high_resolution_clock::now();
+            buffer_.data_point_.time_ =
+                hpx::chrono::high_resolution_clock::now();
             request_ptr_ = nullptr;
             chunks_idx_ = 0;
             tag_ = acquire_tag(sender_);
@@ -103,10 +100,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
             handler_ = HPX_FORWARD(Handler, handler);
 
-            if(!send())
+            if (!send())
             {
-                postprocess_handler_
-                    = HPX_FORWARD(ParcelPostprocess, parcel_postprocess);
+                postprocess_handler_ =
+                    HPX_FORWARD(ParcelPostprocess, parcel_postprocess);
                 add_connection(sender_, shared_from_this());
             }
             else
@@ -119,20 +116,20 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         bool send()
         {
-            switch(state_)
+            switch (state_)
             {
-                case initialized:
-                    return send_header();
-                case sent_header:
-                    return send_transmission_chunks();
-                case sent_transmission_chunks:
-                    return send_data();
-                case sent_data:
-                    return send_chunks();
-                case sent_chunks:
-                    return done();
-                default:
-                    HPX_ASSERT(false);
+            case initialized:
+                return send_header();
+            case sent_header:
+                return send_transmission_chunks();
+            case sent_transmission_chunks:
+                return send_data();
+            case sent_data:
+                return send_chunks();
+            case sent_chunks:
+                return done();
+            default:
+                HPX_ASSERT(false);
             }
 
             return false;
@@ -148,13 +145,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
                 LCI_mbuffer_t medium_header_;
                 medium_header_.length = header_.data_size_;
                 medium_header_.address = header_.data();
-                if (LCI_putma(
-                    util::lci_environment::h_endpoint(),
-                    medium_header_,
-                    get_dst_rank(),
-                    0,
-                    LCI_DEFAULT_COMP_REMOTE
-                ) != LCI_OK) {
+                if (LCI_putma(util::lci_environment::h_endpoint(),
+                        medium_header_, get_dst_rank(), 0,
+                        LCI_DEFAULT_COMP_REMOTE) != LCI_OK)
+                {
                     LCI_progress(LCI_UR_DEVICE);
                     return false;
                 }
@@ -164,35 +158,33 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return send_transmission_chunks();
         }
 
-        int get_dst_rank() {
+        int get_dst_rank()
+        {
             return dst_;
         }
 
         bool send_transmission_chunks()
         {
             HPX_ASSERT(state_ == sent_header);
-            if(!request_done()) return false;
+            if (!request_done())
+                return false;
 
             HPX_ASSERT(request_ptr_ == nullptr);
 
-            std::vector<typename parcel_buffer_type::transmission_chunk_type>& chunks =
-                buffer_.transmission_chunks_;
-            if(!chunks.empty())
+            std::vector<typename parcel_buffer_type::transmission_chunk_type>&
+                chunks = buffer_.transmission_chunks_;
+            if (!chunks.empty())
             {
                 util::lci_environment::scoped_lock l;
 
                 LCI_lbuffer_t lbuf_;
                 lbuf_.address = chunks.data();
-                lbuf_.length = static_cast<int>(chunks.size() * sizeof(parcel_buffer_type::transmission_chunk_type));
+                lbuf_.length = static_cast<int>(chunks.size() *
+                    sizeof(parcel_buffer_type::transmission_chunk_type));
                 lbuf_.segment = LCI_SEGMENT_ALL;
-                if (LCI_sendl(
-                    util::lci_environment::lci_endpoint(),
-                    lbuf_,
-                    get_dst_rank(),
-                    tag_,
-                    sync_,
-                    NULL
-                ) != LCI_OK) {
+                if (LCI_sendl(util::lci_environment::lci_endpoint(), lbuf_,
+                        get_dst_rank(), tag_, sync_, NULL) != LCI_OK)
+                {
                     LCI_progress(LCI_UR_DEVICE);
                     return false;
                 }
@@ -207,23 +199,20 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         bool send_data()
         {
             HPX_ASSERT(state_ == sent_transmission_chunks);
-            if(!request_done()) return false;
+            if (!request_done())
+                return false;
 
-            if(!header_.piggy_back()) {
+            if (!header_.piggy_back())
+            {
                 util::lci_environment::scoped_lock l;
 
                 LCI_lbuffer_t lbuf_;
                 lbuf_.address = buffer_.data_.data();
                 lbuf_.length = static_cast<int>(buffer_.data_.size());
                 lbuf_.segment = LCI_SEGMENT_ALL;
-                if (LCI_sendl(
-                    util::lci_environment::lci_endpoint(),
-                    lbuf_,
-                    get_dst_rank(),
-                    tag_,
-                    sync_,
-                    NULL
-                ) != LCI_OK) {
+                if (LCI_sendl(util::lci_environment::lci_endpoint(), lbuf_,
+                        get_dst_rank(), tag_, sync_, NULL) != LCI_OK)
+                {
                     LCI_progress(LCI_UR_DEVICE);
                     return false;
                 }
@@ -238,34 +227,32 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         {
             HPX_ASSERT(state_ == sent_data);
 
-            while(chunks_idx_ < buffer_.chunks_.size())
+            while (chunks_idx_ < buffer_.chunks_.size())
             {
-                serialization::serialization_chunk& c = buffer_.chunks_[chunks_idx_];
-                if(c.type_ == serialization::chunk_type_pointer)
+                serialization::serialization_chunk& c =
+                    buffer_.chunks_[chunks_idx_];
+                if (c.type_ == serialization::chunk_type_pointer)
                 {
-                    if(!request_done()) return false;
+                    if (!request_done())
+                        return false;
                     else
                     {
                         util::lci_environment::scoped_lock l;
 
                         LCI_lbuffer_t lbuf_;
-                        lbuf_.address = const_cast<void *>(c.data_.cpos_);
+                        lbuf_.address = const_cast<void*>(c.data_.cpos_);
                         lbuf_.length = static_cast<int>(c.size_);
                         lbuf_.segment = LCI_SEGMENT_ALL;
-                        if (LCI_sendl(
-                            util::lci_environment::lci_endpoint(),
-                            lbuf_,
-                            get_dst_rank(),
-                            tag_,
-                            sync_,
-                            NULL
-                        ) != LCI_OK) {
+                        if (LCI_sendl(util::lci_environment::lci_endpoint(),
+                                lbuf_, get_dst_rank(), tag_, sync_,
+                                NULL) != LCI_OK)
+                        {
                             LCI_progress(LCI_UR_DEVICE);
                             return false;
                         }
                         request_ptr_ = &sync_;
                     }
-                 }
+                }
 
                 chunks_idx_++;
             }
@@ -274,17 +261,23 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return done();
         }
 
-        bool request_done() {
-            if(request_ptr_ == nullptr) return true;
+        bool request_done()
+        {
+            if (request_ptr_ == nullptr)
+                return true;
             HPX_ASSERT(request_ptr_ == &sync_);
 
             LCI_error_t ret = LCI_sync_test(sync_, NULL);
-            if (ret == LCI_OK) {
+            if (ret == LCI_OK)
+            {
                 request_ptr_ = nullptr;
                 return true;
-            } else {
+            }
+            else
+            {
                 util::lci_environment::scoped_try_lock l;
-                if(!l.locked) return false;
+                if (!l.locked)
+                    return false;
                 LCI_progress(LCI_UR_DEVICE);
                 return false;
             }
@@ -292,13 +285,15 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         bool done()
         {
-            if(!request_done()) return false;
+            if (!request_done())
+                return false;
 
             error_code ec;
             handler_(ec);
             handler_.reset();
             buffer_.data_point_.time_ =
-                hpx::chrono::high_resolution_clock::now() - buffer_.data_point_.time_;
+                hpx::chrono::high_resolution_clock::now() -
+                buffer_.data_point_.time_;
             pp_->add_sent_data(buffer_.data_point_);
             buffer_.clear();
 
@@ -308,25 +303,17 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         }
 
         connection_state state_;
-        sender_type * sender_;
+        sender_type* sender_;
         int tag_;
         int dst_;
-        util::unique_function_nonser<
-            void(
-                error_code const&
-            )
-        > handler_;
-        util::unique_function_nonser<
-            void(
-                error_code const&
-              , parcelset::locality const&
-              , std::shared_ptr<sender_connection>
-            )
-        > postprocess_handler_;
+        util::unique_function_nonser<void(error_code const&)> handler_;
+        util::unique_function_nonser<void(error_code const&,
+            parcelset::locality const&, std::shared_ptr<sender_connection>)>
+            postprocess_handler_;
 
         header header_;
 
-        void *request_ptr_;
+        void* request_ptr_;
         LCI_comp_t sync_;
         std::size_t chunks_idx_;
         char ack_;
@@ -334,10 +321,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         parcelset::parcelport* pp_;
 
         parcelset::locality there_;
-
     };
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-
-

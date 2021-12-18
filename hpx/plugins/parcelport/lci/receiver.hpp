@@ -38,10 +38,10 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
 
         receiver(Parcelport& pp)
           : pp_(pp)
-        {}
+        {
+        }
 
-        void run()
-        {}
+        void run() {}
 
         bool background_work()
         {
@@ -92,20 +92,23 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
             connection_ptr res;
             util::lci_environment::scoped_try_lock l;
 
-            if(l.locked)
+            if (l.locked)
             {
                 LCI_request_t request;
-                LCI_error_t ret = LCI_queue_pop(
-                    util::lci_environment::h_queue(),&request);
-                if (ret == LCI_OK) {
-                    header h = *(header*)(request.data.mbuffer.address);
+                LCI_error_t ret =
+                    LCI_queue_pop(util::lci_environment::h_queue(), &request);
+                if (ret == LCI_OK)
+                {
+                    header h = *(header*) (request.data.mbuffer.address);
                     h.assert_valid();
                     l.unlock();
                     header_lock.unlock();
                     res.reset(new connection_type(request.rank, h, pp_));
                     LCI_mbuffer_free(request.data.mbuffer);
                     return res;
-                } else {
+                }
+                else
+                {
                     LCI_progress(LCI_UR_DEVICE);
                 }
             }
@@ -124,7 +127,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
         connection_list connections_;
     };
 
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-

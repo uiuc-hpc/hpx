@@ -41,7 +41,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
         typedef parcel_buffer<data_type, data_type> buffer_type;
 
     public:
-        receiver_connection(int src, header h, Parcelport & pp)
+        receiver_connection(int src, header h, Parcelport& pp)
           : state_(initialized)
           , src_(src)
           , tag_(h.tag())
@@ -82,8 +82,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
             }
             return false;
         }
-        
-        int get_src_rank() {
+
+        int get_src_rank()
+        {
             return src_;
         }
 
@@ -91,12 +92,12 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
         {
             // determine the size of the chunk buffer
             std::size_t num_zero_copy_chunks = static_cast<std::size_t>(
-                    static_cast<std::uint32_t>(buffer_.num_chunks_.first));
+                static_cast<std::uint32_t>(buffer_.num_chunks_.first));
             std::size_t num_non_zero_copy_chunks = static_cast<std::size_t>(
-                    static_cast<std::uint32_t>(buffer_.num_chunks_.second));
+                static_cast<std::uint32_t>(buffer_.num_chunks_.second));
             buffer_.transmission_chunks_.resize(
                 num_zero_copy_chunks + num_non_zero_copy_chunks);
-            if(num_zero_copy_chunks != 0)
+            if (num_zero_copy_chunks != 0)
             {
                 buffer_.chunks_.resize(num_zero_copy_chunks);
                 {
@@ -104,15 +105,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
 
                     LCI_lbuffer_t lbuf_;
                     lbuf_.address = buffer_.transmission_chunks_.data();
-                    lbuf_.length = static_cast<int>(
-                        buffer_.transmission_chunks_.size() *
-                        sizeof(buffer_type::transmission_chunk_type));
+                    lbuf_.length =
+                        static_cast<int>(buffer_.transmission_chunks_.size() *
+                            sizeof(buffer_type::transmission_chunk_type));
                     lbuf_.segment = LCI_SEGMENT_ALL;
-                    if (LCI_recvl(
-                        util::lci_environment::lci_endpoint(),
-                        lbuf_, get_src_rank(), tag_, sync_,
-                        NULL
-                        ) != LCI_OK) {
+                    if (LCI_recvl(util::lci_environment::lci_endpoint(), lbuf_,
+                            get_src_rank(), tag_, sync_, NULL) != LCI_OK)
+                    {
                         LCI_progress(LCI_UR_DEVICE);
                         return false;
                     }
@@ -126,15 +125,19 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
             return receive_data(num_thread);
         }
 
-        bool receive_data(std::size_t num_thread = -1) {
-            if(!request_done())
+        bool receive_data(std::size_t num_thread = -1)
+        {
+            if (!request_done())
                 return false;
 
             char* piggy_back = header_.piggy_back();
-            if (piggy_back) {
+            if (piggy_back)
+            {
                 std::memcpy(
                     &buffer_.data_[0], piggy_back, buffer_.data_.size());
-            } else {
+            }
+            else
+            {
                 util::lci_environment::scoped_lock l;
 
                 LCI_lbuffer_t lbuf_;
@@ -142,11 +145,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
                 lbuf_.length = static_cast<int>(buffer_.data_.size());
                 lbuf_.segment = LCI_SEGMENT_ALL;
 
-                if (LCI_recvl(
-                    util::lci_environment::lci_endpoint(),
-                    lbuf_, get_src_rank(),
-                    tag_, sync_, NULL
-                ) != LCI_OK) {
+                if (LCI_recvl(util::lci_environment::lci_endpoint(), lbuf_,
+                        get_src_rank(), tag_, sync_, NULL) != LCI_OK)
+                {
                     LCI_progress(LCI_UR_DEVICE);
                     return false;
                 }
@@ -181,11 +182,9 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
                     lbuf_.address = c.data();
                     lbuf_.length = static_cast<int>(c.size());
                     lbuf_.segment = LCI_SEGMENT_ALL;
-                    if (LCI_recvl(
-                        util::lci_environment::lci_endpoint(),
-                        lbuf_, get_src_rank(), tag_,
-                        sync_, NULL
-                    ) != LCI_OK) {
+                    if (LCI_recvl(util::lci_environment::lci_endpoint(), lbuf_,
+                            get_src_rank(), tag_, sync_, NULL) != LCI_OK)
+                    {
                         LCI_progress(LCI_UR_DEVICE);
                         return false;
                     }
@@ -200,18 +199,23 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
             return send_release_tag(num_thread);
         }
 
-        bool request_done() {
-            if(request_ptr_ == nullptr)
+        bool request_done()
+        {
+            if (request_ptr_ == nullptr)
                 return true;
             HPX_ASSERT(request_ptr_ == &sync_);
 
             LCI_error_t ret = LCI_sync_test(sync_, NULL);
-            if (ret == LCI_OK) {
+            if (ret == LCI_OK)
+            {
                 request_ptr_ = nullptr;
                 return true;
-            } else {
+            }
+            else
+            {
                 util::lci_environment::scoped_try_lock l;
-                if(!l.locked) return false;
+                if (!l.locked)
+                    return false;
                 LCI_progress(LCI_UR_DEVICE);
                 return false;
             }
@@ -219,22 +223,20 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
 
         bool send_release_tag(std::size_t num_thread = -1)
         {
-            if(!request_done()) return false;
+            if (!request_done())
+                return false;
 
-            performance_counters::parcels::data_point& data = buffer_.data_point_;
+            performance_counters::parcels::data_point& data =
+                buffer_.data_point_;
             data.time_ = timer_.elapsed_nanoseconds() - data.time_;
 
             {
                 util::lci_environment::scoped_lock l;
                 LCI_short_t short_rt_;
-                *(int*)&short_rt_ = tag_;
-                if (LCI_puts(
-                    util::lci_environment::rt_endpoint(),
-                    short_rt_,
-                    get_src_rank(),
-                    1,
-                    LCI_DEFAULT_COMP_REMOTE
-                ) != LCI_OK) {
+                *(int*) &short_rt_ = tag_;
+                if (LCI_puts(util::lci_environment::rt_endpoint(), short_rt_,
+                        get_src_rank(), 1, LCI_DEFAULT_COMP_REMOTE) != LCI_OK)
+                {
                     LCI_progress(LCI_UR_DEVICE);
                     return false;
                 }
@@ -265,9 +267,8 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
         LCI_comp_t sync_;
         std::size_t chunks_idx_;
 
-        Parcelport & pp_;
+        Parcelport& pp_;
     };
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-

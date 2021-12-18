@@ -16,21 +16,21 @@
 #include <deque>
 #include <mutex>
 
-namespace hpx { namespace parcelset { namespace policies { namespace lci
-{
+namespace hpx { namespace parcelset { namespace policies { namespace lci {
     struct tag_provider
     {
         typedef lcos::local::spinlock mutex_type;
 
         tag_provider()
           : next_tag_(2)
-        {}
+        {
+        }
 
         int acquire()
         {
             int tag = -1;
             std::lock_guard<mutex_type> l(mtx_);
-            if(free_tags_.empty())
+            if (free_tags_.empty())
             {
                 HPX_ASSERT(next_tag_ < (std::numeric_limits<int>::max)());
                 tag = next_tag_++;
@@ -57,7 +57,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         int next_tag_;
         std::deque<int> free_tags_;
     };
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-

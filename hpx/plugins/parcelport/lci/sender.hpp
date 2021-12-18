@@ -25,8 +25,7 @@
 #include <mutex>
 #include <utility>
 
-namespace hpx { namespace parcelset { namespace policies { namespace lci
-{
+namespace hpx { namespace parcelset { namespace policies { namespace lci {
     struct sender
     {
         using connection_type = sender_connection;
@@ -35,20 +34,16 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
 
         using mutex_type = hpx::lcos::local::spinlock;
 
-        sender()
-        {
-        }
+        sender() {}
 
-        void run()
-        {
-        }
+        void run() {}
 
         connection_ptr create_connection(int dest, parcelset::parcelport* pp)
         {
             return std::make_shared<connection_type>(this, dest, pp);
         }
 
-        void add(connection_ptr const & ptr)
+        void add(connection_ptr const& ptr)
         {
             std::unique_lock<mutex_type> l(connections_mtx_);
             connections_.push_back(ptr);
@@ -59,24 +54,18 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
             return tag_provider_.acquire();
         }
 
-        void send_messages(
-            connection_ptr connection
-        )
+        void send_messages(connection_ptr connection)
         {
             // Check if sending has been completed....
             if (connection->send())
             {
                 error_code ec;
-                util::unique_function_nonser<
-                    void(
-                        error_code const&
-                      , parcelset::locality const&
-                      , connection_ptr
-                    )
-                > postprocess_handler;
-                std::swap(postprocess_handler, connection->postprocess_handler_);
-                postprocess_handler(
-                    ec, connection->destination(), connection);
+                util::unique_function_nonser<void(error_code const&,
+                    parcelset::locality const&, connection_ptr)>
+                    postprocess_handler;
+                std::swap(
+                    postprocess_handler, connection->postprocess_handler_);
+                postprocess_handler(ec, connection->destination(), connection);
             }
             else
             {
@@ -89,15 +78,16 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         {
             connection_ptr connection;
             {
-                std::unique_lock<mutex_type> l(connections_mtx_, std::try_to_lock);
-                if(l && !connections_.empty())
+                std::unique_lock<mutex_type> l(
+                    connections_mtx_, std::try_to_lock);
+                if (l && !connections_.empty())
                 {
                     connection = HPX_MOVE(connections_.front());
                     connections_.pop_front();
                 }
             }
             bool has_work = false;
-            if(connection)
+            if (connection)
             {
                 send_messages(HPX_MOVE(connection));
                 has_work = true;
@@ -113,12 +103,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         {
             int next_free = -1;
             {
-                std::unique_lock<mutex_type> l(next_free_tag_mtx_, std::try_to_lock);
-                if(l)
+                std::unique_lock<mutex_type> l(
+                    next_free_tag_mtx_, std::try_to_lock);
+                if (l)
                     next_free = next_free_tag_locked();
             }
 
-            if(next_free != -1)
+            if (next_free != -1)
             {
                 HPX_ASSERT(next_free > 1);
                 tag_provider_.release(next_free);
@@ -128,14 +119,16 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         int next_free_tag_locked()
         {
             util::lci_environment::scoped_try_lock l;
-            if(l.locked)
+            if (l.locked)
             {
                 LCI_error_t ret = LCI_queue_pop(
-                                    util::lci_environment::rt_queue(), 
-                                    &next_free_tag_request_);
-                if(ret == LCI_OK) {
-                    return *(int*)&next_free_tag_request_.data.immediate;
-                } else {
+                    util::lci_environment::rt_queue(), &next_free_tag_request_);
+                if (ret == LCI_OK)
+                {
+                    return *(int*) &next_free_tag_request_.data.immediate;
+                }
+                else
+                {
                     LCI_progress(LCI_UR_DEVICE);
                 }
             }
@@ -150,8 +143,6 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci
         LCI_request_t next_free_tag_request_;
     };
 
-
-}}}}
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-
