@@ -11,8 +11,8 @@
 #if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)) ||      \
     defined(HPX_HAVE_MODULE_LCI_BASE)
 
-#include <hpx/modules/runtime_configuration.hpp>
 #include <hpx/lci_base/lci.hpp>
+#include <hpx/modules/runtime_configuration.hpp>
 #include <hpx/synchronization/spinlock.hpp>
 
 #include <cstdlib>
@@ -21,7 +21,7 @@
 #include <hpx/config/warnings_prefix.hpp>
 
 namespace hpx { namespace util {
-    struct HPX_CORE_EXPORT lci_environment
+    struct HPX_EXPORT lci_environment
     {
         static bool check_lci_environment(runtime_configuration const& cfg);
 
@@ -46,7 +46,7 @@ namespace hpx { namespace util {
 
         static std::string get_processor_name();
 
-        struct scoped_lock
+        struct HPX_EXPORT scoped_lock
         {
             scoped_lock();
             scoped_lock(scoped_lock const&) = delete;
@@ -55,7 +55,7 @@ namespace hpx { namespace util {
             void unlock();
         };
 
-        struct scoped_try_lock
+        struct HPX_EXPORT scoped_try_lock
         {
             scoped_try_lock();
             scoped_try_lock(scoped_try_lock const&) = delete;
@@ -75,7 +75,6 @@ namespace hpx { namespace util {
         static LCI_endpoint_t h_ep_;
         static LCI_comp_t rt_cq_r_;
         static LCI_comp_t h_cq_r_;
-
     };
 }}    // namespace hpx::util
 
@@ -88,7 +87,7 @@ namespace hpx { namespace util {
 #include <hpx/config/warnings_prefix.hpp>
 
 namespace hpx { namespace util {
-    struct HPX_CORE_EXPORT lci_environment
+    struct HPX_EXPORT lci_environment
     {
         static bool check_lci_environment(runtime_configuration const& cfg);
     };

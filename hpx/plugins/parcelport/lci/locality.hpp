@@ -18,70 +18,66 @@
 
 #include <cstdint>
 
-namespace hpx { namespace parcelset
-{
-    namespace policies { namespace lci
+namespace hpx { namespace parcelset { namespace policies { namespace lci {
+    class locality
     {
-        class locality
+    public:
+        locality()
+          : rank_(-1)
         {
-        public:
-            locality()
-              : rank_(-1)
-            {}
+        }
 
-            explicit locality(std::int32_t rank)
-              : rank_(rank)
-            {}
+        explicit locality(std::int32_t rank)
+          : rank_(rank)
+        {
+        }
 
-            std::int32_t rank() const
-            {
-                return rank_;
-            }
+        std::int32_t rank() const
+        {
+            return rank_;
+        }
 
-            static const char *type()
-            {
-                return "lci";
-            }
+        static const char* type()
+        {
+            return "lci";
+        }
 
-            explicit operator bool() const noexcept
-            {
-                return rank_ != -1;
-            }
+        explicit operator bool() const noexcept
+        {
+            return rank_ != -1;
+        }
 
-            void save(serialization::output_archive & ar) const
-            {
-                ar << rank_;
-            }
+        void save(serialization::output_archive& ar) const
+        {
+            ar << rank_;
+        }
 
-            void load(serialization::input_archive & ar)
-            {
-                ar >> rank_;
-            }
+        void load(serialization::input_archive& ar)
+        {
+            ar >> rank_;
+        }
 
-        private:
-            friend bool operator==(locality const & lhs, locality const & rhs)
-            {
-                return lhs.rank_ == rhs.rank_;
-            }
+    private:
+        friend bool operator==(locality const& lhs, locality const& rhs)
+        {
+            return lhs.rank_ == rhs.rank_;
+        }
 
-            friend bool operator<(locality const & lhs, locality const & rhs)
-            {
-                return lhs.rank_ < rhs.rank_;
-            }
+        friend bool operator<(locality const& lhs, locality const& rhs)
+        {
+            return lhs.rank_ < rhs.rank_;
+        }
 
-            friend std::ostream & operator<<(std::ostream & os, locality const & loc)
-            {
-                hpx::util::ios_flags_saver ifs(os);
-                os << loc.rank_;
+        friend std::ostream& operator<<(std::ostream& os, locality const& loc)
+        {
+            hpx::util::ios_flags_saver ifs(os);
+            os << loc.rank_;
 
-                return os;
-            }
+            return os;
+        }
 
-            std::int32_t rank_;
-        };
-    }}
-}}
+        std::int32_t rank_;
+    };
+}}}}    // namespace hpx::parcelset::policies::lci
 
 #endif
-
-
