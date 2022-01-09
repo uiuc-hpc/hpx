@@ -9,29 +9,25 @@
 #include <hpx/config.hpp>
 
 #if defined(HPX_HAVE_NETWORKING)
+#include <hpx/modules/errors.hpp>
+#include <hpx/modules/execution_base.hpp>
+#include <hpx/modules/functional.hpp>
+#include <hpx/modules/mpi_base.hpp>
+#include <hpx/modules/runtime_configuration.hpp>
+#include <hpx/modules/runtime_local.hpp>
+#include <hpx/modules/synchronization.hpp>
+#include <hpx/modules/util.hpp>
 #include <hpx/plugin/traits/plugin_config_data.hpp>
 
 #include <hpx/command_line_handling/command_line_handling.hpp>
 #include <hpx/modules/lci_base.hpp>
-#include <hpx/plugins/parcelport_factory.hpp>
-
-// parcelport
-#include <hpx/runtime/parcelset/locality.hpp>
-#include <hpx/runtime/parcelset/parcelport_impl.hpp>
-#include <hpx/runtime_distributed.hpp>
-
-#include <hpx/synchronization/condition_variable.hpp>
-#include <hpx/synchronization/spinlock.hpp>
-
-#include <hpx/plugins/parcelport/lci/header.hpp>
-#include <hpx/plugins/parcelport/lci/locality.hpp>
-#include <hpx/plugins/parcelport/lci/receiver.hpp>
-#include <hpx/plugins/parcelport/lci/sender.hpp>
-
-#include <hpx/execution_base/this_thread.hpp>
-#include <hpx/functional/bind.hpp>
-#include <hpx/runtime_configuration/runtime_configuration.hpp>
-#include <hpx/util/get_entry_as.hpp>
+#include <hpx/parcelport_lci/header.hpp>
+#include <hpx/parcelport_lci/locality.hpp>
+#include <hpx/parcelport_lci/receiver.hpp>
+#include <hpx/parcelport_lci/sender.hpp>
+#include <hpx/parcelset/parcelport_impl.hpp>
+#include <hpx/parcelset_base/locality.hpp>
+#include <hpx/plugin_factories/parcelport_factory.hpp>
 
 #include <atomic>
 #include <cstddef>
@@ -56,17 +52,17 @@ namespace hpx { namespace parcelset {
         typedef std::true_type do_background_work;
         typedef std::false_type send_immediate_parcels;
 
-        static const char* type()
+        static constexpr const char* type() noexcept
         {
             return "lci";
         }
 
-        static const char* pool_name()
+        static constexpr const char* pool_name() noexcept
         {
             return "parcel-pool-lci";
         }
 
-        static const char* pool_name_postfix()
+        static constexpr const char* pool_name_postfix() noexcept
         {
             return "-lci";
         }

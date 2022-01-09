@@ -7,7 +7,7 @@
 # FIXME : in the future put it directly inside the cmake directory of the
 # corresponding plugin
 
-macro(setup_lci)
+macro(hpx_setup_lci)
   if(NOT TARGET LCI::LCI)
     hpx_local_setup_mpi()
     if(NOT HPX_WITH_FETCH_LCI)
@@ -111,5 +111,5 @@ macro(setup_lci)
 endmacro()
 
 if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
-  setup_lci()
+  hpx_setup_lci()
 endif()

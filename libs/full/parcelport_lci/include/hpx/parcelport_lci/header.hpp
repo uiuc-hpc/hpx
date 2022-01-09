@@ -10,10 +10,9 @@
 #include <hpx/config.hpp>
 
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
-
 #include <hpx/assert.hpp>
-#include <hpx/modules/lci_base.hpp>
-#include <hpx/runtime/parcelset/parcel_buffer.hpp>
+
+#include <hpx/parcelset/parcel_buffer.hpp>
 
 #include <array>
 #include <cstddef>

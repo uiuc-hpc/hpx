@@ -9,16 +9,16 @@
 #include <hpx/config.hpp>
 
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
-
 #include <hpx/assert.hpp>
-#include <hpx/functional/unique_function.hpp>
-#include <hpx/plugins/parcelport/lci/header.hpp>
-#include <hpx/plugins/parcelport/lci/locality.hpp>
-#include <hpx/runtime/parcelset/detail/gatherer.hpp>
-#include <hpx/runtime/parcelset/parcelport.hpp>
-#include <hpx/runtime/parcelset/parcelport_connection.hpp>
-#include <hpx/runtime/parcelset_fwd.hpp>
-#include <hpx/timing/high_resolution_clock.hpp>
+#include <hpx/modules/functional.hpp>
+#include <hpx/modules/timing.hpp>
+
+#include <hpx/parcelport_lci/header.hpp>
+#include <hpx/parcelport_lci/locality.hpp>
+#include <hpx/parcelset/parcelport_connection.hpp>
+#include <hpx/parcelset/parcelset_fwd.hpp>
+#include <hpx/parcelset_base/detail/gatherer.hpp>
+#include <hpx/parcelset_base/parcelport.hpp>
 
 #include <cstddef>
 #include <memory>

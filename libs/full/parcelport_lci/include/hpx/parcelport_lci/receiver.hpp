@@ -13,8 +13,8 @@
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
 
 #include <hpx/assert.hpp>
-#include <hpx/plugins/parcelport/lci/header.hpp>
-#include <hpx/plugins/parcelport/lci/receiver_connection.hpp>
+#include <hpx/parcelport_lci/header.hpp>
+#include <hpx/parcelport_lci/receiver_connection.hpp>
 
 #include <algorithm>
 #include <deque>

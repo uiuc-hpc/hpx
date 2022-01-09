@@ -10,9 +10,18 @@ set(version_headers hpx/version.hpp)
 
 set(version_sources version.cpp)
 
-if(HPX_WITH_NETWORKING AND HPX_WITH_PARCELPORT_LCI)
-  include(HPX_SetupLCI)
-  set(additional_dependencies Mpi::mpi LCI::LCI)
+if(HPX_WITH_NETWORKING)
+  if(HPX_WITH_PARCELPORT_MPI OR HPXLocal_WITH_ASYNC_MPI)
+    include(HPXLocal_SetupMPI)
+    hpx_local_setup_mpi()
+    set(additional_dependencies Mpi::mpi)
+  endif()
+
+  if(HPX_WITH_PARCELPORT_LCI)
+    include(HPX_SetupLCI)
+    hpx_setup_lci()
+    set(additional_dependencies Mpi::mpi LCI::LCI)
+  endif()
 endif()
 
 include(HPX_AddModule)

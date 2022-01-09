@@ -9,9 +9,8 @@
 #include <hpx/config.hpp>
 
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
-
 #include <hpx/assert.hpp>
-#include <hpx/synchronization/spinlock.hpp>
+#include <hpx/modules/synchronization.hpp>
 
 #include <deque>
 #include <mutex>
@@ -21,15 +20,15 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
     {
         typedef lcos::local::spinlock mutex_type;
 
-        tag_provider()
+        tag_provider() noexcept
           : next_tag_(2)
         {
         }
 
-        int acquire()
+        int acquire() noexcept
         {
             int tag = -1;
-            std::lock_guard<mutex_type> l(mtx_);
+            std::lock_guard l(mtx_);
             if (free_tags_.empty())
             {
                 HPX_ASSERT(next_tag_ < (std::numeric_limits<int>::max)());
@@ -47,7 +46,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
         void release(int tag)
         {
             HPX_ASSERT(tag > 1);
-            std::lock_guard<mutex_type> l(mtx_);
+            std::lock_guard l(mtx_);
             HPX_ASSERT(tag < next_tag_);
 
             free_tags_.push_back(tag);

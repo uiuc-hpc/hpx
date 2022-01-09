@@ -15,8 +15,8 @@
 #include <hpx/synchronization/spinlock.hpp>
 
 #include <hpx/modules/lci_base.hpp>
-#include <hpx/plugins/parcelport/lci/sender_connection.hpp>
-#include <hpx/plugins/parcelport/lci/tag_provider.hpp>
+#include <hpx/parcelport_lci/sender_connection.hpp>
+#include <hpx/parcelport_lci/tag_provider.hpp>
 
 #include <algorithm>
 #include <iterator>

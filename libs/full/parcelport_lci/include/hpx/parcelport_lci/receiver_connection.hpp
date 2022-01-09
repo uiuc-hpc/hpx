@@ -9,11 +9,11 @@
 #include <hpx/config.hpp>
 
 #if defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_LCI)
-
 #include <hpx/assert.hpp>
-#include <hpx/plugins/parcelport/lci/header.hpp>
-#include <hpx/runtime/parcelset/decode_parcels.hpp>
-#include <hpx/runtime/parcelset/parcel_buffer.hpp>
+
+#include <hpx/parcelport_lci/header.hpp>
+#include <hpx/parcelset/decode_parcels.hpp>
+#include <hpx/parcelset/parcel_buffer.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -47,13 +47,13 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
           , tag_(h.tag())
           , header_(h)
           , request_ptr_(nullptr)
+          , sync_(nullptr)
           , chunks_idx_(0)
           , pp_(pp)
         {
             header_.assert_valid();
 
-            performance_counters::parcels::data_point& data =
-                buffer_.data_point_;
+            parcelset::data_point& data = buffer_.data_point_;
             data.time_ = timer_.elapsed_nanoseconds();
             data.bytes_ = static_cast<std::size_t>(header_.numbytes());
 
@@ -226,8 +226,7 @@ namespace hpx { namespace parcelset { namespace policies { namespace lci {
             if (!request_done())
                 return false;
 
-            performance_counters::parcels::data_point& data =
-                buffer_.data_point_;
+            parcelset::data_point& data = buffer_.data_point_;
             data.time_ = timer_.elapsed_nanoseconds() - data.time_;
 
             {

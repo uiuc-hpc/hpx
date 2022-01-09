@@ -21,7 +21,8 @@
 #include <boost/config.hpp>
 #include <boost/version.hpp>
 
-#if defined(HPX_HAVE_MODULE_MPI_BASE)
+#if (defined(HPX_HAVE_NETWORKING) && defined(HPX_HAVE_PARCELPORT_MPI)) ||      \
+    defined(HPX_HAVE_MODULE_MPI_BASE)
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-qual"
