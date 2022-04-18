@@ -102,7 +102,7 @@ namespace hpx { namespace util {
     LCI_comp_t lci_environment::rt_cq_r_;
     LCI_endpoint_t lci_environment::h_ep_;
     LCI_comp_t lci_environment::h_cq_r_;
-    std::thread *lci_environment::prg_thread_p = nullptr;
+    std::thread* lci_environment::prg_thread_p = nullptr;
     std::atomic<bool> lci_environment::prg_thread_flag = false;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -252,8 +252,10 @@ namespace hpx { namespace util {
         }
     }
 
-    void lci_environment::progress_fn() {
-        while (prg_thread_flag) {
+    void lci_environment::progress_fn()
+    {
+        while (prg_thread_flag)
+        {
             LCI_progress(LCI_UR_DEVICE);
         }
     }

@@ -78,7 +78,7 @@ namespace hpx { namespace util {
         static LCI_endpoint_t h_ep_;
         static LCI_comp_t rt_cq_r_;
         static LCI_comp_t h_cq_r_;
-        static std::thread *prg_thread_p;
+        static std::thread* prg_thread_p;
         static std::atomic<bool> prg_thread_flag;
     };
 }}    // namespace hpx::util

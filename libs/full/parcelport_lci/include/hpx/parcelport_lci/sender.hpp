@@ -117,8 +117,8 @@ namespace hpx::parcelset::policies::lci {
         int next_free_tag_locked() noexcept
         {
             LCI_request_t request;
-            LCI_error_t ret = LCI_queue_pop(
-                util::lci_environment::rt_queue(), &request);
+            LCI_error_t ret =
+                LCI_queue_pop(util::lci_environment::rt_queue(), &request);
             if (ret == LCI_OK)
             {
                 return *(int*) &request.data.immediate;
