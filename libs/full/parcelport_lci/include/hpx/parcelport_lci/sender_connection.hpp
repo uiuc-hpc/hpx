@@ -64,12 +64,11 @@ namespace hpx::parcelset::policies::lci {
           , tag_(-1)
           , dst_rank(dst)
           , request_ptr_(nullptr)
+          , sync_(nullptr)
           , chunks_idx_(0)
-          , ack_(0)
           , pp_(pp)
           , there_(parcelset::locality(locality(dst_rank)))
         {
-            LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
         }
 
         parcelset::locality const& destination() const noexcept
@@ -89,14 +88,47 @@ namespace hpx::parcelset::policies::lci {
             HPX_ASSERT(!handler_);
             HPX_ASSERT(!postprocess_handler_);
             HPX_ASSERT(!buffer_.data_.empty());
+            HPX_ASSERT(sync_ == nullptr);
 
             buffer_.data_point_.time_ =
                 hpx::chrono::high_resolution_clock::now();
-            request_ptr_ = nullptr;
             chunks_idx_ = 0;
             tag_ = acquire_tag(sender_);
+            request_ptr_ = nullptr;
             header_ = header(buffer_, tag_);
             header_.assert_valid();
+
+            // calculate how many long messages to send
+            int long_msg_num = 0;
+            // data
+            if (!header_.piggy_back() &&
+                static_cast<int>(buffer_.data_.size()) > LCI_MEDIUM_SIZE)
+                ++long_msg_num;
+            // transmission chunks
+            std::size_t num_zero_copy_chunks = static_cast<std::size_t>(
+                static_cast<std::uint32_t>(buffer_.num_chunks_.first));
+            if (num_zero_copy_chunks != 0)
+            {
+                std::vector<typename parcel_buffer_type::transmission_chunk_type>&
+                    tchunks = buffer_.transmission_chunks_;
+                int tchunks_length = static_cast<int>(tchunks.size() *
+                    sizeof(parcel_buffer_type::transmission_chunk_type));
+                if (tchunks_length > LCI_MEDIUM_SIZE)
+                    ++long_msg_num;
+                // chunks
+                for (auto &chunk : buffer_.chunks_) {
+                    if (chunk.type_ == serialization::chunk_type::chunk_type_pointer &&
+                        static_cast<int>(chunk.size_) > LCI_MEDIUM_SIZE) {
+                        ++long_msg_num;
+                    }
+                }
+            }
+            // create synchronizer
+            if (long_msg_num > 0)
+//                LCI_sync_create(LCI_UR_DEVICE, long_msg_num, &sync_);
+                LCI_sync_create(LCI_UR_DEVICE, 1, &sync_);
+            else
+                sync_ = nullptr;
 
             state_ = initialized;
 
@@ -146,7 +178,6 @@ namespace hpx::parcelset::policies::lci {
         {
             {
                 HPX_ASSERT(state_ == initialized);
-                HPX_ASSERT(request_ptr_ == nullptr);
                 HPX_ASSERT(LCI_MEDIUM_SIZE >= header_.data_size_);
                 LCI_mbuffer_t mbuffer;
                 mbuffer.length = header_.data_size_;
@@ -175,6 +206,7 @@ namespace hpx::parcelset::policies::lci {
             }
             else
             {
+                HPX_ASSERT(sync_ != nullptr);
                 LCI_lbuffer_t lbuffer;
                 lbuffer.address = buffer;
                 lbuffer.length = length;
@@ -192,7 +224,6 @@ namespace hpx::parcelset::policies::lci {
         bool send_transmission_chunks()
         {
             HPX_ASSERT(state_ == sent_header);
-            HPX_ASSERT(request_ptr_ == nullptr);
             std::size_t num_zero_copy_chunks = static_cast<std::size_t>(
                 static_cast<std::uint32_t>(buffer_.num_chunks_.first));
 
@@ -216,9 +247,9 @@ namespace hpx::parcelset::policies::lci {
 
         bool send_data()
         {
-            HPX_ASSERT(state_ == sent_transmission_chunks);
             if (!request_done())
                 return false;
+            HPX_ASSERT(state_ == sent_transmission_chunks);
 
             if (!header_.piggy_back())
             {
@@ -233,6 +264,8 @@ namespace hpx::parcelset::policies::lci {
 
         bool send_chunks()
         {
+            if (!request_done())
+                return false;
             HPX_ASSERT(state_ == sent_data);
 
             while (chunks_idx_ < buffer_.chunks_.size())
@@ -241,16 +274,11 @@ namespace hpx::parcelset::policies::lci {
                     buffer_.chunks_[chunks_idx_];
                 if (c.type_ == serialization::chunk_type::chunk_type_pointer)
                 {
-                    if (!request_done())
+                    bool ret =
+                        unified_send(const_cast<void*>(c.data_.cpos_),
+                            static_cast<int>(c.size_), dst_rank, tag_);
+                    if (!ret)
                         return false;
-                    else
-                    {
-                        bool ret =
-                            unified_send(const_cast<void*>(c.data_.cpos_),
-                                static_cast<int>(c.size_), dst_rank, tag_);
-                        if (!ret)
-                            return false;
-                    }
                 }
                 chunks_idx_++;
             }
@@ -259,7 +287,7 @@ namespace hpx::parcelset::policies::lci {
             return done();
         }
 
-        bool request_done()
+        bool request_done() noexcept
         {
             if (request_ptr_ == nullptr)
                 return true;
@@ -281,6 +309,12 @@ namespace hpx::parcelset::policies::lci {
         {
             if (!request_done())
                 return false;
+//            if (sync_ != nullptr)
+//            {
+//                LCI_error_t ret = LCI_sync_test(sync_, nullptr);
+//                if (ret != LCI_OK)
+//                    return false;
+//            }
 
             error_code ec;
             handler_(ec);
@@ -290,6 +324,11 @@ namespace hpx::parcelset::policies::lci {
                 buffer_.data_point_.time_;
             pp_->add_sent_data(buffer_.data_point_);
             buffer_.clear();
+            if (sync_ != nullptr)
+            {
+                LCI_sync_free(&sync_);
+                sync_ = nullptr;
+            }
 
             state_ = initialized;
 
@@ -310,7 +349,6 @@ namespace hpx::parcelset::policies::lci {
         void* request_ptr_;
         LCI_comp_t sync_;
         std::size_t chunks_idx_;
-        char ack_;
 
         parcelset::parcelport* pp_;
 

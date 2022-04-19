@@ -161,10 +161,10 @@ namespace hpx::parcelset::policies::lci {
 
         bool receive_chunks(std::size_t num_thread = -1)
         {
+            if (!request_done())
+                return false;
             while (chunks_idx_ < buffer_.chunks_.size())
             {
-                if (!request_done())
-                    return false;
 
                 std::size_t idx = chunks_idx_;
                 std::size_t chunk_size =
