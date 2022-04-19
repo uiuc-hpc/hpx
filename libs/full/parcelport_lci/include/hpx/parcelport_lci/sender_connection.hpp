@@ -21,6 +21,7 @@
 #include <hpx/parcelset_base/parcelport.hpp>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <system_error>
 #include <utility>
