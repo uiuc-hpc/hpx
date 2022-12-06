@@ -96,7 +96,7 @@ macro(hpx_setup_lci)
       endif()
 
       install(
-        TARGETS LCI
+        TARGETS LCI lci-ucx
         EXPORT HPXLCITarget
         COMPONENT core
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -120,7 +120,7 @@ macro(hpx_setup_lci)
       )
 
       export(
-        TARGETS LCI
+        TARGETS LCI lci-ucx
         NAMESPACE LCI::
         FILE "${CMAKE_CURRENT_BINARY_DIR}/lib/cmake/${HPX_PACKAGE_NAME}/HPXLCITarget.cmake"
       )
