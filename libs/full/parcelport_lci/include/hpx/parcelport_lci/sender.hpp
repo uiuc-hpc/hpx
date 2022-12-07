@@ -49,11 +49,6 @@ namespace hpx::parcelset::policies::lci {
             connections_.push_back(ptr);
         }
 
-        int acquire_tag() noexcept
-        {
-            return tag_provider_.acquire();
-        }
-
         void send_messages(connection_ptr connection)
         {
             // Check if sending has been completed....
@@ -93,26 +88,10 @@ namespace hpx::parcelset::policies::lci {
                 send_messages(HPX_MOVE(connection));
                 has_work = true;
             }
-            //            next_free_tag();
             return has_work;
         }
 
     private:
-        tag_provider tag_provider_;
-
-        void next_free_tag() noexcept
-        {
-            LCI_request_t request;
-            LCI_error_t ret =
-                LCI_queue_pop(util::lci_environment::rt_queue(), &request);
-            if (ret == LCI_OK)
-            {
-                int next_free = *(int*) &request.data.immediate;
-                HPX_ASSERT(next_free > 1);
-                tag_provider_.release(next_free);
-            }
-        }
-
         mutex_type connections_mtx_;
         connection_list connections_;
     };

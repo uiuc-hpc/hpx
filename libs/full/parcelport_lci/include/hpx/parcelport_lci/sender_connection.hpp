@@ -31,7 +31,6 @@ namespace hpx::parcelset::policies::lci {
     struct sender;
     struct sender_connection;
 
-    int acquire_tag(sender*) noexcept;
     void add_connection(sender*, std::shared_ptr<sender_connection> const&);
 
     struct sender_connection
@@ -86,25 +85,32 @@ namespace hpx::parcelset::policies::lci {
             buffer_.data_point_.time_ =
                 hpx::chrono::high_resolution_clock::now();
 #endif
-            header_ = header(buffer_, 99);
-            header_.assert_valid();
-
-            // calculate how many long messages to send
-            int long_msg_num = 0;
-            // data
-            if (!header_.piggy_back())
-                ++long_msg_num;
-            // transmission chunks
+            // calculate the maximum number of long messages to send
+            // 2 messages (data + transmission chunk) + zero-copy chunks
             int num_zero_copy_chunks =
                 static_cast<int>(buffer_.num_chunks_.first);
+            size_t max_header_size = LCI_get_iovec_piggy_back_size(num_zero_copy_chunks + 2);
+            // TODO: directly use LCI packet
+            char *header_buffer = (char*) malloc(max_header_size);
+            header_ = header(buffer_, header_buffer, max_header_size);
+            header_.assert_valid();
+
+            // calculate the exact number of long messages to send
+            int long_msg_num = 0;
+            // data
+            if (!header_.piggy_back_data())
+                ++long_msg_num;
             if (num_zero_copy_chunks != 0)
-                long_msg_num += num_zero_copy_chunks + 1;
+            {
+                // transmission chunks
+                if (!header_.piggy_back_tchunk())
+                    ++long_msg_num;
+                long_msg_num += num_zero_copy_chunks;
+            }
 
             // initialize iovec
-            HPX_ASSERT(LCI_get_iovec_piggy_back_size(long_msg_num) >=
-                header_.data_size_);
             iovec.piggy_back.address = header_.data();
-            iovec.piggy_back.length = header_.data_size_;
+            iovec.piggy_back.length = header_.size();
             iovec.count = long_msg_num;
             if (long_msg_num > 0)
             {
@@ -113,7 +119,7 @@ namespace hpx::parcelset::policies::lci {
                 int i = 0;
                 iovec.lbuffers = (LCI_lbuffer_t*) malloc(
                     iovec.count * sizeof(LCI_lbuffer_t));
-                if (!header_.piggy_back())
+                if (!header_.piggy_back_data())
                 {
                     // data (non-zero-copy chunks)
                     iovec.lbuffers[i].address = buffer_.data_.data();
@@ -124,15 +130,17 @@ namespace hpx::parcelset::policies::lci {
                 if (num_zero_copy_chunks > 0)
                 {
                     // transmission chunk
-                    std::vector<
-                        typename parcel_buffer_type::transmission_chunk_type>&
-                        tchunks = buffer_.transmission_chunks_;
-                    int tchunks_length = static_cast<int>(tchunks.size() *
-                        sizeof(parcel_buffer_type::transmission_chunk_type));
-                    iovec.lbuffers[i].address = tchunks.data();
-                    iovec.lbuffers[i].length = tchunks_length;
-                    iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
-                    ++i;
+                    if (!header_.piggy_back_tchunk()) {
+                        std::vector<
+                            typename parcel_buffer_type::transmission_chunk_type>&
+                            tchunks = buffer_.transmission_chunks_;
+                        int tchunks_length = static_cast<int>(tchunks.size() *
+                            sizeof(parcel_buffer_type::transmission_chunk_type));
+                        iovec.lbuffers[i].address = tchunks.data();
+                        iovec.lbuffers[i].length = tchunks_length;
+                        iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
+                        ++i;
+                    }
                     // zero-copy chunks
                     for (int j = 0; j < (int) buffer_.chunks_.size(); ++j)
                     {
@@ -214,6 +222,7 @@ namespace hpx::parcelset::policies::lci {
             }
 
             state_ = sent_header;
+            free(header_.data());
             return done();
         }
 
