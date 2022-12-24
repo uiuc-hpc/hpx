@@ -100,6 +100,14 @@ namespace hpx::parcelset {
               , stopped_(false)
               , receiver_(*this)
             {
+                can_send_immediate_flag = false;
+                if (connection_handler_traits<hpx::parcelset::policies::lci::parcelport>::send_immediate_parcels::value)
+                {
+                    // The default value here does not matter here
+                    // the key "hpx.parcel.lci.sendimm" is guaranteed to exist
+                    can_send_immediate_flag = hpx::util::get_entry_as<bool>(
+                        ini, "hpx.parcel.lci.sendimm", false /* Does not matter*/);
+                }
             }
 
             ~parcelport()
@@ -218,7 +226,7 @@ namespace hpx::parcelset {
 
             bool can_send_immediate()
             {
-                return true;
+                return can_send_immediate_flag;
             }
 
             static bool enable_lci_progress_pool;
@@ -230,6 +238,7 @@ namespace hpx::parcelset {
 
             sender sender_;
             receiver<parcelport> receiver_;
+            bool can_send_immediate_flag;
 
             void io_service_work()
             {

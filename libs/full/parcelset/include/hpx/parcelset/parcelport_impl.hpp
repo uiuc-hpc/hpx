@@ -634,8 +634,9 @@ namespace hpx::parcelset {
             // Request new connection from connection cache.
             std::shared_ptr<connection> sender_connection;
 
-            if constexpr (connection_handler_traits<
-                              ConnectionHandler>::send_immediate_parcels::value)
+            if (connection_handler_traits<
+                              ConnectionHandler>::send_immediate_parcels::value &&
+                can_send_immediate_impl())
             {
                 std::terminate();
             }
@@ -837,8 +838,9 @@ namespace hpx::parcelset {
         void get_connection_and_send_parcels(
             locality const& locality_id, bool /* background */ = false)
         {
-            if constexpr (connection_handler_traits<
-                              ConnectionHandler>::send_immediate_parcels::value)
+            if (connection_handler_traits<
+                              ConnectionHandler>::send_immediate_parcels::value &&
+                can_send_immediate_impl())
             {
                 send_immediate_impl(locality_id, nullptr, nullptr, 0);
                 return;
