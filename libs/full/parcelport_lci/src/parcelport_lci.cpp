@@ -51,7 +51,8 @@ namespace hpx::parcelset {
         using connection_type = policies::lci::sender_connection;
         using send_early_parcel = std::true_type;
         using do_background_work = std::true_type;
-        using send_immediate_parcels = std::false_type;
+        using send_immediate_parcels = std::true_type;
+        using is_connectionless = std::true_type;
 
         static constexpr const char* type() noexcept
         {
@@ -91,6 +92,8 @@ namespace hpx::parcelset {
             }
 
         public:
+            using sender_type = policies::lci::sender;
+
             parcelport(util::runtime_configuration const& ini,
                 threads::policies::callback_notifier const& notifier)
               : base_type(ini, here(), notifier)
@@ -211,6 +214,11 @@ namespace hpx::parcelset {
                     }
                 }
                 return has_work;
+            }
+
+            bool can_send_immediate()
+            {
+                return true;
             }
 
             static bool enable_lci_progress_pool;

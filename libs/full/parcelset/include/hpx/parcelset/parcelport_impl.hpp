@@ -492,7 +492,65 @@ namespace hpx::parcelset {
             parcel* ps, std::size_t num_parcels)
         {
             if constexpr (connection_handler_traits<
-                              ConnectionHandler>::send_immediate_parcels::value)
+                              ConnectionHandler>::is_connectionless::value)
+            {
+                static_assert(
+                    connection_handler_traits<
+                        ConnectionHandler>::send_immediate_parcels::value,
+                    "Have to set send_immediate_parcels to true");
+                std::size_t encoded_parcels = 0;
+                std::vector<parcel> parcels;
+                std::vector<write_handler_type> handlers;
+                if (fs == nullptr)
+                {
+                    HPX_ASSERT(ps == nullptr);
+                    HPX_ASSERT(num_parcels == 0u);
+
+                    if (!dequeue_parcels(dest_, parcels, handlers))
+                    {
+                        return;
+                    }
+
+                    ps = parcels.data();
+                    fs = handlers.data();
+                    num_parcels = parcels.size();
+                    HPX_ASSERT(parcels.size() == handlers.size());
+                }
+
+                // encode the parcels
+                typename ConnectionHandler::sender_type::parcel_buffer_type
+                    buffer;
+                encoded_parcels = encode_parcels(*this, ps, num_parcels, buffer,
+                    archive_flags_, get_max_outbound_message_size());
+
+                typename ConnectionHandler::sender_type::callback_fn_type
+                    callback_fn = detail::call_for_each(
+                        detail::call_for_each::handlers_type(
+                            std::make_move_iterator(fs),
+                            std::make_move_iterator(fs + encoded_parcels)),
+                        detail::call_for_each::parcels_type(
+                            std::make_move_iterator(ps),
+                            std::make_move_iterator(ps + encoded_parcels)));
+
+                if (ConnectionHandler::sender_type::send(
+                        this, dest_, HPX_MOVE(buffer), HPX_MOVE(callback_fn)))
+                {
+                    // we don't propagate errors for now
+                }
+                if (num_parcels != encoded_parcels && fs != nullptr)
+                {
+                    std::vector<parcel> overflow_parcels(
+                        std::make_move_iterator(ps + encoded_parcels),
+                        std::make_move_iterator(ps + num_parcels));
+                    std::vector<write_handler_type> overflow_handlers(
+                        std::make_move_iterator(fs + encoded_parcels),
+                        std::make_move_iterator(fs + num_parcels));
+                    enqueue_parcels(dest_, HPX_MOVE(overflow_parcels),
+                        HPX_MOVE(overflow_handlers));
+                }
+            }
+            else if constexpr (connection_handler_traits<ConnectionHandler>::
+                                   send_immediate_parcels::value)
             {
                 // First try to get a connection ...
                 std::uint64_t addr;
