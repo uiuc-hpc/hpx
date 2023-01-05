@@ -50,7 +50,7 @@ namespace hpx::parcelset {
                 util::runtime_configuration const& ini);
 
         public:
-            using sender_type = policies::lci::sender;
+            using sender_type = sender;
             parcelport(util::runtime_configuration const& ini,
                 threads::policies::callback_notifier const& notifier);
 
@@ -85,6 +85,9 @@ namespace hpx::parcelset {
             bool can_send_immediate();
 
             static bool enable_lci_progress_pool;
+            static bool enable_lci_backlog_queue;
+            static bool enable_lci_try_lock_send;
+
             static bool is_sending_early_parcel;
 
         private:
@@ -133,6 +136,14 @@ namespace hpx::traits {
                 enable_lci_progress_pool = hpx::util::get_entry_as<bool>(
                     cfg.rtcfg_, "hpx.parcel.lci.rp_prg_pool",
                     false /* Does not matter*/);
+            hpx::parcelset::policies::lci::parcelport::
+                enable_lci_backlog_queue = hpx::util::get_entry_as<bool>(
+                    cfg.rtcfg_, "hpx.parcel.lci.backlog_queue",
+                    false /* Does not matter*/);
+            hpx::parcelset::policies::lci::parcelport::
+                enable_lci_try_lock_send = hpx::util::get_entry_as<bool>(
+                    cfg.rtcfg_, "hpx.parcel.lci.try_lock_send",
+                    false /* Does not matter*/);
         }
 
         // TODO: implement creation of custom thread pool here
@@ -169,7 +180,9 @@ namespace hpx::traits {
 #endif
                 "max_connections = "
                 "${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
-                "rp_prg_pool = 0\n";
+                "rp_prg_pool = 0\n"
+                "backlog_queue = 1\n"
+                "try_lock_send = 1\n";
         }
     };
 }    // namespace hpx::traits

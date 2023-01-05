@@ -20,7 +20,8 @@ namespace hpx::parcelset::policies::lci {
     {
         load(HPX_FORWARD(handler_type, handler),
             HPX_FORWARD(postprocess_handler_type, parcel_postprocess));
-        if (HPX_UNLIKELY(parcelport::is_sending_early_parcel))
+        if (!parcelport::enable_lci_backlog_queue ||
+            HPX_UNLIKELY(parcelport::is_sending_early_parcel))
         {
             while (!send())
                 continue;
@@ -133,14 +134,19 @@ namespace hpx::parcelset::policies::lci {
         }
     }
 
-    bool sender_connection::send()
-    {
+    bool sender_connection::send() {
+        static hpx::spinlock send_mtx;
+
         int ret;
         void* buffer_to_free = iovec.piggy_back.address;
         if (iovec.count == 0)
         {
+            if (parcelport::enable_lci_try_lock_send)
+                send_mtx.lock();
             ret = LCI_putma(util::lci_environment::get_endpoint(),
                 iovec.piggy_back, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
+            if (parcelport::enable_lci_try_lock_send)
+                send_mtx.unlock();
             if (ret == LCI_OK)
             {
                 free(buffer_to_free);
@@ -156,15 +162,21 @@ namespace hpx::parcelset::policies::lci {
             // and pass a pointer to shared_ptr to LCI.
             // We will get this pointer back via the send completion queue
             // after this send completes.
+            if (parcelport::enable_lci_try_lock_send)
+                send_mtx.lock();
             ret = LCI_putva(util::lci_environment::get_endpoint(), iovec,
                 util::lci_environment::get_scq(), dst_rank, 0,
                 LCI_DEFAULT_COMP_REMOTE, sharedPtr_p);
+            if (parcelport::enable_lci_try_lock_send)
+                send_mtx.unlock();
             // After this point, if ret == OK, this object can be shared by
             // two threads (the sending thread and the thread polling the
             // completion queue). Care must be taken to avoid data race.
             if (ret == LCI_OK)
             {
                 free(buffer_to_free);
+            } else {
+                delete sharedPtr_p;
             }
         }
         return ret == LCI_OK;
