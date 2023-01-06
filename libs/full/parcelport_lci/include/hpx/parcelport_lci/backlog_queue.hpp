@@ -22,6 +22,7 @@ namespace hpx::parcelset::policies::lci {
         {
             // pending messages per destination
             std::vector<std::deque<message_ptr>> messages;
+            hpx::spinlock lock;
         };
 
         extern __thread backlog_queue_t* tls_backlog_queue;

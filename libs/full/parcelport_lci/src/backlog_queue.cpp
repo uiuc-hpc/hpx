@@ -21,12 +21,14 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
             // this object will never be deallocated.
             tls_backlog_queue = new backlog_queue_t;
         }
+        tls_backlog_queue->lock.lock();
         if (tls_backlog_queue->messages.size() <= (size_t) message->dst_rank)
         {
             tls_backlog_queue->messages.resize(message->dst_rank + 1);
         }
         tls_backlog_queue->messages[message->dst_rank].push_back(
             HPX_MOVE(message));
+        tls_backlog_queue->lock.unlock();
     }
 
     bool empty(int dst_rank)
@@ -35,11 +37,14 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
         {
             return false;
         }
+        tls_backlog_queue->lock.lock();
         if (tls_backlog_queue->messages.size() <= (size_t) dst_rank)
         {
             tls_backlog_queue->messages.resize(dst_rank + 1);
         }
-        return tls_backlog_queue->messages[dst_rank].empty();
+        bool ret = tls_backlog_queue->messages[dst_rank].empty();
+        tls_backlog_queue->lock.unlock();
+        return ret;
     }
 
     bool background_work(size_t num_thread) noexcept
@@ -48,6 +53,7 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
         {
             return false;
         }
+        tls_backlog_queue->lock.lock();
         bool did_some_work = false;
         for (size_t i = 0; i < tls_backlog_queue->messages.size(); ++i)
         {
@@ -67,6 +73,7 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
                 }
             }
         }
+        tls_backlog_queue->lock.unlock();
         return did_some_work;
     }
 
