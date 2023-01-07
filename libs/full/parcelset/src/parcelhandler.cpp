@@ -816,7 +816,7 @@ namespace hpx::parcelset {
     {
         write_handler_type f;
         {
-            std::lock_guard<mutex_type> l(mtx_);
+//            std::lock_guard<mutex_type> l(mtx_);
             f = write_handler_;
         }
         f(ec, p);
