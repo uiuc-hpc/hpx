@@ -182,7 +182,8 @@ namespace hpx::traits {
                 "${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
                 "rp_prg_pool = 0\n"
                 "backlog_queue = 1\n"
-                "try_lock_send = 1\n";
+                "try_lock_send = 1\n"
+                "prg_thread_core = -1\n";
         }
     };
 }    // namespace hpx::traits

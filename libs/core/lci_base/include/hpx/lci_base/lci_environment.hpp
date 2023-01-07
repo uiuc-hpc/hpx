@@ -28,7 +28,7 @@ namespace hpx { namespace util {
     {
         static bool check_lci_environment(runtime_configuration const& cfg);
 
-        static LCI_error_t init_lci();
+        static LCI_error_t init_lci(runtime_configuration& cfg);
         static void init(int* argc, char*** argv, runtime_configuration& cfg);
         static void finalize();
 

@@ -108,7 +108,19 @@ namespace hpx { namespace util {
     hpx::spinlock prg_thread_mtx;
 
     ///////////////////////////////////////////////////////////////////////////
-    LCI_error_t lci_environment::init_lci()
+    void set_affinity(pthread_t pthread_handler, size_t target)
+    {
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(target, &cpuset);
+        int rv = pthread_setaffinity_np(pthread_handler, sizeof(cpuset), &cpuset);
+        if (rv != 0) {
+            fprintf(stderr, "ERROR %d thread affinity didn't work.\n", rv);
+            exit(1);
+        }
+    }
+
+    LCI_error_t lci_environment::init_lci(util::runtime_configuration& rtcfg)
     {
         int lci_initialized = 0;
         LCI_initialized(&lci_initialized);
@@ -135,6 +147,9 @@ namespace hpx { namespace util {
         HPX_ASSERT(prg_thread_p == nullptr);
         prg_thread_flag = true;
         prg_thread_p = std::make_unique<std::thread>(progress_fn);
+        int target = get_entry_as(rtcfg, "hpx.parcel.lci.prg_thread_core", -1);
+        if (target >= 0)
+            set_affinity(prg_thread_p->native_handle(), target);
         return LCI_OK;
     }
 
@@ -157,7 +172,7 @@ namespace hpx { namespace util {
 
         rtcfg.add_entry("hpx.parcel.bootstrap", "lci");
 
-        LCI_error_t retval = init_lci();
+        LCI_error_t retval = init_lci(rtcfg);
         if (LCI_OK != retval)
         {
             // explicitly disable lci if not run by mpirun
