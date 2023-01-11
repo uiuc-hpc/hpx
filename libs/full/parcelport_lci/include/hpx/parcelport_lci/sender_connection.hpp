@@ -63,7 +63,8 @@ namespace hpx::parcelset::policies::lci {
         void load(handler_type&& handler,
             postprocess_handler_type&& parcel_postprocess);
 
-        bool send();
+        bool isEager();
+        bool send(bool callDone = true);
 
         void done();
 

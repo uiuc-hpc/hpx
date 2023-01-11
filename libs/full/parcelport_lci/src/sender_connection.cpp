@@ -134,7 +134,11 @@ namespace hpx::parcelset::policies::lci {
         }
     }
 
-    bool sender_connection::send() {
+    bool sender_connection::isEager() {
+        return iovec.count == 0;
+    }
+
+    bool sender_connection::send(bool callDone) {
         static hpx::spinlock send_mtx;
 
         int ret;
@@ -150,7 +154,8 @@ namespace hpx::parcelset::policies::lci {
             if (ret == LCI_OK)
             {
                 free(buffer_to_free);
-                done();
+                if (callDone)
+                    done();
             }
         }
         else
