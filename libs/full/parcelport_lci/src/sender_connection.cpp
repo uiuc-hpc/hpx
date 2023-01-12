@@ -82,6 +82,7 @@ namespace hpx::parcelset::policies::lci {
             HPX_ASSERT(mbuffer.length == (size_t) LCI_MEDIUM_SIZE);
             header_ = header(buffer_, (char*) mbuffer.address, mbuffer.length);
             mbuffer.length = header_.size();
+            done();
         } else {
             size_t max_header_size =
                 LCI_get_iovec_piggy_back_size(num_zero_copy_chunks + 2);
@@ -145,26 +146,25 @@ namespace hpx::parcelset::policies::lci {
             HPX_ASSERT(long_msg_num == i);
             sharedPtr_p = new std::shared_ptr<sender_connection>(shared_from_this());
         }
-        header_.assert_valid();
     }
 
     bool sender_connection::isEager() {
         return is_eager;
     }
 
-    bool sender_connection::send(bool callDone) {
+    bool sender_connection::send() {
         int ret;
         if (is_eager)
         {
             ret = LCI_putmna(util::lci_environment::get_endpoint(),
                 mbuffer, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
-            if (ret == LCI_OK)
-            {
-                // no need to free mbuffer here.
-                // LCI_putmna will free it for us.
-                if (callDone)
-                    done();
-            }
+//            if (ret == LCI_OK)
+//            {
+//                // no need to free mbuffer here.
+//                // LCI_putmna will free it for us.
+//                if (callDone)
+//                    done();
+//            }
         }
         else
         {
@@ -214,6 +214,26 @@ namespace hpx::parcelset::policies::lci {
             error_code ec2;
             postprocess_handler(ec2, there_, shared_from_this());
         }
+    }
+
+    bool sender_connection::tryMerge(const std::shared_ptr<sender_connection>& other) {
+        if (!isEager() || !other->isEager())
+        {
+            // we can only merge eager messages
+            return false;
+        }
+        if (mbuffer.length + other->mbuffer.length > (size_t) LCI_MEDIUM_SIZE)
+        {
+            // The sum of two messages are too large
+            return false;
+        }
+        // can merge
+        memcpy((char*) mbuffer.address + mbuffer.length, other->mbuffer.address,
+            other->mbuffer.length);
+        mbuffer.length += other->mbuffer.length;
+        LCI_mbuffer_free(other->mbuffer);
+//        merged_connections.push_back(other);
+        return true;
     }
 }    // namespace hpx::parcelset::policies::lci
 

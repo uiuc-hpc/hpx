@@ -20,6 +20,12 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
         {
             tls_backlog_queue.messages.resize(message->dst_rank + 1);
         }
+        auto &message_queue = tls_backlog_queue.messages[message->dst_rank];
+        if (!message_queue.empty()) {
+            bool succeed = message_queue.back()->tryMerge(message);
+            if (succeed)
+                return;
+        }
         tls_backlog_queue.messages[message->dst_rank].push_back(
             HPX_MOVE(message));
     }
@@ -44,16 +50,16 @@ namespace hpx::parcelset::policies::lci::backlog_queue {
                 !tls_backlog_queue.messages[idx].empty())
             {
                 message_ptr message = tls_backlog_queue.messages[idx].front();
-                bool needCallDone = message->isEager();
-                bool isSent = message->send(false);
+//                bool needCallDone = message->isEager();
+                bool isSent = message->send();
                 if (isSent)
                 {
                     tls_backlog_queue.messages[idx].pop_front();
                     did_some_work = true;
-                    if (needCallDone) {
-                        message->done();
+//                    if (needCallDone) {
+//                        message->done();
                         // it can context switch to another thread at this point
-                    }
+//                    }
                 }
                 else
                 {

@@ -63,9 +63,11 @@ namespace hpx::parcelset::policies::lci {
             postprocess_handler_type&& parcel_postprocess);
 
         bool isEager();
-        bool send(bool callDone = true);
+        bool send();
 
         void done();
+
+        bool tryMerge(const std::shared_ptr<sender_connection>& other);
 
         int dst_rank;
         handler_type handler_;
