@@ -199,6 +199,16 @@ namespace hpx::parcelset::policies::lci {
             return &data_[current_header_size];
         }
 
+        constexpr char* next_header() noexcept
+        {
+            size_t current_header_size = pos_piggy_back_address;
+            if (data_[pos_piggy_back_flag_data])
+                current_header_size += numbytes_nonzero_copy();
+            if (data_[pos_piggy_back_flag_tchunk])
+                current_header_size += numbytes_tchunk();
+            return &data_[current_header_size];
+        }
+
     private:
         // random magic number for assert_valid
         static constexpr int MAGIC_SIGNATURE = 19527;

@@ -230,7 +230,6 @@ namespace hpx::parcelset {
             }
         bool parcelport::enable_lci_progress_pool = false;
         bool parcelport::enable_lci_backlog_queue = false;
-        bool parcelport::enable_lci_try_lock_send = false;
         bool parcelport::is_sending_early_parcel = false;
     }    // namespace policies::lci
 }    // namespace hpx::parcelset

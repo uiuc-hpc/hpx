@@ -42,10 +42,7 @@ namespace hpx::parcelset::policies::lci {
         {
         }
 
-        ~sender_connection()
-        {
-            HPX_ASSERT(iovec.count == -1);
-        }
+        ~sender_connection() {}
 
         parcelset::locality const& destination() const noexcept
         {
@@ -60,6 +57,8 @@ namespace hpx::parcelset::policies::lci {
         void async_write(handler_type&& handler,
             postprocess_handler_type&& parcel_postprocess);
 
+        bool can_be_eager_message(size_t max_header_size);
+
         void load(handler_type&& handler,
             postprocess_handler_type&& parcel_postprocess);
 
@@ -71,7 +70,10 @@ namespace hpx::parcelset::policies::lci {
         int dst_rank;
         handler_type handler_;
         postprocess_handler_type postprocess_handler_;
+        bool is_eager;
+        LCI_mbuffer_t mbuffer;
         LCI_iovec_t iovec;
+        std::shared_ptr<sender_connection> *sharedPtr_p; // for LCI_putva
         parcelset::parcelport* pp_;
         parcelset::locality there_;
     };

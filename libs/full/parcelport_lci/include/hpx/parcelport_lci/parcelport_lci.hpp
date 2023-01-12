@@ -86,7 +86,6 @@ namespace hpx::parcelset {
 
             static bool enable_lci_progress_pool;
             static bool enable_lci_backlog_queue;
-            static bool enable_lci_try_lock_send;
 
             static bool is_sending_early_parcel;
 
@@ -139,10 +138,6 @@ namespace hpx::traits {
             hpx::parcelset::policies::lci::parcelport::
                 enable_lci_backlog_queue = hpx::util::get_entry_as<bool>(
                     cfg.rtcfg_, "hpx.parcel.lci.backlog_queue",
-                    false /* Does not matter*/);
-            hpx::parcelset::policies::lci::parcelport::
-                enable_lci_try_lock_send = hpx::util::get_entry_as<bool>(
-                    cfg.rtcfg_, "hpx.parcel.lci.try_lock_send",
                     false /* Does not matter*/);
         }
 

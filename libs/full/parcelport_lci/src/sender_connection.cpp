@@ -43,6 +43,21 @@ namespace hpx::parcelset::policies::lci {
         }
     }
 
+    bool sender_connection::can_be_eager_message(size_t eager_threshold) {
+        int num_zero_copy_chunks = static_cast<int>(buffer_.num_chunks_.first);
+        if (num_zero_copy_chunks > 0)
+            // if there are non-zero-copy chunks, we have to use iovec
+            return false;
+        size_t header_size = header::data_pos::pos_piggy_back_address;
+        size_t data_size = buffer_.data_.size();
+        size_t tchunk_size = buffer_.transmission_chunks_.size() *
+                sizeof(parcel_buffer_type::transmission_chunk_type);
+        if (header_size + data_size + tchunk_size <= eager_threshold)
+            return true;
+        else
+            return false;
+    }
+
     void sender_connection::load(sender_connection::handler_type&& handler,
         sender_connection::postprocess_handler_type&& parcel_postprocess)
     {
@@ -57,36 +72,36 @@ namespace hpx::parcelset::policies::lci {
         postprocess_handler_ =
             HPX_FORWARD(ParcelPostprocess, parcel_postprocess);
 
-        // calculate the maximum number of long messages to send
-        // 2 messages (data + transmission chunk) + zero-copy chunks
+        // build header
+        header header_;
+        is_eager = can_be_eager_message(LCI_MEDIUM_SIZE);
         int num_zero_copy_chunks = static_cast<int>(buffer_.num_chunks_.first);
-        size_t max_header_size =
-            LCI_get_iovec_piggy_back_size(num_zero_copy_chunks + 2);
-        // TODO: directly use LCI packet
-        char* header_buffer = (char*) malloc(max_header_size);
-        header header_ = header(buffer_, header_buffer, max_header_size);
-        header_.assert_valid();
+        if (is_eager) {
+            while (LCI_mbuffer_alloc(LCI_UR_DEVICE, &mbuffer) != LCI_OK)
+                continue;
+            HPX_ASSERT(mbuffer.length == (size_t) LCI_MEDIUM_SIZE);
+            header_ = header(buffer_, (char*) mbuffer.address, mbuffer.length);
+            mbuffer.length = header_.size();
+        } else {
+            size_t max_header_size =
+                LCI_get_iovec_piggy_back_size(num_zero_copy_chunks + 2);
+            char *header_buffer = (char*) malloc(max_header_size);
+            header_ = header(buffer_, header_buffer, max_header_size);
 
-        // calculate the exact number of long messages to send
-        int long_msg_num = 0;
-        // data
-        if (!header_.piggy_back_data())
-            ++long_msg_num;
-        if (num_zero_copy_chunks != 0)
-        {
+            // calculate the exact number of long messages to send
+            HPX_ASSERT(num_zero_copy_chunks != 0);
+            int long_msg_num = num_zero_copy_chunks;
+            if (!header_.piggy_back_data())
+                ++long_msg_num;
             // transmission chunks
             if (!header_.piggy_back_tchunk())
                 ++long_msg_num;
-            long_msg_num += num_zero_copy_chunks;
-        }
 
-        // initialize iovec
-        iovec = LCI_iovec_t();
-        iovec.piggy_back.address = header_.data();
-        iovec.piggy_back.length = header_.size();
-        iovec.count = long_msg_num;
-        if (long_msg_num > 0)
-        {
+            // initialize iovec
+            iovec = LCI_iovec_t();
+            iovec.piggy_back.address = header_.data();
+            iovec.piggy_back.length = header_.size();
+            iovec.count = long_msg_num;
             int i = 0;
             iovec.lbuffers =
                 (LCI_lbuffer_t*) malloc(iovec.count * sizeof(LCI_lbuffer_t));
@@ -98,90 +113,76 @@ namespace hpx::parcelset::policies::lci {
                 iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
                 ++i;
             }
-            if (num_zero_copy_chunks > 0)
+            // transmission chunk
+            if (!header_.piggy_back_tchunk())
             {
-                // transmission chunk
-                if (!header_.piggy_back_tchunk())
+                std::vector<
+                    typename parcel_buffer_type::transmission_chunk_type>&
+                    tchunks = buffer_.transmission_chunks_;
+                int tchunks_length = static_cast<int>(tchunks.size() *
+                    sizeof(parcel_buffer_type::transmission_chunk_type));
+                iovec.lbuffers[i].address = tchunks.data();
+                iovec.lbuffers[i].length = tchunks_length;
+                // TODO: register the buffer here
+                iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
+                ++i;
+            }
+            // zero-copy chunks
+            for (int j = 0; j < (int) buffer_.chunks_.size(); ++j)
+            {
+                serialization::serialization_chunk& c = buffer_.chunks_[j];
+                if (c.type_ ==
+                    serialization::chunk_type::chunk_type_pointer)
                 {
-                    std::vector<
-                        typename parcel_buffer_type::transmission_chunk_type>&
-                        tchunks = buffer_.transmission_chunks_;
-                    int tchunks_length = static_cast<int>(tchunks.size() *
-                        sizeof(parcel_buffer_type::transmission_chunk_type));
-                    iovec.lbuffers[i].address = tchunks.data();
-                    iovec.lbuffers[i].length = tchunks_length;
-                    // TODO: register the buffer here
+                    HPX_ASSERT(long_msg_num > i);
+                    iovec.lbuffers[i].address =
+                        const_cast<void*>(c.data_.cpos_);
+                    iovec.lbuffers[i].length = c.size_;
                     iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
                     ++i;
                 }
-                // zero-copy chunks
-                for (int j = 0; j < (int) buffer_.chunks_.size(); ++j)
-                {
-                    serialization::serialization_chunk& c = buffer_.chunks_[j];
-                    if (c.type_ ==
-                        serialization::chunk_type::chunk_type_pointer)
-                    {
-                        HPX_ASSERT(long_msg_num > i);
-                        iovec.lbuffers[i].address =
-                            const_cast<void*>(c.data_.cpos_);
-                        iovec.lbuffers[i].length = c.size_;
-                        iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
-                        ++i;
-                    }
-                }
             }
             HPX_ASSERT(long_msg_num == i);
+            sharedPtr_p = new std::shared_ptr<sender_connection>(shared_from_this());
         }
+        header_.assert_valid();
     }
 
     bool sender_connection::isEager() {
-        return iovec.count == 0;
+        return is_eager;
     }
 
     bool sender_connection::send(bool callDone) {
-        static hpx::spinlock send_mtx;
-
         int ret;
-        void* buffer_to_free = iovec.piggy_back.address;
-        if (iovec.count == 0)
+        if (is_eager)
         {
-            if (parcelport::enable_lci_try_lock_send)
-                send_mtx.lock();
-            ret = LCI_putma(util::lci_environment::get_endpoint(),
-                iovec.piggy_back, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
-            if (parcelport::enable_lci_try_lock_send)
-                send_mtx.unlock();
+            ret = LCI_putmna(util::lci_environment::get_endpoint(),
+                mbuffer, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
             if (ret == LCI_OK)
             {
-                free(buffer_to_free);
+                // no need to free mbuffer here.
+                // LCI_putmna will free it for us.
                 if (callDone)
                     done();
             }
         }
         else
         {
-            auto* sharedPtr_p =
-                new std::shared_ptr<sender_connection>(shared_from_this());
+            void* buffer_to_free = iovec.piggy_back.address;
             // In order to keep the send_connection object from being
             // deallocated. We have to allocate a shared_ptr in the heap
             // and pass a pointer to shared_ptr to LCI.
             // We will get this pointer back via the send completion queue
             // after this send completes.
-            if (parcelport::enable_lci_try_lock_send)
-                send_mtx.lock();
             ret = LCI_putva(util::lci_environment::get_endpoint(), iovec,
                 util::lci_environment::get_scq(), dst_rank, 0,
                 LCI_DEFAULT_COMP_REMOTE, sharedPtr_p);
-            if (parcelport::enable_lci_try_lock_send)
-                send_mtx.unlock();
             // After this point, if ret == OK, this object can be shared by
             // two threads (the sending thread and the thread polling the
             // completion queue). Care must be taken to avoid data race.
             if (ret == LCI_OK)
             {
                 free(buffer_to_free);
-            } else {
-                delete sharedPtr_p;
             }
         }
         return ret == LCI_OK;
@@ -189,8 +190,11 @@ namespace hpx::parcelset::policies::lci {
 
     void sender_connection::done()
     {
-        if (iovec.count > 0)
+        if (!is_eager)
+        {
+            HPX_ASSERT(iovec.count > 0);
             free(iovec.lbuffers);
+        }
         error_code ec;
         handler_(ec);
         handler_.reset();
@@ -200,7 +204,6 @@ namespace hpx::parcelset::policies::lci {
         pp_->add_sent_data(buffer_.data_point_);
 #endif
         buffer_.clear();
-        iovec.count = -1;
 
         if (postprocess_handler_)
         {
