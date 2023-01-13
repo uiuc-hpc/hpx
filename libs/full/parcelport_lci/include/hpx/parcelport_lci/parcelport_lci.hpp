@@ -153,7 +153,9 @@ namespace hpx::traits {
                 hpx::parcelset::policies::lci::parcelport::
                     enable_lci_progress_pool)
             {
-                rp.create_thread_pool("lci-progress-pool");
+                rp.create_thread_pool("lci-progress-pool",
+                    hpx::resource::scheduling_policy::local,
+                    hpx::threads::policies::scheduler_mode::do_background_work);
                 rp.add_resource(rp.numa_domains()[0].cores()[0].pus()[0],
                     "lci-progress-pool");
             }
@@ -181,8 +183,8 @@ namespace hpx::traits {
                 "max_connections = "
                 "${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
                 "rp_prg_pool = 0\n"
-                "backlog_queue = 1\n"
-                "try_lock_send = 1\n"
+                "backlog_queue = 0\n"
+                "try_lock_send = 0\n"
                 "prg_thread_core = -1\n";
         }
     };
