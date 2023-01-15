@@ -90,12 +90,11 @@ namespace hpx::parcelset::policies::lci {
             header_ = header(buffer_, header_buffer, max_header_size);
 
             // calculate the exact number of long messages to send
-            HPX_ASSERT(num_zero_copy_chunks != 0);
             int long_msg_num = num_zero_copy_chunks;
             if (!header_.piggy_back_data())
                 ++long_msg_num;
             // transmission chunks
-            if (!header_.piggy_back_tchunk())
+            if (num_zero_copy_chunks != 0 && !header_.piggy_back_tchunk())
                 ++long_msg_num;
 
             // initialize iovec
@@ -114,33 +113,36 @@ namespace hpx::parcelset::policies::lci {
                 iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
                 ++i;
             }
-            // transmission chunk
-            if (!header_.piggy_back_tchunk())
+            if (num_zero_copy_chunks != 0)
             {
-                std::vector<
-                    typename parcel_buffer_type::transmission_chunk_type>&
-                    tchunks = buffer_.transmission_chunks_;
-                int tchunks_length = static_cast<int>(tchunks.size() *
-                    sizeof(parcel_buffer_type::transmission_chunk_type));
-                iovec.lbuffers[i].address = tchunks.data();
-                iovec.lbuffers[i].length = tchunks_length;
-                // TODO: register the buffer here
-                iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
-                ++i;
-            }
-            // zero-copy chunks
-            for (int j = 0; j < (int) buffer_.chunks_.size(); ++j)
-            {
-                serialization::serialization_chunk& c = buffer_.chunks_[j];
-                if (c.type_ ==
-                    serialization::chunk_type::chunk_type_pointer)
+                // transmission chunk
+                if (!header_.piggy_back_tchunk())
                 {
-                    HPX_ASSERT(long_msg_num > i);
-                    iovec.lbuffers[i].address =
-                        const_cast<void*>(c.data_.cpos_);
-                    iovec.lbuffers[i].length = c.size_;
+                    std::vector<
+                        typename parcel_buffer_type::transmission_chunk_type>&
+                        tchunks = buffer_.transmission_chunks_;
+                    int tchunks_length = static_cast<int>(tchunks.size() *
+                        sizeof(parcel_buffer_type::transmission_chunk_type));
+                    iovec.lbuffers[i].address = tchunks.data();
+                    iovec.lbuffers[i].length = tchunks_length;
+                    // TODO: register the buffer here
                     iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
                     ++i;
+                }
+                // zero-copy chunks
+                for (int j = 0; j < (int) buffer_.chunks_.size(); ++j)
+                {
+                    serialization::serialization_chunk& c = buffer_.chunks_[j];
+                    if (c.type_ ==
+                        serialization::chunk_type::chunk_type_pointer)
+                    {
+                        HPX_ASSERT(long_msg_num > i);
+                        iovec.lbuffers[i].address =
+                            const_cast<void*>(c.data_.cpos_);
+                        iovec.lbuffers[i].length = c.size_;
+                        iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
+                        ++i;
+                    }
                 }
             }
             HPX_ASSERT(long_msg_num == i);
