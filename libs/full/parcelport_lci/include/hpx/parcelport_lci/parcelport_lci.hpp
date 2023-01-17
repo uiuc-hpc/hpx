@@ -84,8 +84,10 @@ namespace hpx::parcelset {
 
             bool can_send_immediate();
 
+            static bool enable_send_immediate;
             static bool enable_lci_progress_pool;
             static bool enable_lci_backlog_queue;
+            static bool enable_background_only_scheduler;
 
             static bool is_sending_early_parcel;
 
@@ -96,7 +98,6 @@ namespace hpx::parcelset {
 
             sender sender_;
             receiver<parcelport> receiver_;
-            bool can_send_immediate_flag;
 
             void io_service_work();
 
@@ -131,6 +132,17 @@ namespace hpx::traits {
             cfg.num_localities_ =
                 static_cast<std::size_t>(util::lci_environment::size());
             cfg.node_ = static_cast<std::size_t>(util::lci_environment::rank());
+            if (parcelset::connection_handler_traits<hpx::parcelset::policies::lci::parcelport>::send_immediate_parcels::value)
+            {
+                // The default value here does not matter here
+                // the key "hpx.parcel.lci.sendimm" is guaranteed to exist
+                hpx::parcelset::policies::lci::parcelport::
+                    enable_send_immediate = hpx::util::get_entry_as<bool>(
+                        cfg.rtcfg_, "hpx.parcel.lci.sendimm", false /* Does not matter*/);
+            } else {
+                hpx::parcelset::policies::lci::parcelport::
+                    enable_send_immediate = false;
+            }
             hpx::parcelset::policies::lci::parcelport::
                 enable_lci_progress_pool = hpx::util::get_entry_as<bool>(
                     cfg.rtcfg_, "hpx.parcel.lci.rp_prg_pool",
@@ -139,6 +151,16 @@ namespace hpx::traits {
                 enable_lci_backlog_queue = hpx::util::get_entry_as<bool>(
                     cfg.rtcfg_, "hpx.parcel.lci.backlog_queue",
                     false /* Does not matter*/);
+            hpx::parcelset::policies::lci::parcelport::
+                enable_background_only_scheduler = hpx::util::get_entry_as<bool>(
+                    cfg.rtcfg_, "hpx.parcel.background_only_scheduler",
+                    false /* Does not matter*/);
+            if (!hpx::parcelset::policies::lci::parcelport::
+                    enable_send_immediate &&
+                hpx::parcelset::policies::lci::parcelport::
+                    enable_lci_backlog_queue) {
+                throw std::runtime_error("Backlog queue must be used with send_immediate enabled");
+            }
         }
 
         // TODO: implement creation of custom thread pool here
@@ -148,9 +170,16 @@ namespace hpx::traits {
                 hpx::parcelset::policies::lci::parcelport::
                     enable_lci_progress_pool)
             {
-                rp.create_thread_pool("lci-progress-pool",
-                    hpx::resource::scheduling_policy::local,
-                    hpx::threads::policies::scheduler_mode::do_background_work);
+                if (hpx::parcelset::policies::lci::parcelport::
+                        enable_background_only_scheduler) {
+                    rp.create_thread_pool("lci-progress-pool",
+                        hpx::resource::scheduling_policy::static_,
+                        hpx::threads::policies::scheduler_mode::do_background_work_only);
+                } else {
+                    rp.create_thread_pool("lci-progress-pool",
+                        hpx::resource::scheduling_policy::local,
+                        hpx::threads::policies::scheduler_mode::do_background_work);
+                }
                 rp.add_resource(rp.numa_domains()[0].cores()[0].pus()[0],
                     "lci-progress-pool");
             }
@@ -179,7 +208,7 @@ namespace hpx::traits {
                 "${HPX_HAVE_PARCELPORT_LCI_MAX_CONNECTIONS:8192}\n"
                 "rp_prg_pool = 0\n"
                 "backlog_queue = 0\n"
-                "try_lock_send = 0\n"
+                "background_only_scheduler = 0\n"
                 "prg_thread_core = -1\n";
         }
     };

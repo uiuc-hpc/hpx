@@ -42,14 +42,6 @@ namespace hpx::parcelset {
               , stopped_(false)
               , receiver_(*this)
             {
-                can_send_immediate_flag = false;
-                if (connection_handler_traits<hpx::parcelset::policies::lci::parcelport>::send_immediate_parcels::value)
-                {
-                    // The default value here does not matter here
-                    // the key "hpx.parcel.lci.sendimm" is guaranteed to exist
-                    can_send_immediate_flag = hpx::util::get_entry_as<bool>(
-                        ini, "hpx.parcel.lci.sendimm", false /* Does not matter*/);
-                }
             }
 
             parcelport::~parcelport()
@@ -187,7 +179,8 @@ namespace hpx::parcelset {
 
             bool parcelport::can_send_immediate()
             {
-                return can_send_immediate_flag;
+                return hpx::parcelset::policies::lci::parcelport::
+                    enable_send_immediate;
             }
 
             void parcelport::io_service_work()
@@ -228,8 +221,10 @@ namespace hpx::parcelset {
                     hpx::report_error(exception);
                 }
             }
+        bool parcelport::enable_send_immediate = false;
         bool parcelport::enable_lci_progress_pool = false;
         bool parcelport::enable_lci_backlog_queue = false;
+        bool parcelport::enable_background_only_scheduler = false;
         bool parcelport::is_sending_early_parcel = false;
     }    // namespace policies::lci
 }    // namespace hpx::parcelset

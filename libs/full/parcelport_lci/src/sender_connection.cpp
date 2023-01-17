@@ -83,7 +83,9 @@ namespace hpx::parcelset::policies::lci {
             HPX_ASSERT(mbuffer.length == (size_t) LCI_MEDIUM_SIZE);
             header_ = header(buffer_, (char*) mbuffer.address, mbuffer.length);
             mbuffer.length = header_.size();
-            done();
+            if (hpx::parcelset::policies::lci::parcelport::
+                    enable_send_immediate)
+                done();
         } else {
             size_t max_header_size =
                 LCI_get_iovec_piggy_back_size(num_zero_copy_chunks + 2);
@@ -167,6 +169,9 @@ namespace hpx::parcelset::policies::lci {
                     data_point_.time_;
                 pp_->add_sent_data(data_point_);
 #endif
+                if (!hpx::parcelset::policies::lci::parcelport::
+                        enable_send_immediate)
+                    done();
             }
         }
         else
