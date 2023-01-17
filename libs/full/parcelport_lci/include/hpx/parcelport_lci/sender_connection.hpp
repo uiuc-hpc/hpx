@@ -78,6 +78,9 @@ namespace hpx::parcelset::policies::lci {
         std::shared_ptr<sender_connection> *sharedPtr_p; // for LCI_putva
         parcelset::parcelport* pp_;
         parcelset::locality there_;
+#if defined(HPX_HAVE_PARCELPORT_COUNTERS)
+        parcelset::data_point data_point_;
+#endif
     };
 }    // namespace hpx::parcelset::policies::lci
 

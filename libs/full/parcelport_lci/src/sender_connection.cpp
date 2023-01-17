@@ -62,7 +62,8 @@ namespace hpx::parcelset::policies::lci {
         sender_connection::postprocess_handler_type&& parcel_postprocess)
     {
 #if defined(HPX_HAVE_PARCELPORT_COUNTERS)
-        buffer_.data_point_.time_ = hpx::chrono::high_resolution_clock::now();
+        data_point_ = buffer_.data_point_;
+        data_point_.time_ = hpx::chrono::high_resolution_clock::now();
 #endif
 
         HPX_ASSERT(!handler_);
@@ -125,7 +126,6 @@ namespace hpx::parcelset::policies::lci {
                         sizeof(parcel_buffer_type::transmission_chunk_type));
                     iovec.lbuffers[i].address = tchunks.data();
                     iovec.lbuffers[i].length = tchunks_length;
-                    // TODO: register the buffer here
                     iovec.lbuffers[i].segment = LCI_SEGMENT_ALL;
                     ++i;
                 }
@@ -160,13 +160,14 @@ namespace hpx::parcelset::policies::lci {
         {
             ret = LCI_putmna(util::lci_environment::get_endpoint(),
                 mbuffer, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
-//            if (ret == LCI_OK)
-//            {
-//                // no need to free mbuffer here.
-//                // LCI_putmna will free it for us.
-//                if (callDone)
-//                    done();
-//            }
+            if (ret == LCI_OK)
+            {
+#if defined(HPX_HAVE_PARCELPORT_COUNTERS)
+                data_point_.time_ = hpx::chrono::high_resolution_clock::now() -
+                    data_point_.time_;
+                pp_->add_sent_data(data_point_);
+#endif
+            }
         }
         else
         {
@@ -196,15 +197,15 @@ namespace hpx::parcelset::policies::lci {
         {
             HPX_ASSERT(iovec.count > 0);
             free(iovec.lbuffers);
+#if defined(HPX_HAVE_PARCELPORT_COUNTERS)
+            data_point_.time_ = hpx::chrono::high_resolution_clock::now() -
+                data_point_.time_;
+            pp_->add_sent_data(data_point_);
+#endif
         }
         error_code ec;
         handler_(ec);
         handler_.reset();
-#if defined(HPX_HAVE_PARCELPORT_COUNTERS)
-        buffer_.data_point_.time_ = hpx::chrono::high_resolution_clock::now() -
-            buffer_.data_point_.time_;
-        pp_->add_sent_data(buffer_.data_point_);
-#endif
         buffer_.clear();
 
         if (postprocess_handler_)
