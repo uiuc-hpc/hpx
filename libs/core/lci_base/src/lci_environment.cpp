@@ -99,13 +99,18 @@ namespace hpx { namespace util {
 
     lci_environment::mutex_type lci_environment::mtx_;
     bool lci_environment::enabled_ = false;
-    LCI_endpoint_t lci_environment::ep;
+    LCI_device_t lci_environment::device_eager;
+    LCI_device_t lci_environment::device_iovec;
+    LCI_endpoint_t lci_environment::ep_eager;
+    LCI_endpoint_t lci_environment::ep_iovec;
     LCI_comp_t lci_environment::scq;
     LCI_comp_t lci_environment::rcq;
     // We need this progress thread to send early parcels
-    std::unique_ptr<std::thread> lci_environment::prg_thread_p = nullptr;
+    std::unique_ptr<std::thread> lci_environment::prg_thread_eager_p = nullptr;
+    std::unique_ptr<std::thread> lci_environment::prg_thread_iovec_p = nullptr;
     std::atomic<bool> lci_environment::prg_thread_flag = false;
     hpx::spinlock prg_thread_mtx;
+    bool lci_environment::use_two_device = false;
 
     ///////////////////////////////////////////////////////////////////////////
     void set_affinity(pthread_t pthread_handler, size_t target)
@@ -122,6 +127,7 @@ namespace hpx { namespace util {
 
     LCI_error_t lci_environment::init_lci(util::runtime_configuration& rtcfg)
     {
+        use_two_device = get_entry_as(rtcfg, "hpx.parcel.lci.use_two_device", false);
         int lci_initialized = 0;
         LCI_initialized(&lci_initialized);
         if (!lci_initialized)
@@ -132,24 +138,36 @@ namespace hpx { namespace util {
         }
 
         // create ep, scq, rcq
-        LCI_queue_create(LCI_UR_DEVICE, &scq);
-        LCI_queue_create(LCI_UR_DEVICE, &rcq);
+        device_eager = LCI_UR_DEVICE;
+        if (use_two_device)
+            LCI_device_init(&device_iovec);
+        else
+            device_iovec = LCI_UR_DEVICE;
+        LCI_queue_create(LCI_UR_DEVICE /* no use */, &scq);
+        LCI_queue_create(LCI_UR_DEVICE /* no use */, &rcq);
         LCI_plist_t plist_;
         LCI_plist_create(&plist_);
         LCI_plist_set_default_comp(plist_, rcq);
         LCI_plist_set_comp_type(plist_, LCI_PORT_COMMAND, LCI_COMPLETION_QUEUE);
         LCI_plist_set_comp_type(plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_QUEUE);
-        LCI_endpoint_init(&ep, LCI_UR_DEVICE, plist_);
+        LCI_endpoint_init(&ep_eager, device_eager, plist_);
+        LCI_endpoint_init(&ep_iovec, device_iovec, plist_);
         LCI_plist_free(&plist_);
 
         // create progress thread
         HPX_ASSERT(prg_thread_flag == false);
-        HPX_ASSERT(prg_thread_p == nullptr);
+        HPX_ASSERT(prg_thread_eager_p == nullptr);
+        HPX_ASSERT(prg_thread_iovec_p == nullptr);
         prg_thread_flag = true;
-        prg_thread_p = std::make_unique<std::thread>(progress_fn);
+        prg_thread_eager_p = std::make_unique<std::thread>(progress_fn, get_device_eager());
+        if (use_two_device)
+            prg_thread_iovec_p = std::make_unique<std::thread>(progress_fn, get_device_iovec());
         int target = get_entry_as(rtcfg, "hpx.parcel.lci.prg_thread_core", -1);
-        if (target >= 0)
-            set_affinity(prg_thread_p->native_handle(), target);
+        if (target >= 0) {
+            set_affinity(prg_thread_eager_p->native_handle(), target);
+            if (use_two_device)
+                set_affinity(prg_thread_iovec_p->native_handle(), target + 1);
+        }
         return LCI_OK;
     }
 
@@ -218,9 +236,12 @@ namespace hpx { namespace util {
             {
                 join_prg_thread_if_running();
                 // create ep, scq, rcq
-                LCI_endpoint_free(&ep);
+                LCI_endpoint_free(&ep_iovec);
+                LCI_endpoint_free(&ep_eager);
                 LCI_queue_free(&scq);
                 LCI_queue_free(&rcq);
+                if (use_two_device)
+                    LCI_device_free(&device_iovec);
                 LCI_finalize();
             }
         }
@@ -228,28 +249,32 @@ namespace hpx { namespace util {
 
     void lci_environment::join_prg_thread_if_running()
     {
-        if (prg_thread_p)
+        if (prg_thread_eager_p || prg_thread_iovec_p)
         {
             std::lock_guard<hpx::spinlock> l(prg_thread_mtx);
-            if (prg_thread_p) {
-                prg_thread_flag = false;
-                prg_thread_p->join();
-                prg_thread_p.reset();
+            prg_thread_flag = false;
+            if (prg_thread_eager_p) {
+                prg_thread_eager_p->join();
+                prg_thread_eager_p.reset();
+            }
+            if (prg_thread_iovec_p) {
+                prg_thread_iovec_p->join();
+                prg_thread_iovec_p.reset();
             }
         }
     }
 
-    void lci_environment::progress_fn()
+    void lci_environment::progress_fn(LCI_device_t device)
     {
         while (prg_thread_flag)
         {
-            LCI_progress(LCI_UR_DEVICE);
+            LCI_progress(device);
         }
     }
 
-    bool lci_environment::do_progress()
+    bool lci_environment::do_progress(LCI_device_t device)
     {
-        LCI_error_t ret = LCI_progress(LCI_UR_DEVICE);
+        LCI_error_t ret = LCI_progress(device);
         HPX_ASSERT(ret == LCI_OK || ret == LCI_ERR_RETRY);
         return ret == LCI_OK;
     }
@@ -275,9 +300,24 @@ namespace hpx { namespace util {
         return res;
     }
 
-    LCI_endpoint_t& lci_environment::get_endpoint()
+    LCI_device_t& lci_environment::get_device_eager()
     {
-        return ep;
+        return device_eager;
+    }
+
+    LCI_device_t& lci_environment::get_device_iovec()
+    {
+        return device_iovec;
+    }
+
+    LCI_endpoint_t& lci_environment::get_endpoint_eager()
+    {
+        return ep_eager;
+    }
+
+    LCI_endpoint_t& lci_environment::get_endpoint_iovec()
+    {
+        return ep_iovec;
     }
 
     LCI_comp_t& lci_environment::get_scq()

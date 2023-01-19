@@ -172,16 +172,27 @@ namespace hpx::traits {
             {
                 if (hpx::parcelset::policies::lci::parcelport::
                         enable_background_only_scheduler) {
-                    rp.create_thread_pool("lci-progress-pool",
+                    rp.create_thread_pool("lci-progress-pool-eager",
                         hpx::resource::scheduling_policy::static_,
                         hpx::threads::policies::scheduler_mode::do_background_work_only);
+                    if (util::lci_environment::use_two_device)
+                        rp.create_thread_pool("lci-progress-pool-iovec",
+                            hpx::resource::scheduling_policy::static_,
+                            hpx::threads::policies::scheduler_mode::do_background_work_only);
                 } else {
-                    rp.create_thread_pool("lci-progress-pool",
+                    rp.create_thread_pool("lci-progress-pool-eager",
                         hpx::resource::scheduling_policy::local,
                         hpx::threads::policies::scheduler_mode::do_background_work);
+                    if (util::lci_environment::use_two_device)
+                        rp.create_thread_pool("lci-progress-pool-iovec",
+                            hpx::resource::scheduling_policy::local,
+                            hpx::threads::policies::scheduler_mode::do_background_work);
                 }
                 rp.add_resource(rp.numa_domains()[0].cores()[0].pus()[0],
-                    "lci-progress-pool");
+                    "lci-progress-pool-eager");
+                if (util::lci_environment::use_two_device)
+                    rp.add_resource(rp.numa_domains()[0].cores()[1].pus()[0],
+                        "lci-progress-pool-iovec");
             }
         }
 
@@ -209,6 +220,7 @@ namespace hpx::traits {
                 "rp_prg_pool = 0\n"
                 "backlog_queue = 0\n"
                 "background_only_scheduler = 0\n"
+                "use_two_device = 0\n"
                 "prg_thread_core = -1\n";
         }
     };

@@ -78,7 +78,7 @@ namespace hpx::parcelset::policies::lci {
         is_eager = can_be_eager_message(LCI_MEDIUM_SIZE);
         int num_zero_copy_chunks = static_cast<int>(buffer_.num_chunks_.first);
         if (is_eager) {
-            while (LCI_mbuffer_alloc(LCI_UR_DEVICE, &mbuffer) != LCI_OK)
+            while (LCI_mbuffer_alloc(util::lci_environment::get_device_eager(), &mbuffer) != LCI_OK)
                 continue;
             HPX_ASSERT(mbuffer.length == (size_t) LCI_MEDIUM_SIZE);
             header_ = header(buffer_, (char*) mbuffer.address, mbuffer.length);
@@ -160,7 +160,7 @@ namespace hpx::parcelset::policies::lci {
         int ret;
         if (is_eager)
         {
-            ret = LCI_putmna(util::lci_environment::get_endpoint(),
+            ret = LCI_putmna(util::lci_environment::get_endpoint_eager(),
                 mbuffer, dst_rank, 0, LCI_DEFAULT_COMP_REMOTE);
             if (ret == LCI_OK)
             {
@@ -182,7 +182,7 @@ namespace hpx::parcelset::policies::lci {
             // and pass a pointer to shared_ptr to LCI.
             // We will get this pointer back via the send completion queue
             // after this send completes.
-            ret = LCI_putva(util::lci_environment::get_endpoint(), iovec,
+            ret = LCI_putva(util::lci_environment::get_endpoint_iovec(), iovec,
                 util::lci_environment::get_scq(), dst_rank, 0,
                 LCI_DEFAULT_COMP_REMOTE, sharedPtr_p);
             // After this point, if ret == OK, this object can be shared by

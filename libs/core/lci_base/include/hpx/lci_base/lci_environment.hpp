@@ -33,17 +33,19 @@ namespace hpx { namespace util {
         static void finalize();
 
         static void join_prg_thread_if_running();
-        static void progress_fn();
-        static bool do_progress();
+        static void progress_fn(LCI_device_t device);
+        static bool do_progress(LCI_device_t device);
 
         static bool enabled();
 
         static int rank();
         static int size();
 
-        static LCI_endpoint_t& lci_endpoint();
+        static LCI_device_t& get_device_eager();
+        static LCI_device_t& get_device_iovec();
 
-        static LCI_endpoint_t& get_endpoint();
+        static LCI_endpoint_t& get_endpoint_eager();
+        static LCI_endpoint_t& get_endpoint_iovec();
 
         static LCI_comp_t& get_scq();
 
@@ -75,11 +77,17 @@ namespace hpx { namespace util {
     private:
         static mutex_type mtx_;
         static bool enabled_;
-        static LCI_endpoint_t ep;
+        static LCI_device_t device_eager;
+        static LCI_device_t device_iovec;
+        static LCI_endpoint_t ep_eager;
+        static LCI_endpoint_t ep_iovec;
         static LCI_comp_t scq;
         static LCI_comp_t rcq;
-        static std::unique_ptr<std::thread> prg_thread_p;
+        static std::unique_ptr<std::thread> prg_thread_eager_p;
+        static std::unique_ptr<std::thread> prg_thread_iovec_p;
         static std::atomic<bool> prg_thread_flag;
+    public:
+        static bool use_two_device;
     };
 }}    // namespace hpx::util
 

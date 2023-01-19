@@ -117,23 +117,25 @@ namespace hpx::parcelset {
                 static thread_local int do_lci_progress = -1;
                 if (do_lci_progress == -1)
                 {
+                    do_lci_progress = 0;
                     if (enable_lci_progress_pool &&
                         hpx::threads::get_self_id() !=
-                            hpx::threads::invalid_thread_id &&
-                        hpx::this_thread::get_pool() ==
+                            hpx::threads::invalid_thread_id)
+                    {
+                        if (hpx::this_thread::get_pool() ==
                             &hpx::resource::get_thread_pool(
-                                "lci-progress-pool"))
-                    {
-                        do_lci_progress = 1;
-                    }
-                    else
-                    {
-                        do_lci_progress = 0;
+                                "lci-progress-pool-eager"))
+                            do_lci_progress = 1;
+                        else if (util::lci_environment::use_two_device &&
+                            hpx::this_thread::get_pool() ==
+                            &hpx::resource::get_thread_pool(
+                                "lci-progress-pool-iovec"))
+                            do_lci_progress = 2;
                     }
                 }
 
                 bool has_work = false;
-                if (do_lci_progress)
+                if (do_lci_progress == 1)
                 {
                     util::lci_environment::join_prg_thread_if_running();
                     // magic number
@@ -141,7 +143,25 @@ namespace hpx::parcelset {
                     int idle_loop_count = 0;
                     while (idle_loop_count < max_idle_loop_count)
                     {
-                        while (util::lci_environment::do_progress())
+                        while (util::lci_environment::do_progress(
+                                   util::lci_environment::get_device_eager()))
+                        {
+                            has_work = true;
+                            idle_loop_count = 0;
+                        }
+                        ++idle_loop_count;
+                    }
+                }
+                else if (do_lci_progress == 2)
+                {
+                    util::lci_environment::join_prg_thread_if_running();
+                    // magic number
+                    int max_idle_loop_count = 1000;
+                    int idle_loop_count = 0;
+                    while (idle_loop_count < max_idle_loop_count)
+                    {
+                        while (util::lci_environment::do_progress(
+                                util::lci_environment::get_device_iovec()))
                         {
                             has_work = true;
                             idle_loop_count = 0;
