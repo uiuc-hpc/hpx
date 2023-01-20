@@ -132,17 +132,12 @@ namespace hpx::traits {
             cfg.num_localities_ =
                 static_cast<std::size_t>(util::lci_environment::size());
             cfg.node_ = static_cast<std::size_t>(util::lci_environment::rank());
-            if (parcelset::connection_handler_traits<hpx::parcelset::policies::lci::parcelport>::send_immediate_parcels::value)
-            {
-                // The default value here does not matter here
-                // the key "hpx.parcel.lci.sendimm" is guaranteed to exist
-                hpx::parcelset::policies::lci::parcelport::
-                    enable_send_immediate = hpx::util::get_entry_as<bool>(
-                        cfg.rtcfg_, "hpx.parcel.lci.sendimm", false /* Does not matter*/);
-            } else {
-                hpx::parcelset::policies::lci::parcelport::
-                    enable_send_immediate = false;
-            }
+            // The default value here does not matter here
+            // the key "hpx.parcel.lci.sendimm" is guaranteed to exist
+            hpx::parcelset::policies::lci::parcelport::
+                enable_send_immediate = hpx::util::get_entry_as<bool>(
+                    cfg.rtcfg_, "hpx.parcel.lci.sendimm",
+                    false /* Does not matter*/);
             hpx::parcelset::policies::lci::parcelport::
                 enable_lci_progress_pool = hpx::util::get_entry_as<bool>(
                     cfg.rtcfg_, "hpx.parcel.lci.rp_prg_pool",
@@ -153,13 +148,14 @@ namespace hpx::traits {
                     false /* Does not matter*/);
             hpx::parcelset::policies::lci::parcelport::
                 enable_background_only_scheduler = hpx::util::get_entry_as<bool>(
-                    cfg.rtcfg_, "hpx.parcel.background_only_scheduler",
+                    cfg.rtcfg_, "hpx.parcel.lci.background_only_scheduler",
                     false /* Does not matter*/);
             if (!hpx::parcelset::policies::lci::parcelport::
                     enable_send_immediate &&
                 hpx::parcelset::policies::lci::parcelport::
                     enable_lci_backlog_queue) {
-                throw std::runtime_error("Backlog queue must be used with send_immediate enabled");
+                throw std::runtime_error(
+                    "Backlog queue must be used with send_immediate enabled");
             }
         }
 
