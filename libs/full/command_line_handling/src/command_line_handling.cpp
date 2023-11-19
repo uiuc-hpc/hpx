@@ -374,6 +374,8 @@ namespace hpx::util {
         bool debug_clp = node != std::size_t(-1) && vm.count("hpx:debug-clp");
 
         // create host name mapping
+        [[maybe_unused]] bool const have_tcp =
+            rtcfg_.get_entry("hpx.parcel.tcp.enable", "1") != "0";
         util::map_hostnames mapnames(debug_clp);
 
         if (vm.count("hpx:ifsuffix"))
@@ -484,8 +486,6 @@ namespace hpx::util {
         if (!nodelist.empty())
         {
             using_nodelist = true;
-            bool const have_tcp =
-                rtcfg_.get_entry("hpx.parcel.tcp.enable", "1") != "0";
             ini_config.emplace_back("hpx.nodes!=" +
                 env.init_from_nodelist(nodelist, agas_host, have_tcp));
         }
@@ -716,9 +716,14 @@ namespace hpx::util {
         // handle high-priority threads
         handle_high_priority_threads(vm, ini_config);
 
+#if defined(HPX_HAVE_PARCELPORT_TCP)
         // map host names to ip addresses, if requested
-        hpx_host = mapnames.map(hpx_host, hpx_port);
-        agas_host = mapnames.map(agas_host, agas_port);
+        if (have_tcp)
+        {
+            hpx_host = mapnames.map(hpx_host, hpx_port);
+            agas_host = mapnames.map(agas_host, agas_port);
+        }
+#endif
 
         // sanity checks
         if (rtcfg_.mode_ != hpx::runtime_mode::local && num_localities_ == 1 &&
