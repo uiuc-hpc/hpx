@@ -30,7 +30,8 @@ namespace hpx::parcelset::policies::lci {
         sender_connection_base::handler_type&& handler,
         sender_connection_base::postprocess_handler_type&& parcel_postprocess)
     {
-        LCT_time_t async_write_start_time = util::lci_environment::pcounter_now();
+        LCT_time_t async_write_start_time =
+            util::lci_environment::pcounter_now();
         device_p = &pp_->get_tls_device();
         load(HPX_FORWARD(handler_type, handler),
             HPX_FORWARD(postprocess_handler_type, parcel_postprocess));
@@ -41,8 +42,8 @@ namespace hpx::parcelset::policies::lci {
         }
         else if (ret.status == return_status_t::wait)
         {
-            device_p->completion_manager_p->send
-                ->enqueue_completion(ret.completion);
+            device_p->completion_manager_p->send->enqueue_completion(
+                ret.completion);
         }
         util::lci_environment::pcounter_add(
             util::lci_environment::async_write_timer,
@@ -72,7 +73,9 @@ namespace hpx::parcelset::policies::lci {
                         while (pp_->background_work(
                             -1, parcelport_background_mode_all))
                             continue;
-                        hpx::this_thread::yield();
+                        if (hpx::threads::get_self_id() !=
+                            hpx::threads::invalid_thread_id)
+                            hpx::this_thread::yield();
                     }
                     if (config_t::progress_type ==
                             config_t::progress_type_t::worker ||
@@ -106,7 +109,8 @@ namespace hpx::parcelset::policies::lci {
 
     void sender_connection_base::profile_start_hook(const header& header_)
     {
-        util::lci_environment::pcounter_add(util::lci_environment::send_conn_start, 1);
+        util::lci_environment::pcounter_add(
+            util::lci_environment::send_conn_start, 1);
         if (util::lci_environment::log_level <
             util::lci_environment::log_level_t::profile)
             return;
@@ -138,7 +142,8 @@ namespace hpx::parcelset::policies::lci {
         util::lci_environment::log(util::lci_environment::log_level_t::profile,
             "send", "%d:%lf:send_connection(%p) end\n", LCI_RANK,
             hpx::chrono::high_resolution_clock::now() / 1e9, (void*) this);
-        util::lci_environment::pcounter_add(util::lci_environment::send_conn_end, 1);
+        util::lci_environment::pcounter_add(
+            util::lci_environment::send_conn_end, 1);
     }
 }    // namespace hpx::parcelset::policies::lci
 
