@@ -70,12 +70,12 @@ namespace hpx::parcelset::policies::lci {
                     if (retry_count > retry_max_spin)
                     {
                         retry_count = 0;
-                        while (pp_->background_work(
-                            -1, parcelport_background_mode_all))
-                            continue;
-                        if (hpx::threads::get_self_id() !=
-                            hpx::threads::invalid_thread_id)
-                            hpx::this_thread::yield();
+//                        while (pp_->background_work(
+//                            -1, parcelport_background_mode_all))
+//                            continue;
+//                        if (hpx::threads::get_self_id() !=
+//                            hpx::threads::invalid_thread_id)
+//                            hpx::this_thread::yield();
                     }
                     if (config_t::progress_type ==
                             config_t::progress_type_t::worker ||
