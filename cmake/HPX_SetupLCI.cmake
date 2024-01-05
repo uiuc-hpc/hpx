@@ -80,6 +80,7 @@ macro(hpx_setup_lci)
         # Move LCI target into its own FOLDER
         set_target_properties(LCI PROPERTIES FOLDER "Core/Dependencies")
         add_library(LCI::LCI ALIAS LCI)
+        add_library(LCI::LCT ALIAS LCT)
         set(HPX_CMAKE_ADDITIONAL_MODULE_PATH_BUILD
             "${lci_SOURCE_DIR}/cmake_modules"
             CACHE INTERNAL ""
