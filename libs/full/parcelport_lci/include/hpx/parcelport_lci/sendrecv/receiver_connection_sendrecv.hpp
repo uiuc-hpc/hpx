@@ -76,6 +76,9 @@ namespace hpx::parcelset::policies::lci {
         LCI_segment_t segment_used;
         // for profiling
         LCT_time_t conn_start_time;
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+        uint32_t parcel_checksum;
+#endif
     };
 }    // namespace hpx::parcelset::policies::lci
 

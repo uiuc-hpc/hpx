@@ -43,6 +43,9 @@ namespace hpx::parcelset::policies::lci {
 #endif
         device_p = &pp_->devices[header_.get_device_idx()];
         tag = header_.get_tag();
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+        parcel_checksum = header_.data_checksum();
+#endif
         // decode data
         buffer.data_.allocate(header_.numbytes_nonzero_copy());
         char* piggy_back_data = header_.piggy_back_data();
@@ -56,13 +59,13 @@ namespace hpx::parcelset::policies::lci {
             need_recv_data = true;
         }
         need_recv_tchunks = false;
+        int num_zero_copy_chunks = header_.num_zero_copy_chunks();
+        int num_non_zero_copy_chunks = header_.num_non_zero_copy_chunks();
+        buffer.num_chunks_.first = num_zero_copy_chunks;
+        buffer.num_chunks_.second = num_non_zero_copy_chunks;
         if (header_.num_zero_copy_chunks() != 0)
         {
             // decode transmission chunk
-            int num_zero_copy_chunks = header_.num_zero_copy_chunks();
-            int num_non_zero_copy_chunks = header_.num_non_zero_copy_chunks();
-            buffer.num_chunks_.first = num_zero_copy_chunks;
-            buffer.num_chunks_.second = num_non_zero_copy_chunks;
             auto& tchunks = buffer.transmission_chunks_;
             tchunks.resize(num_zero_copy_chunks + num_non_zero_copy_chunks);
             int tchunks_length = static_cast<int>(tchunks.size() *
@@ -372,6 +375,14 @@ namespace hpx::parcelset::policies::lci {
         if (parcels_.empty())
         {
             // decode and handle received data
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+            uint32_t checksum = get_parcel_checksum(buffer);
+            if (parcel_checksum != checksum)
+            {
+                fprintf(stderr, "%d: Checksum failed! %d != %d\n", LCI_RANK, parcel_checksum, checksum);
+            }
+#endif
+
             HPX_ASSERT(buffer.num_chunks_.first == 0 ||
                 !pp_->allow_zero_copy_receive_optimizations());
             handle_received_parcels(decode_parcels(*pp_, HPX_MOVE(buffer)));

@@ -21,6 +21,31 @@
 #include <utility>
 
 namespace hpx::parcelset::policies::lci {
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+    static inline uint32_t get_buffer_checksum(const char *buffer, size_t length)
+    {
+        uint32_t checksum = 0;
+        char *checksum_p = reinterpret_cast<char*>(&checksum);
+        for (size_t i = 0; i < length; ++i) {
+            checksum_p[i % 4] += buffer[i];
+        }
+        return checksum;
+    }
+
+    template <typename buffer_type, typename ChunkType>
+    static inline uint32_t get_parcel_checksum(parcel_buffer<buffer_type, ChunkType> const& buffer)
+    {
+        uint32_t checksum = 0;
+        checksum += get_buffer_checksum(reinterpret_cast<const char*>(buffer.data_.data()), buffer.data_.size());
+        for (size_t i = 0; i < buffer.num_chunks_.first; ++i) {
+            checksum += get_buffer_checksum(reinterpret_cast<const char*>(buffer.chunks_[i].data()), buffer.chunks_[i].size());
+        }
+        checksum += buffer.num_chunks_.first;
+        checksum += buffer.num_chunks_.second;
+        return checksum;
+    }
+#endif
+
     struct header
     {
         using value_type = int;
@@ -42,11 +67,13 @@ namespace hpx::parcelset::policies::lci {
             pos_numchunks_zero_copy = 6 * sizeof(value_type),
             // non-zero-copy chunk number
             pos_numchunks_nonzero_copy = 7 * sizeof(value_type),
+            // data checksum
+            pos_data_checksum = 8 * sizeof(value_type),
             // whether piggyback data
-            pos_piggy_back_flag_data = 8 * sizeof(value_type),
+            pos_piggy_back_flag_data = 9 * sizeof(value_type),
             // whether piggyback transmission chunk
-            pos_piggy_back_flag_tchunk = 8 * sizeof(value_type) + 1,
-            pos_piggy_back_address = 8 * sizeof(value_type) + 2
+            pos_piggy_back_flag_tchunk = 9 * sizeof(value_type) + 1,
+            pos_piggy_back_address = 9 * sizeof(value_type) + 2
         };
 
         template <typename buffer_type, typename ChunkType>
@@ -104,6 +131,11 @@ namespace hpx::parcelset::policies::lci {
                 static_cast<value_type>(num_non_zero_copy_chunks));
             data_[pos_piggy_back_flag_data] = 0;
             data_[pos_piggy_back_flag_tchunk] = 0;
+
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+            uint32_t checksum = get_parcel_checksum(buffer);
+            set<pos_data_checksum>(checksum);
+#endif
 
             size_t current_header_size = pos_piggy_back_address;
             if (buffer.data_.size() <= (max_header_size - current_header_size))
@@ -210,6 +242,13 @@ namespace hpx::parcelset::policies::lci {
         {
             return get<pos_numchunks_nonzero_copy>();
         }
+
+#ifdef HPX_HAVE_PARCELPORT_LCI_CHECKSUM
+        value_type data_checksum() const noexcept
+        {
+            return get<pos_data_checksum>();
+        }
+#endif
 
         constexpr char* piggy_back_address() noexcept
         {
