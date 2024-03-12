@@ -29,8 +29,17 @@ namespace hpx::parcelset::policies::lci {
             putsendrecv,
         };
         static protocol_t protocol;
-        // which completion mechanism to use
-        static LCI_comp_type_t completion_type;
+        // which completion mechanism to use for header messages
+        enum class comp_type_t
+        {
+            queue,
+            sync,
+            sync_single,
+            sync_single_nolock,
+        };
+        static comp_type_t completion_type_header;
+        // which completion mechanism to use for followup messages
+        static comp_type_t completion_type_followup;
         // how to run LCI_progress
         enum class progress_type_t
         {

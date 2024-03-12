@@ -21,7 +21,8 @@ namespace hpx::parcelset::policies::lci {
     bool config_t::enable_send_immediate;
     bool config_t::enable_lci_backlog_queue;
     config_t::protocol_t config_t::protocol;
-    LCI_comp_type_t config_t::completion_type;
+    config_t::comp_type_t config_t::completion_type_header;
+    config_t::comp_type_t config_t::completion_type_followup;
     config_t::progress_type_t config_t::progress_type;
     int config_t::progress_thread_num;
     int config_t::prepost_recv_num;
@@ -64,18 +65,51 @@ namespace hpx::parcelset::policies::lci {
         // set completion mechanism to use
         std::string completion_str = util::get_entry_as<std::string>(
             rtcfg, "hpx.parcel.lci.comp_type", "");
-        if (completion_str == "queue")
+        if (completion_str != "deprecated")
         {
-            completion_type = LCI_COMPLETION_QUEUE;
+            fprintf(stderr, "hpx.parcel.lci.comp_type is deprecated!\n");
         }
-        else if (completion_str == "sync")
+        // set completion mechanism to use for header messages
+        std::string header_completion_str = util::get_entry_as<std::string>(
+            rtcfg, "hpx.parcel.lci.comp_type_header", "");
+        if (header_completion_str == "queue")
         {
-            completion_type = LCI_COMPLETION_SYNC;
+            completion_type_header = comp_type_t::queue;
+        }
+        else if (header_completion_str == "sync")
+        {
+            completion_type_header = comp_type_t::sync;
+        }
+        else if (header_completion_str == "sync_single")
+        {
+            completion_type_header = comp_type_t::sync_single;
+        }
+        else if (header_completion_str == "sync_single_nolock")
+        {
+            completion_type_header = comp_type_t::sync_single_nolock;
         }
         else
         {
             throw std::runtime_error(
-                "Unknown completion type " + completion_str);
+                "Unknown completion type for header messages" +
+                header_completion_str);
+        }
+        // set completion mechanism to use for follow-up messages
+        std::string followup_completion_str = util::get_entry_as<std::string>(
+            rtcfg, "hpx.parcel.lci.comp_type_followup", "");
+        if (followup_completion_str == "queue")
+        {
+            completion_type_followup = comp_type_t::queue;
+        }
+        else if (followup_completion_str == "sync")
+        {
+            completion_type_followup = comp_type_t::sync;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "Unknown completion type for followup messages " +
+                followup_completion_str);
         }
         // set the way to run LCI_progress
         std::string progress_type_str = util::get_entry_as<std::string>(
@@ -147,8 +181,30 @@ namespace hpx::parcelset::policies::lci {
             fprintf(stderr,
                 "WARNING: the number of completion managers (%d) "
                 "cannot exceed the number of devices (%d). "
-                "ncomps is adjusted accordingly (%d).",
+                "ncomps is adjusted accordingly (%d).\n",
                 old_ncomps, ndevices, ncomps);
+        }
+        if (protocol != protocol_t::sendrecv &&
+            completion_type_header != comp_type_t::queue)
+        {
+            fprintf(stderr,
+                "WARNING: we have to use completion type `queue` "
+                "for putsendrecv/putva protocol. comp_type_header "
+                "is adjusted accordingly\n");
+            completion_type_header = comp_type_t::queue;
+        }
+        if (protocol == protocol_t::sendrecv &&
+            (prepost_recv_num > 1 || ndevices > ncomps) &&
+            !(completion_type_header == comp_type_t::queue ||
+                completion_type_header == comp_type_t::sync))
+        {
+            fprintf(stderr,
+                "WARNING: we have to use completion type `queue` "
+                "or `sync` for sendrecv protocol with more than "
+                "one preposted recvs or devices sharing completion"
+                "managers. comp_type_header "
+                "is adjusted accordingly\n");
+            completion_type_header = comp_type_t::queue;
         }
     }
 }    // namespace hpx::parcelset::policies::lci

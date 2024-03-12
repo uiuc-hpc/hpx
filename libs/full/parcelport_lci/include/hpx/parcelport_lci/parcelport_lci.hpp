@@ -261,7 +261,8 @@ namespace hpx::traits {
                 "backlog_queue = 0\n"
                 "prg_thread_num = 1\n"
                 "protocol = putsendrecv\n"
-                "comp_type = queue\n"
+                "comp_type_header = queue\n"
+                "comp_type_followup = queue\n"
                 "progress_type = rp\n"
                 "prepost_recv_num = 1\n"
                 "reg_mem = 1\n"
@@ -269,7 +270,8 @@ namespace hpx::traits {
                 "ncomps = 1\n"
                 "enable_in_buffer_assembly = 1\n"
                 "send_nb_max_retry = 32\n"
-                "mbuffer_alloc_max_retry = 32\n";
+                "mbuffer_alloc_max_retry = 32\n"
+                "comp_type = deprecated\n";
         }
     };
 }    // namespace hpx::traits

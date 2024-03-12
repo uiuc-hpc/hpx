@@ -18,6 +18,7 @@
 #include <hpx/parcelport_lci/completion_manager/completion_manager_queue.hpp>
 #include <hpx/parcelport_lci/completion_manager/completion_manager_sync.hpp>
 #include <hpx/parcelport_lci/completion_manager/completion_manager_sync_single.hpp>
+#include <hpx/parcelport_lci/completion_manager/completion_manager_sync_single_nolock.hpp>
 #include <hpx/parcelport_lci/locality.hpp>
 #include <hpx/parcelport_lci/parcelport_lci.hpp>
 #include <hpx/parcelport_lci/putva/receiver_putva.hpp>
@@ -312,35 +313,36 @@ namespace hpx::parcelset::policies::lci {
         completion_managers.resize(config_t::ncomps);
         for (auto& completion_manager : completion_managers)
         {
-            if (config_t::protocol == config_t::protocol_t::sendrecv &&
-                config_t::completion_type == LCI_COMPLETION_SYNC)
+            switch (config_t::completion_type_header)
             {
-                if (config_t::prepost_recv_num == 1 &&
-                    config_t::ndevices == config_t::ncomps)
-                {
-                    completion_manager.recv_new =
-                        std::make_shared<completion_manager_sync_single>();
-                }
-                else
-                {
-                    completion_manager.recv_new =
-                        std::make_shared<completion_manager_sync>();
-                }
-            }
-            else
-            {
+            case config_t::comp_type_t::queue:
                 completion_manager.recv_new =
                     std::make_shared<completion_manager_queue>();
+                break;
+            case config_t::comp_type_t::sync:
+                completion_manager.recv_new =
+                    std::make_shared<completion_manager_sync>();
+                break;
+            case config_t::comp_type_t::sync_single:
+                completion_manager.recv_new =
+                    std::make_shared<completion_manager_sync_single>();
+                break;
+            case config_t::comp_type_t::sync_single_nolock:
+                completion_manager.recv_new =
+                    std::make_shared<completion_manager_sync_single_nolock>();
+                break;
+            default:
+                throw std::runtime_error("Unknown completion type!");
             }
-            switch (config_t::completion_type)
+            switch (config_t::completion_type_followup)
             {
-            case LCI_COMPLETION_QUEUE:
+            case config_t::comp_type_t::queue:
                 completion_manager.send =
                     std::make_shared<completion_manager_queue>();
                 completion_manager.recv_followup =
                     std::make_shared<completion_manager_queue>();
                 break;
-            case LCI_COMPLETION_SYNC:
+            case config_t::comp_type_t::sync:
                 completion_manager.send =
                     std::make_shared<completion_manager_sync>();
                 completion_manager.recv_followup =
@@ -371,21 +373,40 @@ namespace hpx::parcelset::policies::lci {
             // Create the LCI endpoint
             LCI_plist_t plist_;
             LCI_plist_create(&plist_);
-            LCI_plist_set_comp_type(
-                plist_, LCI_PORT_COMMAND, config_t::completion_type);
-            LCI_plist_set_comp_type(
-                plist_, LCI_PORT_MESSAGE, config_t::completion_type);
+            switch (config_t::completion_type_followup)
+            {
+            case config_t::comp_type_t::queue:
+                LCI_plist_set_comp_type(
+                    plist_, LCI_PORT_COMMAND, LCI_COMPLETION_QUEUE);
+                LCI_plist_set_comp_type(
+                    plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_QUEUE);
+                break;
+            case config_t::comp_type_t::sync:
+                LCI_plist_set_comp_type(
+                    plist_, LCI_PORT_COMMAND, LCI_COMPLETION_SYNC);
+                LCI_plist_set_comp_type(
+                    plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_SYNC);
+                break;
+            default:
+                throw std::runtime_error("Unknown completion type!");
+            }
             LCI_endpoint_init(&device.endpoint_followup, device.device, plist_);
             LCI_plist_set_default_comp(plist_,
                 device.completion_manager_p->recv_new->get_completion_object());
-            if (config_t::protocol == config_t::protocol_t::sendrecv &&
-                config_t::completion_type == LCI_COMPLETION_SYNC)
-                LCI_plist_set_comp_type(
-                    plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_SYNC);
-            else
+            switch (config_t::completion_type_header)
             {
+            case config_t::comp_type_t::queue:
                 LCI_plist_set_comp_type(
                     plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_QUEUE);
+                break;
+            case config_t::comp_type_t::sync:
+            case config_t::comp_type_t::sync_single:
+            case config_t::comp_type_t::sync_single_nolock:
+                LCI_plist_set_comp_type(
+                    plist_, LCI_PORT_MESSAGE, LCI_COMPLETION_SYNC);
+                break;
+            default:
+                throw std::runtime_error("Unknown completion type!");
             }
             if (config_t::protocol == config_t::protocol_t::sendrecv)
                 LCI_plist_set_match_type(plist_, LCI_MATCH_TAG);
