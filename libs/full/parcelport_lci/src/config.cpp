@@ -32,6 +32,8 @@ namespace hpx::parcelset::policies::lci {
     bool config_t::enable_in_buffer_assembly;
     int config_t::send_nb_max_retry;
     int config_t::mbuffer_alloc_max_retry;
+    int config_t::bg_work_max_count;
+    bool config_t::bg_work_when_send;
 
     void config_t::init_config(util::runtime_configuration const& rtcfg)
     {
@@ -130,27 +132,30 @@ namespace hpx::parcelset::policies::lci {
         {
             progress_type = progress_type_t::pthread_worker;
         }
+        else if (progress_type_str == "poll")
+        {
+            progress_type = progress_type_t::poll;
+        }
         else
         {
             throw std::runtime_error(
                 "Unknown progress type " + progress_type_str);
         }
-        progress_thread_num = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.prg_thread_num", -1 /* Does not matter*/);
-        prepost_recv_num = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.prepost_recv_num", 1 /* Does not matter*/);
-        reg_mem = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.reg_mem", 1 /* Does not matter*/);
-        ndevices = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.ndevices", 1 /* Does not matter*/);
-        ncomps = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.ncomps", 1 /* Does not matter*/);
-        enable_in_buffer_assembly = util::get_entry_as(rtcfg,
-            "hpx.parcel.lci.enable_in_buffer_assembly", 1 /* Does not matter*/);
-        send_nb_max_retry = util::get_entry_as(
-            rtcfg, "hpx.parcel.lci.send_nb_max_retry", 0 /* Does not matter*/);
-        mbuffer_alloc_max_retry = util::get_entry_as(rtcfg,
-            "hpx.parcel.lci.mbuffer_alloc_max_retry", 0 /* Does not matter*/);
+        progress_thread_num =
+            util::get_entry_as(rtcfg, "hpx.parcel.lci.prg_thread_num", -1 /* Does not matter*/);
+        prepost_recv_num =
+            util::get_entry_as(rtcfg, "hpx.parcel.lci.prepost_recv_num", 1 /* Does not matter*/);
+        reg_mem = util::get_entry_as(rtcfg, "hpx.parcel.lci.reg_mem", 1 /* Does not matter*/);
+        ndevices = util::get_entry_as(rtcfg, "hpx.parcel.lci.ndevices", 1 /* Does not matter*/);
+        ncomps = util::get_entry_as(rtcfg, "hpx.parcel.lci.ncomps", 1 /* Does not matter*/);
+        enable_in_buffer_assembly = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.enable_in_buffer_assembly", 1 /* Does not matter*/);
+        send_nb_max_retry = util::get_entry_as(rtcfg, "hpx.parcel.lci.send_nb_max_retry", 0 /* Does not matter*/);
+        mbuffer_alloc_max_retry = util::get_entry_as(rtcfg, "hpx.parcel.lci.mbuffer_alloc_max_retry", 0 /* Does not matter*/);
+        bg_work_max_count = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.bg_work_max_count", 0 /* Does not matter*/);
+        bg_work_when_send = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.bg_work_when_send", 0 /* Does not matter*/);
 
         if (!enable_send_immediate && enable_lci_backlog_queue)
         {

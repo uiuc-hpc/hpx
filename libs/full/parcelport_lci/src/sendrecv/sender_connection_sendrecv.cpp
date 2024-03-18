@@ -50,7 +50,11 @@ namespace hpx::parcelset::policies::lci {
             int retry_count = 0;
             while (
                 LCI_mbuffer_alloc(device_p->device, &header_buffer) != LCI_OK)
+            {
+                if (config_t::bg_work_when_send)
+                    pp_->do_background_work(0, parcelport_background_mode::all);
                 yield_k(retry_count, config_t::mbuffer_alloc_max_retry);
+            }
             HPX_ASSERT(header_buffer.length == (size_t) LCI_MEDIUM_SIZE);
             header_ = header(
                 buffer_, (char*) header_buffer.address, header_buffer.length);
@@ -104,7 +108,11 @@ namespace hpx::parcelset::policies::lci {
             int retry_count = 0;
             while (
                 LCI_mbuffer_alloc(device_p->device, &header_buffer) != LCI_OK)
+            {
+                if (config_t::bg_work_when_send)
+                    pp_->do_background_work(0, parcelport_background_mode::all);
                 yield_k(retry_count, config_t::mbuffer_alloc_max_retry);
+            }
             memcpy(header_buffer.address, header_buffer_vector.data(),
                 header_buffer_vector.size());
             header_buffer.length = header_buffer_vector.size();

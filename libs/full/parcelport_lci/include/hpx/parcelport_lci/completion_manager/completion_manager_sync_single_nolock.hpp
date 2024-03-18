@@ -16,7 +16,8 @@ namespace hpx::parcelset::policies::lci {
     struct completion_manager_sync_single_nolock
       : public completion_manager_base
     {
-        completion_manager_sync_single_nolock()
+        completion_manager_sync_single_nolock(parcelport* pp)
+          : completion_manager_base(pp)
         {
             LCI_sync_create(LCI_UR_DEVICE, 1, &sync);
         }
@@ -36,14 +37,7 @@ namespace hpx::parcelset::policies::lci {
             HPX_UNUSED(comp);
         }
 
-        LCI_request_t poll()
-        {
-            LCI_request_t request;
-            request.flag = LCI_ERR_RETRY;
-
-            LCI_sync_test(sync, &request);
-            return request;
-        }
+        LCI_request_t poll();
 
     private:
         LCI_comp_t sync;

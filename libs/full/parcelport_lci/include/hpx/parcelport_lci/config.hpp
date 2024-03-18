@@ -47,6 +47,7 @@ namespace hpx::parcelset::policies::lci {
             pthread,           // Normal progress pthread
             worker,            // HPX worker thread
             pthread_worker,    // Normal progress pthread + worker thread
+            poll,              // progress when polling completion
         };
         static progress_type_t progress_type;
         // How many progress threads to create
@@ -66,6 +67,10 @@ namespace hpx::parcelset::policies::lci {
         static int send_nb_max_retry;
         // The max retry count of mbuffer_alloc before yield.
         static int mbuffer_alloc_max_retry;
+        // The max count of background_work to invoke in a row
+        static int bg_work_max_count;
+        // Whether to do background work when sending
+        static bool bg_work_when_send;
 
         static void init_config(util::runtime_configuration const& rtcfg);
     };

@@ -73,7 +73,7 @@ namespace hpx::parcelset::policies::lci {
             postprocess_handler_type&& parcel_postprocess);
         virtual void load(handler_type&& handler,
             postprocess_handler_type&& parcel_postprocess) = 0;
-        return_t send();
+        return_t send(bool in_bg_work);
         virtual return_t send_nb() = 0;
         virtual void done() = 0;
         virtual bool tryMerge(

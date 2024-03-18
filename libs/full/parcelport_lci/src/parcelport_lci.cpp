@@ -198,7 +198,13 @@ namespace hpx::parcelset::policies::lci {
         }
         else
         {
-            has_work = base_type::do_background_work(num_thread, mode);
+            for (int i = 0; i < config_t::bg_work_max_count; ++i)
+            {
+                bool ret = base_type::do_background_work(num_thread, mode);
+                has_work = ret || has_work;
+                if (!ret)
+                    break;
+            }
         }
         return has_work;
     }
@@ -210,13 +216,19 @@ namespace hpx::parcelset::policies::lci {
             return false;
 
         bool has_work = false;
+        if (config_t::progress_type == config_t::progress_type_t::worker ||
+            config_t::progress_type ==
+                config_t::progress_type_t::pthread_worker)
+        {
+            has_work = do_progress_local() || has_work;
+        }
+        if (mode & parcelport_background_mode::receive)
+        {
+            has_work = receiver_p->background_work() || has_work;
+        }
         if (mode & parcelport_background_mode::send)
         {
-            has_work = sender_p->background_work(num_thread);
-            if (config_t::progress_type == config_t::progress_type_t::worker ||
-                config_t::progress_type ==
-                    config_t::progress_type_t::pthread_worker)
-                do_progress_local();
+            has_work = sender_p->background_work(num_thread) || has_work;
             if (config_t::enable_lci_backlog_queue)
                 // try to send pending messages
                 has_work =
@@ -224,14 +236,6 @@ namespace hpx::parcelset::policies::lci {
                         get_tls_device().completion_manager_p->send.get(),
                         num_thread) ||
                     has_work;
-        }
-        if (mode & parcelport_background_mode::receive)
-        {
-            has_work = receiver_p->background_work() || has_work;
-            if (config_t::progress_type == config_t::progress_type_t::worker ||
-                config_t::progress_type ==
-                    config_t::progress_type_t::pthread_worker)
-                do_progress_local();
         }
         return has_work;
     }
@@ -317,19 +321,20 @@ namespace hpx::parcelset::policies::lci {
             {
             case config_t::comp_type_t::queue:
                 completion_manager.recv_new =
-                    std::make_shared<completion_manager_queue>();
+                    std::make_shared<completion_manager_queue>(this);
                 break;
             case config_t::comp_type_t::sync:
                 completion_manager.recv_new =
-                    std::make_shared<completion_manager_sync>();
+                    std::make_shared<completion_manager_sync>(this);
                 break;
             case config_t::comp_type_t::sync_single:
                 completion_manager.recv_new =
-                    std::make_shared<completion_manager_sync_single>();
+                    std::make_shared<completion_manager_sync_single>(this);
                 break;
             case config_t::comp_type_t::sync_single_nolock:
                 completion_manager.recv_new =
-                    std::make_shared<completion_manager_sync_single_nolock>();
+                    std::make_shared<completion_manager_sync_single_nolock>(
+                        this);
                 break;
             default:
                 throw std::runtime_error("Unknown completion type!");
@@ -338,15 +343,15 @@ namespace hpx::parcelset::policies::lci {
             {
             case config_t::comp_type_t::queue:
                 completion_manager.send =
-                    std::make_shared<completion_manager_queue>();
+                    std::make_shared<completion_manager_queue>(this);
                 completion_manager.recv_followup =
-                    std::make_shared<completion_manager_queue>();
+                    std::make_shared<completion_manager_queue>(this);
                 break;
             case config_t::comp_type_t::sync:
                 completion_manager.send =
-                    std::make_shared<completion_manager_sync>();
+                    std::make_shared<completion_manager_sync>(this);
                 completion_manager.recv_followup =
-                    std::make_shared<completion_manager_sync>();
+                    std::make_shared<completion_manager_sync>(this);
                 break;
             default:
                 throw std::runtime_error("Unknown completion type!");

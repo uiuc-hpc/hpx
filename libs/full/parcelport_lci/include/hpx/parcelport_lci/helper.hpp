@@ -19,8 +19,11 @@ namespace hpx::parcelset::policies::lci {
         if (++k >= max_k)
         {
             k = 0;
-            if (hpx::threads::get_self_id() != hpx::threads::invalid_thread_id)
+            if (hpx::threads::get_self_id() !=
+                hpx::threads::invalid_thread_id)
+            {
                 hpx::this_thread::yield();
+            }
         }
     }
 }    // namespace hpx::parcelset::policies::lci

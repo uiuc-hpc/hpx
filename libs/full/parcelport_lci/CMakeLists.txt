@@ -50,6 +50,10 @@ set(parcelport_lci_sources
     sendrecv/sender_connection_sendrecv.cpp
     sendrecv/receiver_sendrecv.cpp
     sendrecv/receiver_connection_sendrecv.cpp
+    completion_manager/completion_manager_queue.cpp
+    completion_manager/completion_manager_sync.cpp
+    completion_manager/completion_manager_sync_single.cpp
+    completion_manager/completion_manager_sync_single_nolock.cpp
 )
 
 include(HPX_SetupLCI)
