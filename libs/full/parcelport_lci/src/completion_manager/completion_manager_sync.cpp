@@ -17,8 +17,6 @@ namespace hpx::parcelset::policies::lci {
                 LCI_comp_t sync = sync_list.front();
                 sync_list.pop_front();
                 LCI_error_t ret = LCI_sync_test(sync, &request);
-                if (config_t::progress_type == config_t::progress_type_t::poll)
-                    pp_->do_progress_local();
                 if (ret == LCI_OK)
                 {
                     HPX_ASSERT(request.flag == LCI_OK);
@@ -26,6 +24,9 @@ namespace hpx::parcelset::policies::lci {
                 }
                 else
                 {
+                    if (config_t::progress_type ==
+                        config_t::progress_type_t::poll)
+                        pp_->do_progress_local();
                     sync_list.push_back(sync);
                 }
             }

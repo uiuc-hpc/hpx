@@ -11,10 +11,10 @@ namespace hpx::parcelset::policies::lci {
         if (succeed)
         {
             LCI_error_t ret = LCI_sync_test(sync, &request);
-            if (config_t::progress_type == config_t::progress_type_t::poll)
-                pp_->do_progress_local();
             if (ret == LCI_ERR_RETRY)
             {
+                if (config_t::progress_type == config_t::progress_type_t::poll)
+                    pp_->do_progress_local();
                 lock.unlock();
             }
         }
