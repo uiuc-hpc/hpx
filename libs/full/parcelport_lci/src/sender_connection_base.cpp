@@ -79,7 +79,9 @@ namespace hpx::parcelset::policies::lci {
                     else if (config_t::progress_type ==
                             config_t::progress_type_t::worker ||
                         config_t::progress_type ==
-                            config_t::progress_type_t::pthread_worker)
+                            config_t::progress_type_t::pthread_worker ||
+                        config_t::progress_type ==
+                            config_t::progress_type_t::poll)
                     {
                         pp_->do_progress_local();
                     }
