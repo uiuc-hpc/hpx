@@ -29,6 +29,8 @@ namespace hpx::parcelset::policies::lci {
             putsendrecv,
         };
         static protocol_t protocol;
+        // Whether sending header requires completion
+        static bool enable_sendmc;
         // which completion mechanism to use for header messages
         enum class comp_type_t
         {

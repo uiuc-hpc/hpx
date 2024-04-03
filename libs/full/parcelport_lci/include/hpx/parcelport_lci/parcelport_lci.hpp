@@ -273,6 +273,7 @@ namespace hpx::traits {
                 "mbuffer_alloc_max_retry = 32\n"
                 "bg_work_max_count = 32\n"
                 "bg_work_when_send = 0\n"
+                "enable_sendmc = 0\n"
                 "comp_type = deprecated\n";
         }
     };

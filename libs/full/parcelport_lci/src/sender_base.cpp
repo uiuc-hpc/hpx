@@ -41,6 +41,7 @@ namespace hpx::parcelset::policies::lci {
             auto useful_bg_start = util::lci_environment::pcounter_now();
             did_some_work = true;
             auto* sharedPtr_p = (connection_ptr*) request.user_context;
+            HPX_ASSERT(sharedPtr_p->get());
             sender_connection_base::return_t ret = (*sharedPtr_p)->send(true);
             if (ret.status == sender_connection_base::return_status_t::done)
             {

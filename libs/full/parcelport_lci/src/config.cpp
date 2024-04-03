@@ -34,6 +34,7 @@ namespace hpx::parcelset::policies::lci {
     int config_t::mbuffer_alloc_max_retry;
     int config_t::bg_work_max_count;
     bool config_t::bg_work_when_send;
+    bool config_t::enable_sendmc;
 
     void config_t::init_config(util::runtime_configuration const& rtcfg)
     {
@@ -156,6 +157,8 @@ namespace hpx::parcelset::policies::lci {
             rtcfg, "hpx.parcel.lci.bg_work_max_count", 0 /* Does not matter*/);
         bg_work_when_send = util::get_entry_as(
             rtcfg, "hpx.parcel.lci.bg_work_when_send", 0 /* Does not matter*/);
+        enable_sendmc = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.enable_sendmc", 0 /* Does not matter*/);
 
         if (!enable_send_immediate && enable_lci_backlog_queue)
         {
