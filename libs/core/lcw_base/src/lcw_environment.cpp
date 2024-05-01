@@ -109,6 +109,49 @@ namespace hpx { namespace util {
     HPX_LCW_PCOUNTER_TREND_FOR_EACH(HPX_LCW_PCOUNTER_HANDLE_DEF)
     HPX_LCW_PCOUNTER_TIMER_FOR_EACH(HPX_LCW_PCOUNTER_HANDLE_DEF)
     ///////////////////////////////////////////////////////////////////////////
+    namespace detail {
+        void* spinlock_hpx_alloc()
+        {
+            auto l = new hpx::spinlock;
+            return reinterpret_cast<void*>(l);
+        }
+
+        void spinlock_hpx_free(void* p)
+        {
+            auto l = reinterpret_cast<hpx::spinlock*>(p);
+            delete l;
+        }
+
+        void spinlock_hpx_lock(void* p)
+        {
+            auto l = reinterpret_cast<hpx::spinlock*>(p);
+            l->lock();
+        }
+
+        bool spinlock_hpx_trylock(void* p)
+        {
+            auto l = reinterpret_cast<hpx::spinlock*>(p);
+            return l->try_lock();
+        }
+
+        void spinlock_hpx_unlock(void* p)
+        {
+            auto l = reinterpret_cast<hpx::spinlock*>(p);
+            l->unlock();
+        }
+
+        lcw::custom_spinlock_op_t get_spinlock_hpx_op()
+        {
+            return {
+                .name = "hpx",
+                .alloc = spinlock_hpx_alloc,
+                .free = spinlock_hpx_free,
+                .lock = spinlock_hpx_lock,
+                .trylock = spinlock_hpx_trylock,
+                .unlock = spinlock_hpx_unlock,
+            };
+        }
+    }    // namespace detail
     void lcw_environment::init(
         int*, char***, util::runtime_configuration& rtcfg)
     {
@@ -117,6 +160,7 @@ namespace hpx { namespace util {
 
         if (!lcw::is_initialized())
         {
+            lcw::custom_spinlock_setup(detail::get_spinlock_hpx_op());
             lcw::initialize();
         }
 
