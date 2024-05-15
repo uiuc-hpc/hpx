@@ -24,6 +24,7 @@ namespace hpx::parcelset::policies::lci {
     config_t::comp_type_t config_t::completion_type_header;
     config_t::comp_type_t config_t::completion_type_followup;
     config_t::progress_type_t config_t::progress_type;
+    bool config_t::global_progress;
     int config_t::progress_thread_num;
     int config_t::prepost_recv_num;
     bool config_t::reg_mem;
@@ -142,6 +143,8 @@ namespace hpx::parcelset::policies::lci {
             throw std::runtime_error(
                 "Unknown progress type " + progress_type_str);
         }
+        global_progress = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.global_progress", -1 /* Does not matter*/);
         progress_thread_num =
             util::get_entry_as(rtcfg, "hpx.parcel.lci.prg_thread_num", -1 /* Does not matter*/);
         prepost_recv_num =

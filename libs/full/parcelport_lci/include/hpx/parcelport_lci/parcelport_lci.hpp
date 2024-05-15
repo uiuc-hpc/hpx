@@ -264,6 +264,7 @@ namespace hpx::traits {
                 "comp_type_header = queue\n"
                 "comp_type_followup = queue\n"
                 "progress_type = rp\n"
+                "global_progress=0\n"
                 "prepost_recv_num = 1\n"
                 "reg_mem = 1\n"
                 "ndevices = 1\n"

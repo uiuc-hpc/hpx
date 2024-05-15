@@ -52,6 +52,8 @@ namespace hpx::parcelset::policies::lci {
             poll,              // progress when polling completion
         };
         static progress_type_t progress_type;
+        // Whether to do global progress
+        static bool global_progress;
         // How many progress threads to create
         static int progress_thread_num;
         // How many pre-posted receives for new messages

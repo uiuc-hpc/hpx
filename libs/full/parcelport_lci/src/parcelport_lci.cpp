@@ -474,8 +474,18 @@ namespace hpx::parcelset::policies::lci {
     bool parcelport::do_progress_local()
     {
         bool ret = false;
-        auto device = get_tls_device();
-        ret = util::lci_environment::do_progress(device.device) || ret;
+        if (config_t::global_progress)
+        {
+            for (auto& device : devices)
+            {
+                ret = util::lci_environment::do_progress(device.device) || ret;
+            }
+        }
+        else
+        {
+            auto device = get_tls_device();
+            ret = util::lci_environment::do_progress(device.device) || ret;
+        }
         return ret;
     }
 
