@@ -135,6 +135,7 @@ namespace hpx::parcelset {
                 completion_manager_t* completion_manager_p;
             };
             std::vector<device_t> devices;
+            std::vector<device_t> fake_devices;
 
             // Parcelport objects
             static std::atomic<bool> prg_thread_flag;
@@ -275,6 +276,7 @@ namespace hpx::traits {
                 "bg_work_max_count = 32\n"
                 "bg_work_when_send = 0\n"
                 "enable_sendmc = 0\n"
+                "ndevices_fake = 0\n"
                 "comp_type = deprecated\n";
         }
     };

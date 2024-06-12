@@ -29,6 +29,7 @@ namespace hpx::parcelset::policies::lci {
     int config_t::prepost_recv_num;
     bool config_t::reg_mem;
     int config_t::ndevices;
+    int config_t::ndevices_fake;
     int config_t::ncomps;
     bool config_t::enable_in_buffer_assembly;
     int config_t::send_nb_max_retry;
@@ -151,6 +152,8 @@ namespace hpx::parcelset::policies::lci {
             util::get_entry_as(rtcfg, "hpx.parcel.lci.prepost_recv_num", 1 /* Does not matter*/);
         reg_mem = util::get_entry_as(rtcfg, "hpx.parcel.lci.reg_mem", 1 /* Does not matter*/);
         ndevices = util::get_entry_as(rtcfg, "hpx.parcel.lci.ndevices", 1 /* Does not matter*/);
+        ndevices_fake = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.ndevices_fake", 1 /* Does not matter*/);
         ncomps = util::get_entry_as(rtcfg, "hpx.parcel.lci.ncomps", 1 /* Does not matter*/);
         enable_in_buffer_assembly = util::get_entry_as(
             rtcfg, "hpx.parcel.lci.enable_in_buffer_assembly", 1 /* Does not matter*/);

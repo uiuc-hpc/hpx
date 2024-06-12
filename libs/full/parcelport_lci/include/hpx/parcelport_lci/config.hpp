@@ -63,6 +63,8 @@ namespace hpx::parcelset::policies::lci {
         static bool reg_mem;
         // How many devices to use
         static int ndevices;
+        // How many fake devices to allocate
+        static int ndevices_fake;
         // How many completion managers to use
         static int ncomps;
         // Whether to enable in-buffer assembly for the header messages.

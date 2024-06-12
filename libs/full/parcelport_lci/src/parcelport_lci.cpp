@@ -418,6 +418,13 @@ namespace hpx::parcelset::policies::lci {
             LCI_endpoint_init(&device.endpoint_new, device.device, plist_);
             LCI_plist_free(&plist_);
         }
+        // Create fake devices
+        fake_devices.resize(config_t::ndevices_fake);
+        for (int i = 0; i < config_t::ndevices_fake; ++i)
+        {
+            auto& device = fake_devices[i];
+            LCI_device_initx(&device.device);
+        }
 
         // Create progress threads
         HPX_ASSERT(prg_thread_flag == false);
@@ -446,6 +453,11 @@ namespace hpx::parcelset::policies::lci {
     void parcelport::cleanup()
     {
         join_prg_thread_if_running();
+        //        // Free fake devices
+        //        for (auto& device : fake_devices)
+        //        {
+        //            LCI_device_free(&device.device);
+        //        }
         // Free devices
         for (auto& device : devices)
         {
