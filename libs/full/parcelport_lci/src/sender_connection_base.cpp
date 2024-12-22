@@ -84,7 +84,8 @@ namespace hpx::parcelset::policies::lci {
                         config_t::progress_type ==
                             config_t::progress_type_t::poll)
                     {
-                        pp_->do_progress_local();
+//                        pp_->do_progress_local();
+                        while (util::lci_environment::do_progress(device_p->device)) continue;
                     }
                     yield_k(retry_count, config_t::send_nb_max_retry);
                 }
