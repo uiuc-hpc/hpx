@@ -50,6 +50,7 @@ namespace hpx::parcelset::policies::lci {
             worker,            // HPX worker thread
             pthread_worker,    // Normal progress pthread + worker thread
             poll,              // progress when polling completion
+            always_poll,       // progress when polling completion
         };
         static progress_type_t progress_type;
         // which device to make progress when a worker thread calls progress
