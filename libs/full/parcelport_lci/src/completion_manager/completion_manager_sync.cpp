@@ -21,22 +21,25 @@ namespace hpx::parcelset::policies::lci {
             {
                 sync = sync_list.front();
                 sync_list.pop_front();
-            }
-        }
-        if (sync)
-        {
-            LCI_error_t ret = LCI_sync_test(sync, &request);
-            if (ret == LCI_OK)
-            {
-                HPX_ASSERT(request.flag == LCI_OK);
-                LCI_sync_free(&sync);
-            }
-            else
-            {
-                if (config_t::progress_type == config_t::progress_type_t::poll)
-                    pp_->do_progress_local();
-                std::unique_lock l(lock);
-                sync_list.push_back(sync);
+                if (sync)
+                {
+                    LCI_error_t ret = LCI_sync_test(sync, &request);
+                    if (config_t::progress_type ==
+                            config_t::progress_type_t::always_poll ||
+                        request.flag == LCI_ERR_RETRY &&
+                            config_t::progress_type ==
+                                config_t::progress_type_t::poll)
+                        pp_->do_progress_local();
+                    if (ret == LCI_OK)
+                    {
+                        HPX_ASSERT(request.flag == LCI_OK);
+                        LCI_sync_free(&sync);
+                    }
+                    else
+                    {
+                        sync_list.push_back(sync);
+                    }
+                }
             }
         }
         return request;

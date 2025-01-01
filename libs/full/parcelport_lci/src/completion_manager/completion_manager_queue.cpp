@@ -13,9 +13,10 @@ namespace hpx::parcelset::policies::lci {
         LCI_request_t request;
         request.flag = LCI_ERR_RETRY;
         LCI_queue_pop(queue, &request);
-        if (request.flag == LCI_ERR_RETRY)
-            if (config_t::progress_type == config_t::progress_type_t::poll)
-                pp_->do_progress_local();
+        if (config_t::progress_type == config_t::progress_type_t::always_poll ||
+            request.flag == LCI_ERR_RETRY &&
+                config_t::progress_type == config_t::progress_type_t::poll)
+            pp_->do_progress_local();
         return request;
     }
 }    // namespace hpx::parcelset::policies::lci

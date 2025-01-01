@@ -138,6 +138,10 @@ namespace hpx::parcelset::policies::lci {
         {
             progress_type = progress_type_t::poll;
         }
+        else if (progress_type_str == "always_poll")
+        {
+            progress_type = progress_type_t::always_poll;
+        }
         else
         {
             throw std::runtime_error(

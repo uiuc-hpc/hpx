@@ -17,12 +17,14 @@ namespace hpx::parcelset::policies::lci {
         if (succeed)
         {
             LCI_error_t ret = LCI_sync_test(sync, &request);
-            if (ret == LCI_ERR_RETRY)
-            {
-                if (config_t::progress_type == config_t::progress_type_t::poll)
-                    pp_->do_progress_local();
+            if (config_t::progress_type ==
+                    config_t::progress_type_t::always_poll ||
+                request.flag == LCI_ERR_RETRY &&
+                    config_t::progress_type == config_t::progress_type_t::poll)
+                pp_->do_progress_local();
+            if (request.flag == LCI_ERR_RETRY)
                 lock.unlock();
-            }
+                // Otherwise we need to lock to be held until the new receive is postec
         }
         return request;
     }

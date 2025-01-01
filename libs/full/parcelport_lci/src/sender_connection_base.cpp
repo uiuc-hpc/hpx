@@ -82,7 +82,9 @@ namespace hpx::parcelset::policies::lci {
                         config_t::progress_type ==
                             config_t::progress_type_t::pthread_worker ||
                         config_t::progress_type ==
-                            config_t::progress_type_t::poll)
+                            config_t::progress_type_t::poll ||
+                        config_t::progress_type ==
+                            config_t::progress_type_t::always_poll)
                     {
 //                        pp_->do_progress_local();
                         while (util::lci_environment::do_progress(device_p->device)) continue;
