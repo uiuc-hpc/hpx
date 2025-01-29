@@ -14,8 +14,8 @@ namespace hpx::parcelset::policies::lci {
         request.flag = LCI_ERR_RETRY;
         LCI_queue_pop(queue, &request);
         if (config_t::progress_type == config_t::progress_type_t::always_poll ||
-            request.flag == LCI_ERR_RETRY &&
-                config_t::progress_type == config_t::progress_type_t::poll)
+            (request.flag == LCI_ERR_RETRY &&
+                config_t::progress_type == config_t::progress_type_t::poll))
             pp_->do_progress_local();
         return request;
     }

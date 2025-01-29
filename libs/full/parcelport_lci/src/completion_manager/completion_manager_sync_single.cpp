@@ -16,11 +16,11 @@ namespace hpx::parcelset::policies::lci {
         bool succeed = lock.try_lock();
         if (succeed)
         {
-            LCI_error_t ret = LCI_sync_test(sync, &request);
+            LCI_sync_test(sync, &request);
             if (config_t::progress_type ==
                     config_t::progress_type_t::always_poll ||
-                request.flag == LCI_ERR_RETRY &&
-                    config_t::progress_type == config_t::progress_type_t::poll)
+                (request.flag == LCI_ERR_RETRY &&
+                    config_t::progress_type == config_t::progress_type_t::poll))
                 pp_->do_progress_local();
             if (request.flag == LCI_ERR_RETRY)
                 lock.unlock();
