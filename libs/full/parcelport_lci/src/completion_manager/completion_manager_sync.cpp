@@ -23,16 +23,15 @@ namespace hpx::parcelset::policies::lci {
                 sync_list.pop_front();
                 if (sync)
                 {
-                    LCI_error_t ret = LCI_sync_test(sync, &request);
+                    LCI_sync_test(sync, &request);
                     if (config_t::progress_type ==
                             config_t::progress_type_t::always_poll ||
-                        request.flag == LCI_ERR_RETRY &&
+                        (request.flag == LCI_ERR_RETRY &&
                             config_t::progress_type ==
-                                config_t::progress_type_t::poll)
+                                config_t::progress_type_t::poll))
                         pp_->do_progress_local();
-                    if (ret == LCI_OK)
+                    if (request.flag == LCI_OK)
                     {
-                        HPX_ASSERT(request.flag == LCI_OK);
                         LCI_sync_free(&sync);
                     }
                     else
