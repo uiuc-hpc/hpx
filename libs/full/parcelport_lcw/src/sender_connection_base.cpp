@@ -108,7 +108,7 @@ namespace hpx::parcelset::policies::lcw {
         char buf[1024];
         size_t consumed = 0;
         consumed += snprintf(buf + consumed, sizeof(buf) - consumed,
-            "%ld:%lf:send_connection(%p) start:%d:%d:%d:%d:[",
+            "%ld:%lf:send_connection(%p) start:%d:%lu:%d:%d:[",
             ::lcw::get_rank(), hpx::chrono::high_resolution_clock::now() / 1e9,
             (void*) this, dst_rank, header_.numbytes_nonzero_copy(),
             header_.numbytes_tchunk(), header_.num_zero_copy_chunks());
