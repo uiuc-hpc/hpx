@@ -260,7 +260,7 @@ namespace hpx::traits {
                 "prg_thread_num = 1\n"
                 "progress_type = worker\n"
                 "progress_strategy = local\n"
-                "ndevices = 16\n"
+                "ndevices = 2\n"
                 "ncomps = 1\n";
         }
     };

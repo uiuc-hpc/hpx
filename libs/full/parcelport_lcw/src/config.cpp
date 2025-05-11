@@ -98,6 +98,16 @@ namespace hpx::parcelset::policies::lcw {
             progress_type = progress_type_t::pthread;
             fprintf(stderr, "WARNING: set progress_type to pthread!\n");
         }
+        if (static_cast<size_t>(ndevices) > num_threads)
+        {
+            int old_ndevices = ndevices;
+            ndevices = static_cast<int>(num_threads);
+            fprintf(stderr,
+                "WARNING: the number of devices (%d) "
+                "cannot exceed the number of threads (%zu). "
+                "ndevices is adjusted accordingly (%d).",
+                old_ndevices, num_threads, ndevices);
+        }
         if (ncomps > ndevices)
         {
             int old_ncomps = ncomps;
