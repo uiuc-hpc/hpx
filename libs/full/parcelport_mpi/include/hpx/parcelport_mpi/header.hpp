@@ -88,10 +88,10 @@ namespace hpx::parcelset::policies::mpi {
             memset(data_, 0, sizeof(header_format_t));
             std::size_t size = buffer.data_.size();
             std::size_t numbytes = buffer.data_size_;
-            HPX_ASSERT(buffer.num_chunks_.first <=
-                (std::numeric_limits<std::uint32_t>::max)());
-            HPX_ASSERT(buffer.num_chunks_.second <=
-                (std::numeric_limits<std::uint32_t>::max)());
+            HPX_ASSERT(
+                buffer.num_chunks_.first <= static_cast<unsigned>((std::numeric_limits<int>::max)()));
+            HPX_ASSERT(
+                buffer.num_chunks_.second <= static_cast<unsigned>((std::numeric_limits<int>::max)()));
             int const num_zero_copy_chunks = buffer.num_chunks_.first;
             int const num_non_zero_copy_chunks = buffer.num_chunks_.second;
 
@@ -120,7 +120,7 @@ namespace hpx::parcelset::policies::mpi {
                     buffer.transmission_chunks_.size() *
                     sizeof(typename parcel_buffer<buffer_type,
                         ChunkType>::transmission_chunk_type);
-                HPX_ASSERT(tchunk_size <= (std::numeric_limits<int>::max)());
+                HPX_ASSERT(tchunk_size <= static_cast<size_t>((std::numeric_limits<int>::max)()));
                 p_format_->numbytes_tchunk = tchunk_size;
                 if (tchunk_size <= max_header_size - current_header_size)
                 {
