@@ -214,14 +214,6 @@ namespace hpx { namespace util {
         return -1;
     }
 
-    bool lci_environment::do_progress(::lci::device_t device)
-    {
-        if (device.is_empty())
-            return false;
-        auto ret = ::lci::progress_x().device(device)();
-        return ret.is_done();
-    }
-
     void lci_environment::log([[maybe_unused]] log_level_t level,
         [[maybe_unused]] const char* tag, [[maybe_unused]] const char* format,
         ...)

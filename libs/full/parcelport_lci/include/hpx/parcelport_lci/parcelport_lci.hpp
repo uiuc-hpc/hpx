@@ -130,6 +130,7 @@ namespace hpx::parcelset {
                 // So we should not have false sharing here.
                 int idx;
                 ::lci::device_t device;
+                ::lci::device_t progress_device;
                 completion_manager_t* completion_manager_p;
             };
             std::vector<device_t> devices;
@@ -146,6 +147,7 @@ namespace hpx::parcelset {
             };
             std::vector<completion_manager_t> completion_managers;
 
+            static bool do_progress(device_t device);
             bool do_progress_local();
             std::size_t get_tls_device_idx();
             device_t& get_tls_device();
@@ -266,6 +268,7 @@ namespace hpx::traits {
                 "progress_strategy = local\n"
                 "prepost_recv_num = 1\n"
                 "ndevices = 2\n"
+                "progress_device = 0\n"
                 "ncomps = 1\n"
                 "enable_in_buffer_assembly = 1\n"
                 "send_nb_max_retry = 32\n"

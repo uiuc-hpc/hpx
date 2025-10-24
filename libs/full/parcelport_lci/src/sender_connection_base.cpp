@@ -76,7 +76,7 @@ namespace hpx::parcelset::policies::lci {
                 {
                     // We will just make progress on this device
                     // instead of progress_local that can be affected by the progress strategy
-                    while (util::lci_environment::do_progress(device_p->device))
+                    while (pp_->do_progress(*device_p))
                         continue;
                 }
                 yield_k(retry_count, config_t::send_nb_max_retry);

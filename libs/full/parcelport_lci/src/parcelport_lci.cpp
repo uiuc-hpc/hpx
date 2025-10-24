@@ -193,7 +193,7 @@ namespace hpx::parcelset::policies::lci {
             {
                 for (auto device_p : devices_to_progress)
                 {
-                    if (util::lci_environment::do_progress(device_p->device))
+                    if (do_progress(*device_p))
                     {
                         has_work = true;
                         idle_loop_count = 0;
@@ -289,7 +289,7 @@ namespace hpx::parcelset::policies::lci {
         {
             for (auto& device : devices)
             {
-                util::lci_environment::do_progress(device.device);
+                do_progress(device);
             }
         }
     }
@@ -396,6 +396,11 @@ namespace hpx::parcelset::policies::lci {
             // Create the LCI device
             device.idx = i;
             device.device = ::lci::alloc_device();
+            device.progress_device = device.device;
+            if (config_t::progress_device)
+            {
+                device.progress_device = ::lci::alloc_device();
+            }
             int comp_idx = i * config_t::ncomps / config_t::ndevices;
             device.completion_manager_p = &completion_managers[comp_idx];
         }
@@ -426,6 +431,10 @@ namespace hpx::parcelset::policies::lci {
         // Free devices
         for (auto& device : devices)
         {
+            if (config_t::progress_device)
+            {
+                ::lci::free_device(&device.progress_device);
+            }
             ::lci::free_device(&device.device);
         }
         ::lci::g_runtime_fina();
@@ -444,6 +453,29 @@ namespace hpx::parcelset::policies::lci {
         }
     }
 
+    bool parcelport::do_progress(device_t device)
+    {
+        // Prioritize progress on progress_device if configured
+        if (config_t::progress_device)
+        {
+            while (
+                ::lci::progress_x().device(device.progress_device)().is_done())
+            {
+                continue;
+            }
+            auto progress_endpoint = ::lci::get_default_endpoint_x().device(
+                device.progress_device)();
+            return ::lci::progress_x()
+                .device(device.device)
+                .endpoint(progress_endpoint)()
+                .is_done();
+        }
+        else
+        {
+            return ::lci::progress_x().device(device.device)().is_done();
+        }
+    }
+
     bool parcelport::do_progress_local()
     {
         bool ret = false;
@@ -451,8 +483,8 @@ namespace hpx::parcelset::policies::lci {
         {
         case config_t::progress_strategy_t::local:
         {
-            auto device = get_tls_device();
-            ret = util::lci_environment::do_progress(device.device) || ret;
+            auto& device = get_tls_device();
+            ret = do_progress(device) || ret;
             break;
         }
         case config_t::progress_strategy_t::global:
@@ -461,15 +493,15 @@ namespace hpx::parcelset::policies::lci {
             for (std::size_t i = 0; i < devices.size(); ++i)
             {
                 auto& device = devices[(start_idx + i) % devices.size()];
-                ret = util::lci_environment::do_progress(device.device) || ret;
+                ret = do_progress(device) || ret;
             }
             break;
         }
         case config_t::progress_strategy_t::random:
         {
             static thread_local unsigned int tls_rand_seed = rand();
-            auto device = devices[rand_r(&tls_rand_seed) % devices.size()];
-            ret = util::lci_environment::do_progress(device.device) || ret;
+            auto& device = devices[rand_r(&tls_rand_seed) % devices.size()];
+            ret = do_progress(device) || ret;
             break;
         }
         default:

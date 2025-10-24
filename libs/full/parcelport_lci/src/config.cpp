@@ -27,6 +27,7 @@ namespace hpx::parcelset::policies::lci {
     int config_t::progress_thread_num;
     int config_t::prepost_recv_num;
     int config_t::ndevices;
+    bool config_t::progress_device;
     int config_t::ncomps;
     bool config_t::enable_in_buffer_assembly;
     int config_t::send_nb_max_retry;
@@ -160,6 +161,8 @@ namespace hpx::parcelset::policies::lci {
             rtcfg, "hpx.parcel.lci.prepost_recv_num", 1 /* Does not matter*/);
         ndevices = util::get_entry_as(
             rtcfg, "hpx.parcel.lci.ndevices", 1 /* Does not matter*/);
+        progress_device = util::get_entry_as(
+            rtcfg, "hpx.parcel.lci.progress_device", 0 /* Does not matter*/);
         ncomps = util::get_entry_as(
             rtcfg, "hpx.parcel.lci.ncomps", 1 /* Does not matter*/);
         enable_in_buffer_assembly = util::get_entry_as(rtcfg,

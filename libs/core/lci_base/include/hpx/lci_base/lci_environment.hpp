@@ -42,9 +42,6 @@ namespace hpx { namespace util {
 
         static int get_max_tag();
 
-        // progress
-        static bool do_progress(::lci::device_t device);
-
         // log
         enum class log_level_t
         {

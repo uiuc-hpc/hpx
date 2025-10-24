@@ -131,6 +131,13 @@ when using the LCI parcelport to get better performance.
    More devices lead to lower thread contention, but too many devices
    may lead to load imbalance or hardware overhead.
 
+.. option:: --hpx:ini=hpx.parcel.lci.progress_device=<0|1>
+
+   When set to 1 every parcelport device creates an additional LCI device
+   dedicated to making progress. The default value is 0. Enabling this option
+   can further reduce contention between communication and progress, at the
+   cost of allocating more network resources.
+
 .. option:: --hpx:ini=hpx.parcel.lci.progress_type=<worker|rp>
 
    The way to progress the LCI device. The default value is ``worker``.
